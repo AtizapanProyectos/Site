@@ -1,0 +1,153 @@
+{% extends "base.html" %}
+
+{% block titulo %} Editar un Centro de Acopio {% endblock %}
+
+{% block encabezado %}
+<center> <h1 class="text-center mb-4" style="color: #000000e5;">Editar un Centro de Acopio</h1>
+<h1 class="text-center mb-4" style="color: #000000e5;">{{nombreedo}}</h1>
+<h1 class="text-center mb-4" style="color: #000000e5;">{{eleccion}}</h1>
+<h1 class="text-center mb-4" style="color: #000000e5;">{{cargo}}</h1>
+<h1 class="text-center mb-4" style="color: #000000e5;">Año: {{anio}}</h1>
+</center>
+{% endblock %}
+
+{% block contenido %}
+
+<style>
+ 
+.form-container {
+  max-width: 1700px;
+  height: 500px;
+  width: 100%;
+ margin-top: -100px;
+  padding: 20px;
+  background-color: #ffffff;
+  border-radius: 20px;
+
+}
+
+.form-group {
+  margin-bottom: 50px;
+}
+.readonly-select {
+    pointer-events: none;
+}
+.form-label {
+  color: #000000e5;
+  font-weight: bold;
+  display: block;
+  font-size: 18px; /* Ajusta el tamaño de las etiquetas */
+  margin-bottom: 15px; /* Espaciado entre etiquetas y campos */
+}
+
+.row {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+}
+
+.col-md-2 {
+  flex: 0 0 calc(20% - 15px);
+  max-width: calc(20% - 15px);
+  margin-right: 50px;
+}
+input {
+  width: 100%; /* O ajusta el porcentaje según tus preferencias */
+  height: 40px; /* Ajusta la altura según tus preferencias */
+  padding: 5px; /* Agrega un relleno alrededor del input */
+  box-sizing: border-box; /* Incluye el relleno y el borde en el tamaño total */
+  font-size: 16px; /* Ajusta el tamaño del texto dentro del input */
+  border-color: #000000e5;
+}
+select {
+  width: 100%; /* O ajusta el porcentaje según tus preferencias */
+  height: 40px; /* Ajusta la altura según tus preferencias */
+  padding: 5px; /* Agrega un relleno alrededor del select */
+  box-sizing: border-box; /* Incluye el relleno y el borde en el tamaño total */
+  font-size: 16px; /* Ajusta el tamaño del texto dentro del select */
+  border-color: #000000e5;
+}
+
+</style>
+
+  <body>
+    <form enctype="multipart/form-data" method="post" class="form-container">
+      {% csrf_token %}
+      <div class="row">
+        {% for campo in formulario %}
+        <div class="col-md-2">
+          <div class="form-group datepicker-container {% if campo.id_for_label == 'id_idproceso' %}no-datepicker{% endif %}">
+            <label for="{{ campo.id }}" class="form-label">{{ campo.label_tag }}</label>
+            {{ campo }}
+            {% if campo.id_for_label == 'id_idproceso' %}
+              {# Si es el campo "Clave de la Elección", no mostrar el span del datepicker #}
+            {% else %}
+              <span class="ui-datepicker-trigger"></span>
+            {% endif %}
+            {% if campo.errors %}
+              <div class="text-danger">
+                {% for error in campo.errors %}
+                  {{ error }}
+                {% endfor %}
+              </div>
+            {% endif %}
+          </div>
+        </div>
+      {% endfor %}
+      </div>
+      <div id="botones-fila">
+        <button name="" style="color: black" id="" class="btn btn-fila" type="submit">Guardar Datos</button>
+        <button class="btn btn-fila" style="color: black ">Cancelar</button>
+        <button class="btn btn-fila" style="color: black" id="cerrar-button">Cerrar</button>
+      </div>
+    </form>
+  
+
+  <script>
+    var consultarAgregarButton = document.getElementById('cerrar-button');
+    consultarAgregarButton.addEventListener('click', function() {
+      window.location.href = "{% url 'centros_ca' %}";
+    });
+
+    
+    const listarMunicipios = async (iddistrito) => {
+  try {
+    const response = await fetch(`/filtrarmunicipiospordistrito/${iddistrito}`);
+    const data = await response.json();
+    console.log(data);
+
+    if (data.message === "Success") {
+      let opciones = '';
+      // Clear the combo box
+     
+      data.municipios.forEach((messi) => {
+        // Use 'municipio' to access properties correctly
+        opciones += `<option value="${messi.idmunicipio}">${messi.nombre_mpo}</option>`;
+      });
+      id_idmunicipio.innerHTML = opciones;
+      console.log("q paso master" + opciones);
+    } else {
+      console.log("Failed to retrieve municipios.");
+    }
+  } catch (error) {
+    console.log(error);
+  }
+}
+
+id_iddistrito.addEventListener("change", (event) => {
+  let opciones = '';
+  id_idmunicipio.innerHTML = opciones;
+  listarMunicipios(id_iddistrito.value);
+
+
+});
+
+
+  </script>
+
+  <script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.11.6/dist/umd/popper.min.js"></script>
+  <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
+</body>
+
+{% endblock %}

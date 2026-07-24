@@ -1,0 +1,853 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    
+    <title>{% block titulo %} {% endblock %}</title>
+<style>
+.menu__link {
+    color: #fff !important;
+}
+
+.imagen {
+      max-width: 20%;
+      height: auto;
+      display: block;
+      margin-left: auto;
+      margin-right: auto;
+    }
+
+
+
+@import url('https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;700&display=swap');
+
+.custom-table th{
+
+padding: 8px;
+text-align: left;
+border: 1px solid #ddd;
+color: rgba(87, 87, 87, 0.898);
+}
+.custom-table td 
+{
+padding: 8px;
+text-align: left;
+border: 1px solid #ddd;
+
+color: #000000e5;
+}
+
+
+.comboBox {
+      display: inline-block;
+      margin-right: 1px;
+    }
+
+    .comboBox select {
+      width: 75%;
+      padding: 1px;
+      border: 1px solid #ccc;
+      border-radius: 4px;
+
+    }
+
+    .comboBox select:hover {
+      border-color: #888;
+
+    }
+
+    .comboBox select:focus {
+      border-color: #ffffff;
+    }
+
+    #comboBoxContainer {
+      text-align: center;
+    }
+
+    .comboBox select {
+      background-color: #ff69b4e5
+    }
+    .btn-agregar {
+ 
+    color: #ff69b4e5;
+    padding: 20px 30px;
+    border: none;
+    border-radius: 10px;
+    display: block;
+    margin: 20px auto; /* Centra los botones */
+    text-decoration: none;
+    font-size: 16px;
+    cursor: pointer;
+    transition: background-color 0.3s ease, color 0.3s ease;
+  }
+
+
+  .contents {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  min-height: 15vh;
+}
+
+    .content {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  min-height: 49vh;
+}
+
+
+  .btn-agregar:hover {
+    background-color: #f9419d;
+  }
+
+  /* Estilo de los botones en fila */
+  #botones-fila {
+    position: fixed;
+    bottom: 5%;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 100%;
+    text-align: center;
+  }
+
+  #botones-fila button {
+    width: 300px;
+    height: 65px;
+    background-color: #ffffffe5;
+    margin: 0 15px; /* Ajusta el margen entre botones si es necesario */
+    border-radius: 30px;
+    color: #000000; /* Cambiado el color del texto para mejorar la legibilidad */
+    transition: all 0.1s ease;
+    font-size: 1.3rem;
+    border: 2px solid #000000e5; /* Añadido un borde para resaltar el botón */
+}
+
+
+
+
+  #botones-fila button:hover {
+    transform: scale(1.1);
+    box-shadow: 0 0 65px #00000067;
+  }
+
+
+
+*{
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body{
+    font-family: 'Poppins', sans-serif;
+}
+
+.menu__links {
+  z-index: 1000; /* Ajusta según sea necesario para que el menú desplegable esté por encima del contenido */
+}
+
+.menu{
+    background-color: #cd1482;
+    color: #fff;
+    height: 80px;
+}
+
+.menu__container{
+    display: flex;
+    justify-content: flex-start;
+    align-items: center;
+    width: 100%;
+    max-width: 1900px;
+    height: 100%;
+    margin: 0 auto;
+}
+
+.menu__logo {
+  display: flex;
+  align-items: center;
+  padding: 10px;
+  margin: 0; /* Agrega esta línea */
+}
+
+.menu__links{
+    height: 100%;
+    transition: transform .5s;
+    display: flex;
+}
+
+.menu__item{
+    list-style: none;
+    position: relative;
+    height: 100%;
+    --clip: polygon(0 0, 100% 0, 100% 0, 0 0);
+    --transform: rotate(-90deg);
+}
+
+.menu__item:hover{
+    --clip: polygon(0 0, 100% 0, 100% 100%, 0% 100%);
+    --transform: rotate(0);
+}
+
+.menu__link{
+    background-color: #cd1482;
+    text-decoration: none;
+    padding: 0 40px;
+    display: flex;
+    height: 100%;
+    align-items: center;
+}
+.menu__link:hover {
+    background-color: #94105f;
+}
+
+
+
+
+.menu__arrow{
+    transform: var(--transform);
+    transition: transform .3s;
+    display: block;
+    margin-left: 3px;
+}
+
+.menu__nesting{
+    list-style: none;
+    transition:clip-path .3s;
+    clip-path: var(--clip);
+    position: absolute;
+    right: 0;
+    bottom: 0;
+    width: max-content;
+    transform: translateY(100%);
+    background-color: #e06eb2;
+}
+
+.menu__link--inside{
+    padding: 30px 100px 30px 20px;
+}
+
+.menu__link--inside:hover{
+    background-color: #94105f;
+}
+
+.color-palette {
+  display: grid;
+  grid-template-columns: repeat(6, 50px);
+  grid-auto-rows: 50px;
+  gap: 5px;
+  justify-content: center;
+  margin-top: 20px;
+}
+
+/* Agregamos una clase para resaltar el color seleccionado */
+.selected {
+  border: 2px solid black;
+}
+
+
+.color-box {
+  width: 50px;
+  height: 50px;
+  border-radius: 5px;
+  box-shadow: 0 0 5px rgba(0, 0, 0, 0.3);
+  cursor: pointer;
+}
+
+.menu__hamburguer{
+    height: 100%;
+    display: flex;
+    align-items: center;
+    padding: 0 15px;
+    cursor: pointer;
+    display: none;
+}
+
+.menu__img{
+    display: block;
+    width: 36px;
+}
+
+@media (max-width:800px){
+    .menu__hamburguer{
+        display: flex;
+    }
+
+    .menu__item{
+        --clip:0;
+        overflow:hidden ;
+    }
+
+    .menu__item--active{
+        --transform: rotate(0);
+        --background: #e06eb2;
+    }
+
+    .menu__item--show{
+        background-color: var(--background);
+    }
+
+
+    .menu__links{
+        position: fixed;
+        max-width: 400px;
+        width: 100%;
+        top: 70px;
+        bottom: 0;
+        right: 0;
+        background-color: #cd1482;
+        overflow-y: auto;
+        display: grid;
+        grid-auto-rows: max-content;
+        transform: translateX(100%);
+    }
+
+    .menu__links--show{
+        transform: unset;
+        width: 100%;
+    }
+
+    .menu__link{
+        padding: 25px 0;
+        padding-left: 30px;
+        height: auto;
+    }
+
+    .menu__arrow{
+        margin-left: auto;
+        margin-right: 20px;
+    }
+
+    .menu__nesting{
+        display: grid;
+        position: unset;
+        width: 100%;
+        transform: translateY(0);
+        height: 0;
+        transition: height .3s;
+    }
+
+    .menu__link--inside{
+        width: 90%;
+        margin-left: auto;
+        border-left: 1px solid #e06eb2;
+    }
+}
+
+
+
+@media (max-width: 767px) {
+  .table-responsive {
+    max-width: 467px; /* Establece un ancho máximo para la tabla */
+    overflow-x: auto; /* Permite el desplazamiento horizontal si es necesario */
+    -webkit-overflow-scrolling: touch; /* Mejora el desplazamiento en dispositivos móviles */
+  }
+
+  #botones-fila.botones-fijos {
+  position: absolute;
+  bottom: -475px; /* Ajusta este valor según tu preferencia */
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 9999;
+}
+
+
+.combobox {
+    border: 1px solid #ccc; /* Borde más delgado */
+    border-radius: 3px; /* Radio de borde más pequeño */
+    background-color: #fff; /* Fondo blanco */
+  }
+
+  .combobox {
+    margin: 10px 0; /* Ajusta el margen superior e inferior */
+  }
+
+  label {
+  font-size: 12px; /* Ajusta el tamaño de fuente de las etiquetas */
+  font-weight: bold; /* Hace que las letras sean negritas */
+  margin-bottom: 2px; /* Ajusta el margen inferior de las etiquetas */
+}
+
+
+
+  h2.encabezado-paquete {
+    font-size: 16px; /* Ajusta el tamaño de fuente según tus preferencias */
+  }
+
+
+  h2.encabezado-tablas {
+    color: rgba(87, 87, 87, 0.898); /* Ajusta el color del texto según tus preferencias */
+    font-size: 16px; /* Ajusta el tamaño de fuente según tus preferencias */
+  }
+
+  .custom-table th {
+    font-size: 13px; /* Ajusta el tamaño de fuente según tus preferencias */
+  }
+
+  .custom-table td {
+    font-size: 12px; /* Ajusta este tamaño según tus preferencias */
+  }
+
+
+
+}
+  
+
+
+
+.menu__logo:first-child {
+  margin-right: auto; /* Alinea el primer logo a la izquierda */
+}
+
+.menu__logo:last-child {
+  margin-left: auto; /* Alinea el segundo logo a la derecha */
+}
+
+
+
+
+#ui-datepicker-div {
+    width: auto !important;
+    display: inline-block;
+  }
+
+  .ui-datepicker {
+    font-family: 'Roboto', sans-serif;
+    font-size: 14px;
+    background-color: #ffffff;
+    border-radius: 10px;
+    padding: 10px;
+    width: fit-content;
+    margin: 0 auto;
+  }
+
+  .ui-datepicker-header {
+    background-color: #ff69b4;
+    color: #ffffff;
+    border-radius: 8px 8px 0 0;
+    padding: 10px 0;
+    text-align: center;
+  }
+
+  .ui-datepicker-title {
+    font-weight: bold;
+    font-size: 16px;
+  }
+
+  .ui-datepicker-prev,
+  .ui-datepicker-next {
+    background-color: #fff;
+    color: #ff69b4;
+    border: none;
+    font-size: 16px;
+  }
+
+  .ui-datepicker-prev:hover,
+  .ui-datepicker-next:hover {
+    background-color: #ff69b4;
+    color: #ffffff;
+  }
+
+  .ui-datepicker-calendar {
+    border: none;
+    margin: 10px 0;
+  }
+
+  .ui-datepicker-calendar th {
+    background-color: #f8f8f8;
+    color: #ff69b4;
+    padding: 10px;
+    border-radius: 5px;
+    font-weight: bold;
+  }
+
+  .ui-datepicker-calendar td {
+    padding: 5px;
+    text-align: center;
+  }
+
+  .ui-datepicker-calendar a {
+    color: #000000;
+    background-color: #ffffff;
+    border-radius: 50%;
+    padding: 8px;
+    display: inline-block;
+    transition: background-color 0.3s ease;
+  }
+
+  .ui-datepicker-calendar a:hover {
+    background-color: #ff69b4;
+    color: #ffffff;
+  }
+
+  .ui-datepicker-calendar .ui-state-active {
+    background-color: #ff69b4;
+    color: #ffffff;
+    font-weight: bold;
+  }
+
+
+</style>    
+
+</head>
+<body>
+  
+  <nav class="menu">
+    <section class="menu__container">
+      <a>
+        <h1 class="menu__logo">
+          <img src="{% static 'images/logo.png' %}" alt="Logo" width="140" height="140">
+        </h1>
+      </a>
+  
+ 
+  
+
+      <ul class="menu__links">
+        
+        {% if regiscandidatura %}
+        <li class="menu__item menu__item--show">
+          <a href="#" class="menu__link">Registro de Candidaturas<img src="{% static 'assets/arrow.svg' %}" class="menu__arrow"></a>
+
+          
+          <ul class="menu__nesting">
+            {% if revision_ople %}
+            <li class="menu__inside">
+              <a href="{% url 'RevicionOple' %}" class="menu__link menu__link--inside">Revisión OPLE</a>
+            </li>
+            {% endif %}
+            {% if registro_de_gubernatura %}
+            <li class="menu__inside">
+              <a href="{% url 'regicangu' %}" class="menu__link menu__link--inside">Registro de Gubernatura</a>
+            </li>
+            {% endif %}
+            {% if registro_de_ayuntamiento %}
+            <li class="menu__inside">
+              <a href="{% url 'regican' %}" class="menu__link menu__link--inside">Registro de Ayuntamiento</a>
+            </li>
+            {% endif %}
+            {% if diputaciones_de_mayoria %}
+            <li class="menu__inside">
+              <a href="{% url 'regicaMY' %}" class="menu__link menu__link--inside">Diputaciones de Mayoría</a>
+            </li>
+            {% endif %}
+            {% if diputaciones_de_rp %}
+            <li class="menu__inside">
+              <a href="{% url 'regicanRP' %}" class="menu__link menu__link--inside">Diputaciones de RP</a>
+            </li>
+            {% endif %}
+          </ul>
+        </li>
+        {% endif %}
+        
+        {% if paquetes %}
+        <li class="menu__item menu__item--show">
+          <a href="#" class="menu__link">Cadena de Custodia de Paquetes<img src="{% static 'assets/arrow.svg' %}" class="menu__arrow"></a>
+
+        
+          <ul class="menu__nesting">
+            {% if armado_de_documentacion %}
+            <li class="menu__inside">
+              <a href="{% url 'Armado_Paquetes' %}" class="menu__link menu__link--inside">Armado de Documentación</a>
+            </li>
+            {% endif %}
+            {% if entrega_a_los_caes %}
+            <li class="menu__inside">
+              <a href="{% url 'Entrega_Paquetes_CAE' %}" class="menu__link menu__link--inside">Entrega a los CAES</a>
+            </li>
+            {% endif %}
+            {% if caes_entrega_a_los_presidentes %}
+            <li class="menu__inside">
+              <a href="{% url 'Entrega_Paquetes_Casilla_index' %}" class="menu__link menu__link--inside">CAES Entrega a los Presidentes</a>
+            </li>
+            {% endif %}
+            {% if entrega_de_paquetes_en_ca %}
+            <li class="menu__inside">
+              <a href="{% url 'Entrega_Paquetes_Casilla_Recoleccion' %}" class="menu__link menu__link--inside">Entrega de Paquetes en CA</a>
+            </li>
+            {% endif %}
+            {% if resumen_de_paquetes %}
+            <li class="menu__inside">
+              <a href="{% url 'Resumen_de_paquetes' %}" class="menu__link menu__link--inside">Resumen de Paquetes</a>
+            </li>
+            {% endif %}
+            {% if traslado_de_paquetes %}
+            <li class="menu__inside">
+              <a href="{% url 'Recorrido_de_paquetes' %}" class="menu__link menu__link--inside">Traslado de Paquetes</a>
+            </li>
+            {% endif %}
+          </ul>
+        </li>
+        {% endif %}
+        
+
+        {% if reprecomputos %}
+        <li class="menu__item menu__item--show">
+          <a href="#" class="menu__link">Representantes ante Cómputos Electorales<img src="{% static 'assets/arrow.svg' %}" class="menu__arrow"></a>
+          
+        
+          <ul class="menu__nesting">
+            {% if registro_de_representantes %}
+            <li class="menu__inside">
+              <a href="{% url 'Comp_Agregar_Candidatos_Agregar' %}" class="menu__link menu__link--inside">Registro de Representantes</a>
+            </li>
+            {% endif %}
+            {% if representantes_ople %}
+              <li class="menu__inside">
+                <a href="{% url 'representantes_Ople' %}" class="menu__link menu__link--inside">Representantes Ople</a>
+              </li>
+              {% endif %}
+          </ul>
+        </li>
+        {% endif %}
+
+        {% if observadores %}
+        <li class="menu__item menu__item--show">
+          <a href="#" class="menu__link">Observadores<img src="{% static 'assets/arrow.svg' %}" class="menu__arrow"></a>
+
+        
+          <ul class="menu__nesting">
+            {% if registro_de_observadores %}
+            <li class="menu__inside">
+              <a href="{% url 'Observadores_index' %}" class="menu__link menu__link--inside">Registro de Observadores</a>
+            </li>
+            {% endif %}
+            <li class="menu__inside">
+          </ul>
+        </li>
+        {% endif %}
+
+        {% if computoselectorales %}
+        <li class="menu__item menu__item--show">
+          <a href="#" class="menu__link">Cómputos Electorales<img src="{% static 'assets/arrow.svg' %}" class="menu__arrow"></a>
+
+        
+          <ul class="menu__nesting">
+            {% if agregar_candidatos %}
+            <li class="menu__inside">
+              <a href="{% url 'candidatos_contienda' %}" class="menu__link menu__link--inside">Agregar Candidatos</a>
+            </li>
+            {% endif %}
+            {% if computo_de_votos %}
+            <li class="menu__inside">
+              <a href="{% url 'comp_votos' %}" class="menu__link menu__link--inside">Computo de Votos</a>
+            </li>
+            {% endif %}
+            {% if porcentajes_de_avances %}
+            <li class="menu__inside">
+              <a href="{% url 'porcentajes de Avances' %}" class="menu__link menu__link--inside">Porcentajes de Avances</a>
+            </li>
+            {% endif %}
+            {% if resumen_de_actas %}
+            <li class="menu__inside">
+              <a href="{% url 'Resumen de Actas' %}" class="menu__link menu__link--inside">Resumen de Actas</a>
+            </li>
+            {% endif %}
+            {% if votos_por_partido %}
+            <li class="menu__inside">
+              <a href="{% url 'votos_partido' %}" class="menu__link menu__link--inside">Votos por Partido</a>
+            </li>
+            {% endif %}
+          </ul>
+        </li>
+        {% endif %}
+
+
+        {% if configuracion %}
+        <li class="menu__item menu__item--show">
+          <a href="#" class="menu__link">Configuración<img src="{% static 'assets/arrow.svg' %}" class="menu__arrow"></a>
+
+          <ul class="menu__nesting">
+            {% if principios %}
+            <li class="menu__inside">
+              <a href="{% url 'principio' %}" class="menu__link menu__link--inside">Principios</a>
+            </li>
+            {% endif %}
+            {% if acciones_afirmativas %}
+            <li class="menu__inside">
+              <a href="{% url 'paridad' %}" class="menu__link menu__link--inside">Acciones Afirmativas</a>
+            </li>
+            {% endif %}
+            {% if documentos %}
+            <li class="menu__inside">
+              <a href="{% url 'documentos' %}" class="menu__link menu__link--inside">Documentos</a>
+            </li>
+            {% endif %}
+            {% if entidades_federativas %}
+            <li class="menu__inside">
+              <a href="{% url 'estados' %}" class="menu__link menu__link--inside">Entidades Federativas</a>
+            </li>
+            {% endif %}
+            {% if distritos %}
+            <li class="menu__inside">
+              <a href="{% url 'distritos' %}" class="menu__link menu__link--inside">Distritos</a>
+            </li>
+            {% endif %}
+            {% if municipios %}
+            <li class="menu__inside">
+              <a href="{% url 'municipios' %}" class="menu__link menu__link--inside">Municipios</a>
+            </li>
+            {% endif %}
+            {% if cargos_entrega %}
+            <li class="menu__inside">
+              <a href="{% url 'cargosentrega' %}" class="menu__link menu__link--inside">Cargos Entrega</a>
+            </li>
+            {% endif %}
+            {% if partidos %}
+            <li class="menu__inside">
+              <a href="{% url 'partidos' %}" class="menu__link menu__link--inside">Partidos</a>
+            </li>
+            {% endif %}
+            {% if casillas %}
+            <li class="menu__inside">
+              <a href="{% url 'casillas' %}" class="menu__link menu__link--inside">Casillas</a>
+            </li>
+            {% endif %}
+            {% if centros_de_acopio %}
+            <li class="menu__inside">
+              <a href="{% url 'centros_ca' %}" class="menu__link menu__link--inside">Centros de Acopio</a>
+            </li>
+            {% endif %}
+            {% if usuarios %}
+            <li class="menu__inside">
+              <a href="{% url 'Usuarios_Index' %}" class="menu__link menu__link--inside">Usuarios</a>
+            </li>
+            {% endif %}
+            {% if tipo_eleccion %}
+            <li class="menu__inside">
+              <a href="{% url 'elecciones_vista' %}" class="menu__link menu__link--inside">Tipo elección</a>
+            </li>
+            {% endif %}
+            {% if partidos_coaliciones %}
+            <li class="menu__inside">
+              <a href="{% url 'partidoscolas_coaliciones' %}" class="menu__link menu__link--inside">Partidos/Coaliciones</a>
+            </li>
+            {% endif %}
+            {% if eleccion_documentos %}
+            <li class="menu__inside">
+              <a href="{% url 'docelecciones' %}" class="menu__link menu__link--inside">Elección-documentos</a>
+            </li>
+            {% endif %}
+          </ul>
+        </li>
+        {% endif %}
+
+
+
+        <li class="menu__item">
+          <a class="menu__link" href="{% url 'login' %}">Salir</a>
+        </li>
+      
+
+
+<!-- Segundo logo corregido -->
+<a style="margin-left: auto; display: flex; align-items: center; padding-right: 15px;">
+  <h1 class="menu__logo" style="margin: 0;">
+    <img src="{% static logo %}" alt="Logo" style="height: 55px; width: auto; object-fit: contain;">
+  </h1>
+</a>
+      </ul>
+
+      <div class="menu__hamburguer" id="menuToggle">
+        <img src="{% static 'assets/menu.svg' %}" class="menu__img">
+      </div>
+      
+    </section>
+
+
+
+  </nav>
+
+  <br>
+  <br>
+  <br>
+
+  {% block encabezado %} {% endblock %}
+
+
+  <div class="contents">{% block combos %} {% endblock %}</div>
+  
+
+<!-- Agregar este div -->
+<div class="content">
+
+
+
+  
+  {% block contenido %}
+
+  <img src="{% static logo %}" alt="Logo" class="imagen">
+
+  {% endblock %}
+    
+</div>
+
+    <script>
+
+(function(){
+    const listElements = document.querySelectorAll('.menu__item--show');
+    const list = document.querySelector('.menu__links');
+    const menu = document.querySelector('.menu__hamburguer');
+
+    const addClick = ()=>{
+        listElements.forEach(element =>{
+            element.addEventListener('click', ()=>{
+
+                
+                let subMenu = element.children[1];
+                let height = 0;
+                element.classList.toggle('menu__item--active');
+
+
+                if(subMenu.clientHeight === 0){
+                    height = subMenu.scrollHeight;
+                }
+
+                subMenu.style.height = `${height}px`;
+
+            });
+        });
+    }
+
+    const deleteStyleHeight = ()=>{
+        listElements.forEach(element=>{
+
+            if(element.children[1].getAttribute('style')){
+                element.children[1].removeAttribute('style');
+                element.classList.remove('menu__item--active');
+            }
+
+        });
+    }
+
+
+    window.addEventListener('resize', ()=>{
+        if(window.innerWidth > 800){
+            deleteStyleHeight();
+            if(list.classList.contains('menu__links--show'))
+                list.classList.remove('menu__links--show');
+
+        }else{
+            addClick();
+        }
+    });
+
+    if(window.innerWidth <= 800){
+        addClick();
+    }
+
+    menu.addEventListener('click', ()=> list.classList.toggle('menu__links--show'));
+
+
+
+})();
+
+
+
+
+    </script>
+</body>
+</html>

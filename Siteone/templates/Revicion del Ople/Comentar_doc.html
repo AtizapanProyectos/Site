@@ -1,0 +1,258 @@
+{% extends "base.html" %}
+
+{% block titulo %} Comentar un documento {% endblock %}
+
+{% block encabezado %}<center> <h1 class="text-center mb-4" style="color: #ff69b4e5;">Comentar un documento</h1></center>{% endblock %}
+
+{% block contenido %}
+
+<style>
+
+body {
+    overflow-y: auto;
+    scrollbar-width: thin; /* Para navegadores Firefox */
+    scrollbar-color: #ff69b4e5 #f5f5f5; /* Para navegadores Firefox */
+
+  }
+
+  body::-webkit-scrollbar {
+    width: 8px; /* Tamaño del indicador de desplazamiento para navegadores WebKit (Chrome, Safari, etc.) */
+  }
+
+  body::-webkit-scrollbar-thumb {
+    background-color: #ff69b4e5; /* Color del indicador de desplazamiento */
+  }
+
+  body::-webkit-scrollbar-track {
+    background-color: #f5f5f5; /* Color del fondo del indicador de desplazamiento */
+  }
+
+.form-control,
+  select {
+    background-color: #f5f5f5;
+    border: 2px solid #ff69b4e5;
+    border-radius: 10px;
+    padding: 15px;
+    font-size: 16px;
+    width: 100%;
+    margin-bottom: 30px;
+  }
+
+
+/* Contenedor de la tabla */
+.table-container {
+    width: 100%;
+    overflow-y: auto;
+    max-height: 800px; /* Ajusta la altura máxima según tus necesidades */
+    margin-bottom: 20px;
+  }
+/* Tabla responsiva */
+.table-responsive {
+  display: block;
+  overflow-x: auto;
+  white-space: nowrap;
+}
+
+.text-center {
+  text-align: center;
+  color: #686565;
+}
+
+/* Estilo general de la tabla */
+.custom-table {
+  font-family: sans-serif;
+  border-collapse: collapse;
+  width: 100%;
+  max-width: none;
+}
+
+.custom-table th,
+.custom-table td {
+  padding: 15px;
+  text-align: left;
+  border: 2px solid #ddd;
+}
+
+.custom-table th {
+  background-color: #ff69b4e5;
+  font-weight: bold;
+}
+
+.custom-table tbody tr:nth-child(even) {
+  background-color: #f2f2f2;
+}
+
+/* Estilo de los botones */
+.custom-table td a {
+  color: #000;
+}
+
+
+  .form-container {
+    max-width: 800px;
+    height: 500px;
+    width: 100%;
+    margin: 20px auto; /* Centra el formulario y agrega margen */
+    padding: 40px;
+    background-color: #ffffff;
+    border-radius: 20px;
+
+    margin-top: -220px;
+  }
+  .form-label {
+      color: #ff69b4e5;
+      font-weight: bold;
+    }
+  
+  .form-control {
+      background-color: #f5f5f5;
+      border: 2px solid #ff69b4e5;
+      border-radius: 10px;
+      padding: 15px;
+      font-size: 16px;
+      width: 100%;
+      margin-bottom: 30px;
+  }
+    
+
+
+
+</style>
+
+<body>
+  <form enctype="multipart/form-data" method="post" class="form-container">
+    {% csrf_token %}
+    <div class="row">
+      <div class="col-md-4">
+
+        <div class="form-group">
+          <label for="{{ formulario.idestado.id_for_label }}">{{ formulario.estatus_revicion.label }}</label>
+          {{ formulario.estatus_revicion }}
+        </div>
+      
+
+
+
+        {% for campo in formulario %}
+          {% if forloop.counter0 < 3 %}
+            <div class="mb-3">
+             
+
+              {% if campo.name != 'estatus_revicion' and campo.name != 'distrito_indigena' %}
+  
+
+              <label for="{{ campo.id }}" class="form-label">{{ campo.label }}</label>
+              {% if campo.field.widget.input_type == 'file' and campo.value %}
+                <br>
+                <img src="{{MEDIA_URL}}/images/{{campo.value}} " width="100" alt="" srcset="">
+              {% endif  %}
+
+              <input
+              type="{{ campo.field.widget.input_type }}"
+              class="form-control"
+              name="{{ campo.name }}"
+              id="{{ campo.id }}"
+              aria-describedby="helpId"
+              placeholder="{{ campo.label }}"
+              value="{{ campo.value | default:'' }}"
+            />
+            
+            {% endif %}
+
+             
+            </div>
+            <div class="col-12 help-text text-danger">{{ campo.errors }}</div>
+          {% endif %}
+        {% endfor %}
+      </div>
+      <div class="col-md-4">
+        {% for campo in formulario %}
+          {% if forloop.counter0 >= 3 and forloop.counter0 < 6 %}
+            <div class="mb-3">
+              
+
+              {% if campo.name != 'estatus_revicion' and campo.name != 'distrito_indigena'%}
+  
+              <label for="{{ campo.id }}" class="form-label">{{ campo.label }}</label>
+              {% if campo.field.widget.input_type == 'file' and campo.value %}
+                <br>
+                <img src="{{MEDIA_URL}}/images/{{campo.value}} " width="100" alt="" srcset="">
+              {% endif  %}
+
+              <input
+              type="{{ campo.field.widget.input_type }}"
+              class="form-control"
+              name="{{ campo.name }}"
+              id="{{ campo.id }}"
+              aria-describedby="helpId"
+              placeholder="{{ campo.label }}"
+              value="{{ campo.value | default:'' }}"
+            />
+            
+            {% endif %}
+            </div>
+            <div class="col-12 help-text text-danger">{{ campo.errors }}</div>
+          {% endif %}
+        {% endfor %}
+      </div>
+      <div class="col-md-4">
+        {% for campo in formulario %}
+
+          {% if forloop.counter0 >= 6 %}
+            <div class="mb-3">
+             
+
+              
+              {% if campo.name != 'estatus_revicion' and campo.name != 'distrito_indigena' %}
+  
+              <label for="{{ campo.id }}" class="form-label">{{ campo.label }}</label>
+              {% if campo.field.widget.input_type == 'file' and campo.value %}
+                <br>
+                <img src="{{MEDIA_URL}}/images/{{campo.value}} " width="100" alt="" srcset="">
+              {% endif  %}
+
+              <input
+              type="{{ campo.field.widget.input_type }}"
+              class="form-control"
+              name="{{ campo.name }}"
+              id="{{ campo.id }}"
+              aria-describedby="helpId"
+              placeholder="{{ campo.label }}"
+              value="{{ campo.value | default:'' }}"
+            />
+            
+            {% endif %}
+            <div class="col-12 help-text text-danger">{{ campo.errors }}</div>
+          {% endif %}
+        {% endfor %}
+        <div class="form-group">
+        </div>
+      </div>
+    </div>
+
+
+    <br>
+
+
+    <div id="botones-fila">
+      <button name="" style="color: black" id="" class="btn btn-fila" type="submit">Guardar Datos</button>
+      <button class="btn btn-fila" style="color: black ">Cancelar</button>
+      <button class="btn btn-fila" style="color: black" id="cerrar-button">Cerrar</button>
+    </div>
+  </form>
+
+
+
+  <script>
+    var consultarAgregarButton = document.getElementById('cerrar-button');
+    consultarAgregarButton.addEventListener('click', function() {
+      window.location.href = "{% url 'RevicionOple' %}";
+    });
+  </script>
+
+  <script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.11.6/dist/umd/popper.min.js"></script>
+  <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
+</body>
+
+{% endblock %}

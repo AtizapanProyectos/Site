@@ -1,0 +1,268 @@
+{% extends "base.html" %} 
+
+{% block titulo %} Catálogo de Documentos {% endblock %}
+
+{% block encabezado %}<center> <h1 class="text-center mb-4" style="color: #515151e5;">Catálogo de Documentos</h1> </center>{% endblock %}
+
+
+{% block contenido %}
+
+
+
+
+
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.1/css/all.min.css">
+
+
+{% if messages %}
+  <div class="messages-container">
+    <ul class="messages">
+      {% for message in messages %}
+        <li{% if message.tags %} class="{{ message.tags }}"{% endif %}>
+          <!-- Agregamos un ícono de alerta -->
+          <span class="icon">
+            {% if message.tags == 'success' %}
+              <i class="fas fa-check-circle"></i>
+            {% elif message.tags == 'error' %}
+              <i class="fas fa-exclamation-circle"></i>
+            {% endif %}
+          </span>
+          <div class="message-text">
+            {{ message }}
+            <!-- Agregamos el botón de cerrar -->
+            <a href="{% url 'documentos' %}" class="close-btn" onclick="cerrarMensaje(this)">X</a>
+          </div>
+        </li>
+      {% endfor %}
+    </ul>
+  </div>
+{% endif %}
+
+
+
+
+<script>
+  function cerrarMensaje(btn) {
+    // Obtén el elemento padre li del botón
+    var mensajeLi = btn.parentNode;
+
+    // Oculta el mensaje
+    mensajeLi.style.display = 'none';
+  }
+</script>
+
+
+{% load static %}
+
+<style>
+
+
+.messages-container {
+  position: fixed;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  z-index: 9999;
+  width: 30%;
+  padding: 20px;
+  box-sizing: border-box;
+}
+
+
+  .messages {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+  }
+
+  .messages li {
+    display: flex;
+    align-items: center;
+    padding: 10px;
+    margin-bottom: 10px;
+    border: 1px solid #ccc;
+    border-radius: 5px;
+  }
+
+  .messages li.success {
+    background-color: #d4edda;
+    border-color: #c3e6cb;
+    color: #155724;
+  }
+
+  .messages li.error {
+    background-color: #f8d7da;
+    border-color: #f5c6cb;
+    color: #721c24;
+  }
+
+  .icon {
+    margin-right: 10px;
+  }
+
+  .message-text {
+    flex-grow: 1;
+  }
+
+  .close-btn {
+    margin-left: 300px;
+    text-decoration: none;
+    color: #000;
+  }
+
+
+
+  /* Contenedor de la tabla */
+  .table-container {
+    width: 100%;
+    overflow-y: auto;
+    max-height: 600px; /* Ajusta la altura máxima según tus necesidades */
+  }
+
+  /* Tabla responsiva */
+  .table-responsive {
+    display: block;
+    overflow-x: auto;
+    white-space: nowrap;
+  }
+
+
+  /* Estilo general de la tabla */
+  .custom-table {
+    font-family: sans-serif;
+    border-collapse: collapse;
+    width: 100%;
+    max-width: none;
+  }
+
+  .custom-table th,
+  .custom-table td {
+    padding: 15px;
+    text-align: left;
+    border: 2px solid #ddd;
+  }
+
+  .custom-table th {
+    background-color: #ff69b4e5;
+    font-weight: bold;
+  }
+
+  .custom-table tbody tr:nth-child(even) {
+    background-color: #f2f2f2;
+  }
+
+  /* Estilo de los botones */
+  .custom-table td a {
+    color: #000;
+  }
+
+  .btn-info,
+  .btn-delate {
+    background-color: transparent;
+    border: none;
+  }
+
+  .table-container {
+    margin-top: -10px; /* Ajusta el valor según tus necesidades */
+  }
+
+
+  .main-container {
+    width: 70%;
+    margin: 0 auto; /* Elimina el margen superior */
+    overflow-x: auto;
+    position: fixed; /* Agrega posición fija */
+    top: 20%; /* Coloca el contenedor en la parte superior */
+    left: 50%; /* Ajusta la posición horizontal según tus necesidades */
+    transform: translateX(-50%); /* Centra el contenedor horizontalmente */
+}
+
+
+</style>
+
+
+
+<div class="main-container">
+
+  <div class="table-container mx-auto">
+    <div class="table-responsive">
+      <table class="table table-hover table-bordered table-striped shadow-sm custom-table">
+        
+      <thead>
+        <tr>
+          <th>Clave</th>
+          <th>Descripción</th>
+          <th>Acciones</th>
+        </tr>
+      </thead>
+
+      <tbody>
+
+        {% for doc in documentos_mostrar %}
+        <tr>
+          <td>{{ doc.idtipo_doc }}</td>
+          <td>{{ doc.descrip_doc }}</td>
+          <td class="text-center">
+            <a name="" id="" class="btn btn-info" href="{% url 'doc_editar' doc.idtipo_doc %}" role="button">Editar</a>
+            |
+            <a href="#" class="btn btn-delate" onclick="confirmarEliminar('{{ doc.idtipo_doc }}')" role="button">Eliminar</a>
+          </td>
+        </tr>
+
+        {% endfor %}
+
+      </tbody>
+    </table>
+  </div>
+</div>
+</div>
+
+<div id="botones-fila">
+  <button type="button" id="consultar-button">Consultar</button>
+  <button type="button" id="consultar-agregar">Agregar</button>
+  <button type="button" id="cerrar-button">Cerrar</button>
+  
+</div>  
+
+
+
+<script>
+    // Obtén el elemento del botón
+    var consultarAgregarButton = document.getElementById('consultar-agregar');
+
+    // Agrega un evento de clic al botón
+    consultarAgregarButton.addEventListener('click', function() {
+        // Redirige a la URL específica utilizando JavaScript
+        window.location.href = "{% url 'doc_agregar' %}";
+    });
+
+    var consultarAgregarButton = document.getElementById('cerrar-button');
+
+    // Agrega un evento de clic al botón
+    consultarAgregarButton.addEventListener('click', function() {
+        // Redirige a la URL específica utilizando JavaScript
+        window.location.href = "{% url 'inicio' %}";
+    });
+</script>
+<script>
+  function confirmarEliminar(idTipoDoc) {
+      Swal.fire({
+          title: '¿Estás seguro de eliminar este registro?',
+          text: '¡No podrás revertir esto!',
+          icon: 'warning',
+          showCancelButton: true,
+          confirmButtonColor: '#dc3545', // Cambié el color para que coincida con el botón de eliminar (btn-danger)
+          cancelButtonColor: '#6c757d', // Puedes ajustar el color según tus preferencias
+          confirmButtonText: 'Sí, eliminarlo',
+          cancelButtonText: 'Cancelar'
+      }).then((result) => {
+          if (result.isConfirmed) {
+              // Realizar la solicitud de eliminación
+              window.location.href = "{% url 'doc_eliminar' 0 %}".replace('0', idTipoDoc);
+          }
+      });
+  }
+  </script>
+
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@10"></script>
+{% endblock %}

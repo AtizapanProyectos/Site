@@ -1,0 +1,190 @@
+{% extends "base.html" %}
+
+{% block titulo %}CAES Entrega a los Presidentes{% endblock %}
+
+{% block encabezado %}
+<center> 
+  <h1 class="text-center mb-4" style="color: #3a3a3ae5;">CAES Entrega a los Presidentes</h1>
+  <h1 class="text-center mb-4" style="color: #3a3a3ae5;">Año: {{anio}}</h1>
+  <h1 class="text-center mb-4" style="color: #3a3a3ae5;">{{nombreedo}}</h1>
+  <h1 class="text-center mb-4" style="color: #3a3a3ae5;">{{nombreeleccion}}</h1>
+  <h1 class="text-center mb-4" style="color: #3a3a3ae5;">{{nombrecargo}}</h1>
+ 
+  <h1 class="text-center mb-4" style="color: #3a3a3ae5;">Sección: {{seccion}}</h1>
+  <h1 class="text-center mb-4" style="color: #3a3a3ae5;">{{valor}}</h1>
+  <h1 class="text-center mb-4" style="color: #3a3a3ae5;">Número de Paquete: {{paqueteno}}</h1>
+
+
+</center>
+{% endblock %}
+
+{% block contenido %}
+
+<style>
+
+.form-control,
+  input,
+  select {
+    background-color: #f5f5f5;
+    border: 2px solid #000000e5;
+    border-radius: 10px;
+    padding: 15px;
+    font-size: 16px;
+    width: 100%;
+    margin-bottom: 30px;
+  }
+
+  .form-container {
+    max-width: 800px;
+    height: 620px;
+    width: 100%;
+    margin: 20px auto;
+    padding: 40px;
+    background-color: #ffffff;
+    border-radius: 20px;
+    margin-top: -140px;
+  }
+
+  .form-label {
+    color: #000000e5;
+    font-weight: bold;
+  }
+
+  #botones-fila {
+    position: relative;
+
+    margin-top: 30px; /* Ajusta este valor según tu preferencia */
+    text-align: center;
+  }
+
+/* Estilos generales para los botones */
+#botones-fila {
+  display: flex;
+  justify-content: center;
+  flex-wrap: wrap;
+  gap: 10px; /* Espacio entre los botones */
+  margin-top: 30px; /* Ajusta este valor según tu preferencia */
+}
+
+/* Estilo para los botones individuales */
+#botones-fila .btn {
+  flex: 1;
+  min-width: 100px; /* Ajusta el ancho mínimo de los botones */
+  padding: 10px 20px; /* Espacio interno de los botones */
+}
+
+/* Estilos específicos para pantallas pequeñas */
+@media (max-width: 768px) {
+  #botones-fila {
+    flex-direction: column;
+    align-items: center;
+  }
+
+  #botones-fila .btn {
+    width: 80%; /* Ancho de los botones en pantallas pequeñas */
+  }
+}
+
+
+  #id_cantidad_boletas {
+    background-color: #bcbcbc;
+  }
+
+
+  
+  </style>
+<body>
+  <form enctype="multipart/form-data" method="post" class="form-container">
+    {% csrf_token %}
+    <div class="row">
+      {% for campo in formulario %}
+      <div class="col-md-2">
+        <div class="form-group datepicker-container {% if campo.id_for_label == 'id_idproceso' %}no-datepicker{% endif %}">
+          <label for="{{ campo.id }}" class="form-label">{{ campo.label_tag }}</label>
+          {{ campo }}
+          {% if campo.id_for_label == 'id_idproceso' %}
+            {# Si es el campo "Clave de la Elección", no mostrar el span del datepicker #}
+          {% else %}
+            <span class="ui-datepicker-trigger"></span>
+          {% endif %}
+          {% if campo.errors %}
+            <div class="text-danger">
+              {% for error in campo.errors %}
+                {{ error }}
+              {% endfor %}
+            </div>
+          {% endif %}
+        </div>
+      </div>
+    {% endfor %}
+    </div>
+    <div id="botones-fila">
+      <button name="" style="color: black" id="btnsave" class="btn btn-fila" type="submit">Guardar Datos</button>
+      <button class="btn btn-fila" style="color: black " id="cancelar">Cancelar</button>
+      <button class="btn btn-fila" style="color: black" id="cerrar-button">Cerrar</button>
+    </div>
+  </form>
+
+  <script>
+    var consultarAgregarButton = document.getElementById('cerrar-button');
+    consultarAgregarButton.addEventListener('click', function() {
+      event.preventDefault(); 
+      window.location.href = "{% url 'Entrega_Paquetes_Casilla_index' %}";
+    });
+  </script>
+
+  <script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.11.6/dist/umd/popper.min.js"></script>
+  <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/sweetalert2@10"></script>
+
+
+
+
+  <script>
+
+
+document.addEventListener('DOMContentLoaded', function() {
+    const folioInicioInput = document.getElementById('id_folio_inicio');
+    const folioFinInput = document.getElementById('id_folio_fin');
+    const cantidadBoletasInput = document.getElementById('id_cantidad_boletas');
+    // Establecer el campo de cantidad de boletas como de solo lectura
+    cantidadBoletasInput.setAttribute('readonly', 'readonly');
+    folioInicioInput.addEventListener('keyup', calcularCantidadBoletas);
+    folioFinInput.addEventListener('keyup', calcularCantidadBoletas);
+
+    function calcularCantidadBoletas() {
+        const folioInicio = parseInt(folioInicioInput.value) || 0;
+        const folioFin = parseInt(folioFinInput.value) || 0;
+
+        const cantidadBoletas = folioFin - folioInicio;
+
+        if (!isNaN(cantidadBoletas) && cantidadBoletas >= 0) {
+            cantidadBoletasInput.value = cantidadBoletas;
+
+            // Verificar si la cantidad de boletas es mayor que 750
+            if (cantidadBoletas > 750) {
+                // Mostrar una alerta indicando que no se puede
+                Swal.fire({
+                    title: 'Error',
+                    text: 'La cantidad de boletas no puede ser mayor que 750',
+                    icon: 'error'
+                });
+            }
+        } else {
+            cantidadBoletasInput.value = '';
+        }
+
+        console.log("Folio de inicio:", folioInicio);
+        console.log("Folio de fin:", folioFin);
+        console.log("Cantidad de boletas:", cantidadBoletas);
+    }
+});
+
+    
+    </script>
+    
+
+</body>
+
+{% endblock %}

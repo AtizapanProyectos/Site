@@ -1,0 +1,84 @@
+{% extends "base.html" %}
+
+{% block titulo %} Agregar Principios {% endblock %}
+
+{% block encabezado %}<center> <h1 class="text-center mb-4" style="color: #535353e5;">Catálogo de Principios</h1> </center>{% endblock %}
+{% block contenido %}
+
+<style>
+  .form-container {
+      max-width: 900px;
+      width: 100%;
+      padding: 30px;
+      background-color: #ffffff; /* Cambiado a rojo */
+      border-radius: 50px;
+      box-shadow: 0 0 60px #ffffff;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+      margin-top: -220px; /* Ajusta este valor para controlar la distancia desde la parte superior */
+    }
+  
+    .form-label {
+      color: #000000e5;
+      font-weight: bold;
+    }
+  
+  .form-control {
+      background-color: #f5f5f5;
+      border: 2px solid #000000e5;
+      border-radius: 10px;
+      padding: 15px;
+      font-size: 16px;
+      width: 100%;
+      margin-bottom: 30px; /* Aumenta el espacio entre los campos */
+  }
+    
+  </style>
+
+<body>
+  <form enctype="multipart/form-data" method="post" class="form-container">
+    {% csrf_token %}
+    {% for campo in formulario %}
+      <div class="mb-3">
+        <label for="{{ campo.id }}" class="form-label">{{ campo.label }}</label>
+
+        {% if campo.field.widget.input_type == 'file' and campo.value %}
+          <br>
+          <img src="{{MEDIA_URL}}/images/{{campo.value}} " width="100" alt="" srcset="">
+        {% endif  %}
+
+        <input
+          type="{{ campo.field.widget.input_type }}"
+          class="form-control"
+          name="{{ campo.name }}"
+          id="{{ campo.id }}"
+          aria-describedby="helpId"
+          placeholder="{{ campo.label }}"
+          value="{{ campo.value | default:'' }}"
+        />
+      </div>
+      <div class="col-12 help-text text-danger">{{ campo.errors }}</div>
+    {% endfor %}
+
+    <div id="botones-fila">
+      <button name="" style="color: black" id="" class="btn btn-fila" type="submit">Guardar Datos</button>
+      <button class="btn btn-fila" style="color: black" id="btncancelar" type="button">Cancelar</button>
+      <button class="btn btn-fila" style="color: black" id="cerrar-button" type="button">Cerrar</button>
+    </div>
+  </form>
+
+  <script>
+ 
+    var consultarAgregarButton = document.getElementById('cerrar-button');
+    consultarAgregarButton.addEventListener('click', function() {
+      window.location.href = "{% url 'principio' %}";
+    });
+  </script>
+
+  <script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.11.6/dist/umd/popper.min.js"></script>
+  <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
+</body>
+
+{% endblock %}

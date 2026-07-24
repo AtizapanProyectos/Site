@@ -1,0 +1,900 @@
+
+
+{% extends "base.html" %} 
+
+{% block titulo %} Observadores Registrados {% endblock %}
+
+{% block encabezado %}<center> 
+  <h1 class="text-center mb-4" style="color: #515151e5;">Registro de Observadores</h1> 
+  <br>
+  <br>
+  <h1 class="text-center mb-4" style="color: #515151e5;">{{nombre_partido}}</h1>
+  </center>{% endblock %}
+
+
+{% block combos %}
+
+<center>
+
+<label for="combobox2">Año</label>
+
+<select name="combobox2" id="cboaño" class="combobox combobox-año">
+{% for año in años %}
+
+<option value="{{año}}">{{año}}</option>
+
+{% endfor %}
+
+</select>
+
+
+<!-- Combobox 1 -->
+
+<label for="combobox1">Entidad Federativa</label>
+
+<select name="combobox1" id="cboestado" class="combobox combobox-entidad">
+{% for dis in entidad_federativa %}
+
+<option value="{{ dis }}">{{ dis }}</option>
+
+{% endfor %}
+
+</select>
+
+
+<!-- Combobox 3 -->
+
+<label for="combobox3">Elección</label>
+
+<select name="com<select name="combobox3" id="cboeleccion" class="combobox combobox-eleccion">
+  bobox3" id="combobox3" class="combobox">
+
+{% for dis in eleccion %}
+
+<option value="{{ dis }}">{{ dis }}</option>
+
+{% endfor %}
+
+</select>
+
+
+
+</select>
+
+<label for="combobox4">Cargo</label>
+<select name="combobox4" id="cbocargo" class="combobox combobox-cargo"></select>
+
+
+<label for="combobox5" style="display: none;">Municipio</label>
+<select name="combobox5" id="cbomuni" class="combobox combobox-cargo" style="display: none;"></select>
+
+
+<label for="combobox6" style="display: none;">Distrito</label>
+<select name="combobox6" id="cbodis" class="combobox combobox-cargo"style="display: none;"></select>
+
+
+
+</center>
+
+
+
+
+{% endblock %}
+
+
+
+
+{% block contenido %}
+
+
+
+
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.1/css/all.min.css">
+
+
+{% if messages %}
+  <div class="messages-container">
+    <ul class="messages">
+      {% for message in messages %}
+        <li{% if message.tags %} class="{{ message.tags }}"{% endif %}>
+          <!-- Agregamos un ícono de alerta -->
+          <span class="icon">
+            {% if message.tags == 'success' %}
+              <i class="fas fa-check-circle"></i>
+            {% elif message.tags == 'error' %}
+              <i class="fas fa-exclamation-circle"></i>
+            {% endif %}
+          </span>
+          <div class="message-text">
+            {{ message }}
+            <!-- Agregamos el botón de cerrar -->
+            <a href="{% url 'Comp_Agregar_Candidatos_Agregar' %}" class="close-btn" onclick="cerrarMensaje(this)">X</a>
+          </div>
+        </li>
+      {% endfor %}
+    </ul>
+  </div>
+{% endif %}
+
+
+
+
+<script>
+  function cerrarMensaje(btn) {
+    // Obtén el elemento padre li del botón
+    var mensajeLi = btn.parentNode;
+
+    // Oculta el mensaje
+    mensajeLi.style.display = 'none';
+  }
+</script>
+
+
+
+{% load static %}
+
+<style>
+
+
+.contenedorcombos {
+  position: fixed;
+  top: 50%;
+  margin: 0 auto;
+  left: 50%;
+  width: 30%;
+  padding: 20px;
+  box-sizing: border-box;
+}
+
+
+.messages-container {
+  position: fixed;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  z-index: 9999;
+  width: 30%;
+  padding: 20px;
+  box-sizing: border-box;
+}
+
+
+  .messages {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+  }
+
+  .messages li {
+    display: flex;
+    align-items: center;
+    padding: 10px;
+    margin-bottom: 10px;
+    border: 1px solid #ccc;
+    border-radius: 5px;
+  }
+
+  .messages li.success {
+    background-color: #d4edda;
+    border-color: #c3e6cb;
+    color: #155724;
+  }
+
+  .messages li.error {
+    background-color: #f8d7da;
+    border-color: #f5c6cb;
+    color: #721c24;
+  }
+
+  .icon {
+    margin-right: 10px;
+  }
+
+  .message-text {
+    flex-grow: 1;
+  }
+
+  .close-btn {
+    margin-left: 300px;
+    text-decoration: none;
+    color: #000;
+  }
+
+
+
+
+h1{
+    margin-top: -30px; /* Ajusta el valor según tus necesidades del TITULO */
+  }
+
+
+  
+  /* Estilo para el combobox del Año */
+.combobox-año {
+  padding: 10px;
+  font-size: 16px;
+  border: 2px solid #000000;
+  border-radius: 5px;
+  margin: 45px;
+  width: 120px;
+  top: 30%;
+  background-color: #ffffffe5;
+  margin-inline-start: 10px;/* Estilos específicos para el combobox de Año */
+}
+
+/* Estilo para el combobox de la Entidad Federativa */
+.combobox-entidad {
+  padding: 10px;
+  font-size: 16px;
+  border: 2px solid #000000;
+  border-radius: 5px;
+  margin: 10px;
+  width: 190px;
+  top: 30%;
+  background-color: #ffffffe5;
+  margin-inline-start: 5px; /* Estilos específicos para el combobox de Entidad Federativa */
+}
+
+/* Estilo para el combobox de la Elección */
+.combobox-eleccion {
+  padding: 10px;
+  font-size: 16px;
+  border: 2px solid #000000;
+  border-radius: 5px;
+  margin: 10px;
+  width: 210px;
+  top: 70%;
+  background-color: #ffffffe5;
+  margin-inline-start: 2px;  /* Estilos específicos para el combobox de Elección */
+}
+
+/* Estilo para el combobox del Cargo */
+.combobox-cargo {
+  padding: 10px;
+  font-size: 16px;
+  border: 2px solid #000000;
+  border-radius: 5px;
+  margin: 10px;
+  width: 200px;
+  top: 30%;
+  background-color: #ffffffe5;
+  margin-inline-start: 2px; /* Estilos específicos para el combobox de Cargo */
+}
+
+/* Estilo para el combobox del Distrito */
+.combobox-distrito {
+  padding: 10px;
+  font-size: 16px;
+  border: 2px solid #000000;
+  border-radius: 5px;
+  margin: 10px;
+  top: 30%;
+  width: 220px;
+  background-color: #ffffffe5;
+  margin-inline-start: 2px; /* Estilos específicos para el combobox de Distrito */
+}
+
+
+/* Estilo para las etiquetas de los combobox */
+label {
+  display:contents;
+  margin: 10px 0 5px 0;
+}
+
+
+/* Contenedor de la tabla */
+.table-container {
+  width: 100%;
+  overflow-y: auto;
+  max-height: 450px; /* Ajusta la altura máxima según tus necesidades */
+}
+
+/* Tabla responsiva */
+.table-responsive {
+  display: block;
+  overflow-x: auto;
+  white-space: nowrap;
+}
+
+.text-center {
+  text-align: center;
+  color: #686565;
+}
+
+/* Estilo general de la tabla */
+.custom-table {
+  font-family: sans-serif;
+  border-collapse: collapse;
+  width: 100%;
+  max-width: none;
+}
+
+.custom-table th,
+.custom-table td {
+  padding: 15px;
+  text-align: left;
+  border: 2px solid #ddd;
+}
+
+.custom-table th {
+  background-color: #ff69b4e5;
+  font-weight: bold;
+}
+
+.custom-table tbody tr:nth-child(even) {
+  background-color: #f2f2f2;
+}
+
+/* Estilo de los botones */
+.custom-table td a {
+  color: #000;
+}
+
+.btn-info,
+.btn-delate {
+  background-color: transparent;
+  border: none;
+}
+
+.table-container {
+  margin-top: -10px; /* Ajusta el valor según tus necesidades */
+}
+
+
+.main-container {
+  width: 76%;
+  margin: 0 auto; /* Elimina el margen superior */
+  overflow-x: auto;
+  position: fixed; /* Agrega posición fija */
+  top: 30%; /* Coloca el contenedor en la parte superior */
+  left: 50%; /* Ajusta la posición horizontal según tus necesidades */
+  transform: translateX(-50%); /* Centra el contenedor horizontalmente */
+}
+
+
+
+</style>
+
+
+
+
+<div class="main-container">
+
+  
+  <div class="table-container mx-auto">
+    <div class="table-responsive">
+      <table id="tabla-representantes" class="table table-hover table-bordered table-striped shadow-sm custom-table">
+  
+      <thead>
+        <tr>
+          <th>Nombres</th>
+          <th>Apellido Paterno</th>
+          <th>Apellido Materno</th>
+          <th>Fecha de Registro</th>
+          <th>Acciones</th>
+        </tr>
+      </thead>
+
+      <tbody>
+
+        {% for distrito in distritos_mostrar  %}
+        <tr>
+          <td>{{ distrito.0 }}</td>
+          <td>{{ distrito.1 }}</td>
+          <td class="text-center">
+            <a name="" id="" class="btn btn-info" href="{% url 'distritos_editar'  distrito.0%}" role="button">Editar</a>
+            |
+            <a name="" id="" class="btn btn-delate" href="#" onclick="confirmarEliminar('{{ distrito.0 }}')" role="button">Eliminar</a>
+          </td>
+        </tr>
+
+        {% endfor %}
+
+      </tbody>
+    </table>
+  </div>
+</div>
+</div>
+
+<div id="botones-fila">
+  <button type="button" id="btnconsultar">Consultar</button>
+
+  <button type="button" id="btnagregar">Agregar</button>
+  <button type="button" id="cerrar-button">Cerrar</button>
+  
+</div>  
+
+
+<script>
+
+
+  console.log("Ejecutando JS");
+  
+  
+  const listarCargos=async(idproceso)=>{
+      try {
+        const response = await fetch(`/cargos/${idproceso}`);
+    const data = await response.json();
+    console.log(data);
+    
+     if (data.message=="Success"){
+    
+       let opciones = '';
+       data.cargos.forEach((Tipocargo)=>{
+    
+        opciones += `<option value="${Tipocargo.idtipo_cargo}">${Tipocargo.descrip_tcargo}</option>`;
+    
+       });
+       cbocargo.innerHTML = opciones;
+     }else{
+       alert("cargos no encontradas");
+     }
+    
+    
+    } catch (error) {
+     console.log(error);
+    }
+    }
+    
+    
+    const listarElecciones = async () => {
+    try {
+      const response = await fetch(`/elecciones/`);
+      const data = await response.json();
+      console.log(data);
+  
+      if (data.message === "Success") {
+        let opciones = '';
+        data.elecciones.forEach((Procesos) => {
+          opciones += `<option value="${Procesos.idproceso}" data-idproceso="${Procesos.idproceso}">${Procesos.descrip}</option>`;
+        });
+        cboeleccion.innerHTML = opciones;
+      } else {
+        alert("elecciones no encontradas");
+      }
+    } catch (error) {
+      console.log(error);
+    }
+  }
+  const listarRepresentantesEnTabla = async (anio, cboeleccionText, cargo) => {
+    try {
+
+        const response = await fetch(`/get/Observadores/${anio}/${cboeleccionText}/${cargo}`);
+        const data = await response.json();
+
+        if (data.message === "Success") {
+            let filas = '';
+            data.representantes.forEach((Representantes) => {
+                filas += `<tr>
+                            <td class="folioC">${Representantes.nombre}</td>
+                            <td class="direccion">${Representantes.ap_paterno}</td>
+                            <td class="folioC">${Representantes.ap_materno}</td>
+                            <td class="direccion">${Representantes.fecha_reg}</td>
+                            <td class="acciones text-center">
+                                <a name="" class="btn btn-info editar" data-folioc="${Representantes.cdg_repre}" role="button">Editar</a>
+                                |
+                                <a name="" class="btn btn-delete eliminar" data-folioc="${Representantes.cdg_repre}" role="button">Eliminar</a>
+                                |
+                                <a name="" class="btn btn-delete documentos" data-folioc="${Representantes.cdg_repre}" role="button">Documentos</a>
+                                |
+                                <a name="" class="btn btn-delete Reporte" data-folioc="${Representantes.cdg_repre}" role="button">Reporte</a>
+                            </td>
+                          </tr>`;
+            });
+
+            // Agregar las filas a la tabla con el id "tabla-casillas"
+            document.getElementById("tabla-representantes").getElementsByTagName('tbody')[0].innerHTML = filas;
+
+            // Obtener todos los elementos con la clase 'editar'
+            const botonesEditar = document.querySelectorAll('.editar');
+
+            // Iterar sobre los elementos y agregar un evento de clic
+            botonesEditar.forEach((boton) => {
+                boton.addEventListener('click', function() {
+                    // Obtener el folioC de la fila actual
+                    const folioC = this.getAttribute('data-folioc');
+                    const cboeleccionSelectedOption = cboeleccion.options[cboeleccion.selectedIndex];
+                    console.log("Objeto seleccionado de cboeleccion: ", cboeleccionSelectedOption.text);
+                    console.log("Editar - folioC:", folioC); 
+                    const cbocargoSelectedOption = cbocargo.options[cbocargo.selectedIndex];
+                    console.log("Cargo: ", cbocargoSelectedOption.text);
+                    const anio = cboaño.value;
+                    window.location.href = `/editar/Observadores/${folioC}/${cboeleccionSelectedOption.text}/${cbocargoSelectedOption.text}/${anio}`;
+                });
+            });
+
+            // Obtener todos los elementos con la clase 'eliminar'
+            const botonesEliminar = document.querySelectorAll('.eliminar');
+
+            // Iterar sobre los elementos y agregar un evento de clic
+            botonesEliminar.forEach((boton) => {
+                boton.addEventListener('click', function() {
+                    // Obtener el folioC de la fila actual
+                    const folioC = this.getAttribute('data-folioc');
+                    console.log("Eliminar - folioC:", folioC);
+                    // Confirmar la eliminación antes de redirigir 
+                    confirmarEliminar(folioC);
+                    
+                });
+            });
+
+            // Obtener todos los elementos con la clase 'documentos'
+            const botonesDocumentos = document.querySelectorAll('.documentos');
+
+            // Iterar sobre los elementos y agregar un evento de clic
+            botonesDocumentos.forEach((boton) => {
+                boton.addEventListener('click', function() {
+                    // Obtener el folioC de la fila actual
+                    const folioC = this.getAttribute('data-folioc');
+                    console.log("Documentos - folioC:", folioC);
+                    const cboeleccionSelectedOption = cboeleccion.options[cboeleccion.selectedIndex];
+                    console.log("Objeto seleccionado de cboeleccion: ", cboeleccionSelectedOption.text);
+                    const anio = cboaño.value;
+                    console.log("Año seleccionado: "+anio)
+                    const cbocargoSelectedOption = cbocargo.options[cbocargo.selectedIndex];
+                    console.log("Cargo seleccionao: "+cbocargoSelectedOption.text)
+                    // Agregar aquí la lógica para la función de documentos
+                    window.location.href = `/Documentos/Observadores/${folioC}/${cboeleccionSelectedOption.text}/${anio}/${cbocargoSelectedOption.text}`;
+                });
+            });
+
+                        // Obtener todos los elementos con la clase 'documentos'
+            const botonesReporte = document.querySelectorAll('.Reporte');
+
+            // Iterar sobre los elementos y agregar un evento de clic
+            botonesReporte.forEach((boton) => {
+                boton.addEventListener('click', function() {
+                    // Obtener el folioC de la fila actual
+                    const folioC = this.getAttribute('data-folioc');
+                    console.log("Documentos - folioC:", folioC);
+                    const cboeleccionSelectedOption = cboeleccion.options[cboeleccion.selectedIndex];
+                    console.log("Objeto seleccionado de cboeleccion: ", cboeleccionSelectedOption.text);
+                    const añoSeleccionado = document.getElementById("cboaño").value;
+                    console.log(añoSeleccionado);
+                    const cbocargoSelectedOption = cbocargo.options[cbocargo.selectedIndex];
+
+
+                     
+                    // Agregar aquí la lógica para la función de documentos
+                    window.location.href = `/generar_pdf/Representantes/${añoSeleccionado}/${cboeleccionSelectedOption.text}/${folioC}/${cbocargoSelectedOption.text}`;
+                });
+            });
+
+
+        } else {
+            alert("No Existen Registros Para la Selección");
+        }
+
+    } catch (error) {
+        console.log(error);
+    }
+}
+
+  
+  const listarEstados = async () => {
+      try {
+          const response = await fetch(`/estados/`)
+          const data = await response.json();
+          console.log(data);
+  
+          if (data.message == "Success") {
+  
+              let opciones = '';
+              data.estados.forEach((Estados) => {
+                  opciones += `<option value="${Estados.idestado}">${Estados.nombre_edo}</option>`;
+              });
+              cboestado.innerHTML = opciones;
+  
+          } else {
+              alert("elecciones no encontradas");
+          }
+  
+      } catch (error) {
+          console.log(error);
+      }
+  }
+  
+  const listarConsejos = async () => {
+      try {
+          const response = await fetch(`/consejos/`)
+          const data = await response.json();
+          console.log(data);
+  
+          if (data.message == "Success") {
+  
+              let opciones = '';
+              data.consejo.forEach((Consejo) => {
+                  opciones += `<option value="${Consejo.cdg_consejo}">${Consejo.descipcion}</option>`;
+              });
+              cboestado.innerHTML = opciones;
+  
+          } else {
+              alert("elecciones no encontradas");
+          }
+  
+      } catch (error) {
+          console.log(error);
+      }
+  }
+
+  
+  
+   const listarDistritos=async(idestado)=>{
+    
+    try {
+   
+    const response =await fetch(`getdistritos/${idestado}`)
+    const data = await response.json();
+    console.log(data);
+   
+     if (data.message=="Success"){
+   
+       let opciones = '';
+       data.distritos.forEach((Distritos)=>{
+   
+         opciones += `<option value="${Distritos.iddistrito}">${Distritos.nombredistrito}</option>`;
+       });
+       cbodistrito.innerHTML = opciones;
+     }else{
+       alert("Distritos no encontrados");
+     }
+   
+   
+    } catch (error) {
+     console.log(error);
+    }
+   }
+  
+  
+  const listarEleccionesPorAño = async (anio) => {
+    try {
+      const response = await fetch(`eleccionesfilter/${anio}`);
+      const data = await response.json();
+      console.log(data);
+  
+      // Limpiar el contenido actual del cboeleccion
+      cboeleccion.innerHTML = '';
+  
+      if (data.message === "Success") {
+        let opciones = '';
+        data.elecciones.forEach((Procesos) => {
+             opciones += `<option value="${Procesos.idtipoc_id}" data-idproceso="${Procesos.idtipoc_id}">${Procesos.descrip}</option>`; 
+            });
+        cboeleccion.innerHTML = opciones;
+      } else {
+        alert("Elecciones no encontradas");
+      }
+    } catch (error) {
+      console.log(error);
+    }
+  }
+  
+  const listarNumerodeElecciones=async(idtipo_cargo, idproceso)=>{
+    var tipo=null;
+    try {
+   
+    const response =await fetch(`/NumeroEleccion/${idproceso}/${idtipo_cargo}`)
+    const data = await response.json();
+    console.log(data);
+   
+     if (data.message=="Success"){
+   
+       let opciones = '';
+
+
+       data.results.forEach((Distritos)=>{
+        tipo=Distritos.idtipoc;
+
+        if (Distritos.idtipoc === 'AY') {
+        // Código a ejecutar si Distritos.idtipoc es igual a 'AY'
+
+          // Ocultar el label y select para "Municipio"
+          document.querySelector('label[for="combobox5"]').style.display = 'block';
+          document.getElementById('cbomuni').style.display = 'block';
+
+          document.querySelector('label[for="combobox6"]').style.display = 'none';
+          document.getElementById('cbodis').style.display = 'none';
+          opciones += `<option value="${Distritos.idMunicipio}">${Distritos.nombre}</option>`;
+
+        } else if (Distritos.idtipoc==='CO'){
+        // Código a ejecutar si Distritos.idtipoc no es igual a 'AY'
+      
+          // Ocultar el label y select para "Distrito"
+          document.querySelector('label[for="combobox6"]').style.display = 'block';
+          document.getElementById('cbodis').style.display = 'block';
+          document.querySelector('label[for="combobox5"]').style.display = 'none';
+          document.getElementById('cbomuni').style.display = 'none';
+          opciones += `<option value="${Distritos.idDistrito}">${Distritos.nombre}</option>`;
+
+
+        } else {
+          document.querySelector('label[for="combobox5"]').style.display = 'none';
+          document.getElementById('cbomuni').style.display = 'none';
+          document.querySelector('label[for="combobox6"]').style.display = 'none';
+          document.getElementById('cbodis').style.display = 'none';
+        }
+
+          // Limpiar el contenido actual del select de "Municipio"
+
+   
+
+       });
+       console.log("esoooo: "+tipo)
+ 
+
+
+       if (tipo === 'AY') {
+    // Código a ejecutar si Distritos.idtipoc es igual a 'AY'
+    console.log('El valor de idtipoc es AY');
+    cbomuni.innerHTML = opciones;
+} else if (tipo==='CO') {
+    // Código a ejecutar si Distritos.idtipoc no es igual a 'AY'
+    console.log('El valor de idtipoc no es AY');
+    cbodis.innerHTML = opciones;
+}
+
+  
+
+       
+
+       
+     }else{
+       alert("Distritos no encontrados");
+     }
+   
+   
+    } catch (error) {
+     console.log(error);
+    }
+
+
+   }
+
+
+    const cargainicial =async()=>{
+    
+    await listarEstados();
+    await listarElecciones();
+    await listarCargos(cboeleccion.value);
+
+
+    cbocargo.addEventListener("change", (event) => {
+
+console.log(cbocargo.value);
+listarNumerodeElecciones(cbocargo.value, cboeleccion.value);
+
+});
+
+
+  
+  btnconsultar.addEventListener("click", (event) => {
+      // Muestra en la consola los valores seleccionados de los combos
+
+      const anio = cboaño.value;
+      console.log("Año Seleccionado de cbocargo: ", anio);
+      console.log("ola: "+cboeleccion.value); 
+  
+      // Obtiene el objeto seleccionado del combo cboeleccion
+      const cboeleccionSelectedOption = cboeleccion.options[cboeleccion.selectedIndex];
+      console.log("Objeto seleccionado de cboeleccion: ", cboeleccionSelectedOption.text);
+      const cbocargoSelectedOption = cbocargo.options[cbocargo.selectedIndex];
+      console.log("Cargo: ", cbocargoSelectedOption.text);
+      // Llama a la función con los valores necesarios
+      
+      listarRepresentantesEnTabla( anio, cboeleccionSelectedOption.text, cbocargoSelectedOption.text );
+  
+  });
+
+
+  btnagregar.addEventListener("click", (event) => {
+      // Muestra en la consola los valores seleccionados de los combos
+
+      const anio = cboaño.value;
+      console.log("Año Seleccionado de cbocargo: ", anio);
+      
+      // Obtiene el objeto seleccionado del combo cboeleccion
+      const cboeleccionSelectedOption = cboeleccion.options[cboeleccion.selectedIndex];
+      console.log("Objeto seleccionado de cboeleccion: ", cboeleccionSelectedOption.text);
+      const cbocargoSelectedOption = cbocargo.options[cbocargo.selectedIndex];
+      console.log("Cargo: ", cbocargoSelectedOption.text);
+      // Llama a la función con los valores necesarios
+      //listarRepresentantesEnTabla( anio, cboeleccionSelectedOption.text);
+      const url = `/agregar/Observadores/${anio}/${cboeleccionSelectedOption.text}/${cbocargoSelectedOption.text}`;
+      // Redirige a la URL construida
+      window.location.href = url;
+  });
+    
+    }
+    
+    
+    window.addEventListener("load", async () => {
+    await cargainicial(); 
+    listarNumerodeElecciones(cbocargo.value, cboeleccion.value);
+
+    });
+    
+    
+        var consultarAgregarButton = document.getElementById('cerrar-button');
+    
+    // Agrega un evento de clic al botón
+    consultarAgregarButton.addEventListener('click', function() {
+        // Redirige a la URL específica utilizando JavaScript
+        window.location.href = "{% url 'inicio' %}";
+    });
+    
+  cboeleccion.addEventListener("change", (event) => {
+  console.log(event);
+  console.log(event.currentTarget);
+  console.log(event.currentTarget.value);
+  var tablaCasillas = document.getElementById("tabla-representantes");
+tablaCasillas.getElementsByTagName('tbody')[0].innerHTML = '';
+listarCargos(event.currentTarget.value);
+
+});
+  
+cboaño.addEventListener("change", (event) => {
+  console.log(event);
+  console.log(event.currentTarget);
+  console.log(event.currentTarget.value);
+  var tablaCasillas = document.getElementById("tabla-representantes");
+tablaCasillas.getElementsByTagName('tbody')[0].innerHTML = '';
+
+});
+  
+  </script>
+
+
+
+
+<script>
+
+    // Obtén el elemento del botón
+    var consultarAgregarButton = document.getElementById('consultar-agregar');
+
+    // Agrega un evento de clic al botón
+    consultarAgregarButton.addEventListener('click', function() {
+        // Redirige a la URL específica utilizando JavaScript
+        window.location.href = "{% url 'distritos_agregar' %}";
+    });
+
+    var consultarAgregarButton = document.getElementById('cerrar-button');
+
+// Agrega un evento de clic al botón
+consultarAgregarButton.addEventListener('click', function() {
+    // Redirige a la URL específica utilizando JavaScript
+    window.location.href = "{% url 'inicio' %}";
+});
+
+</script>
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@10"></script>
+<script>
+
+
+
+
+
+
+
+
+
+
+  function confirmarEliminar(cdg_repre) {
+      Swal.fire({
+          title: '¿Estás seguro de eliminar este registro?',
+          text: '¡No podrás revertir esto!',
+          icon: 'warning',
+          showCancelButton: true,
+          confirmButtonColor: '#3085d6',
+          cancelButtonColor: '#d33',
+          confirmButtonText: 'Sí, eliminarlo',
+          cancelButtonText: 'Cancelar'
+      }).then((result) => {
+          if (result.isConfirmed) {
+              // Realizar la solicitud de eliminación
+              window.location.href = "{% url 'eliminar_observadores' 0 %}".replace('0', cdg_repre);
+          }
+      });
+  }
+  </script>
+
+{% endblock %}

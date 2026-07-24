@@ -1,0 +1,803 @@
+
+
+{% extends "base.html" %} 
+
+{% block titulo %} Catalogo de Usuarios {% endblock %}
+
+{% block encabezado %}
+<center> 
+  
+  <h1 class="text-center mb-4" style="color: #515151e5;">Catalogo de Usuarios</h1>
+
+  
+
+
+</center>
+
+<center>
+
+</center>
+
+
+{% endblock %}
+
+{% block combos %}
+
+<center>
+
+<label for="combobox2">Año</label>
+
+<select name="combobox2" id="cboaño" class="combobox combobox-año">
+{% for año in años %}
+
+<option value="{{año}}">{{año}}</option>
+
+{% endfor %}
+
+</select>
+
+
+<!-- Combobox 1 -->
+
+<label for="combobox1">Entidad Federativa</label>
+
+<select name="combobox1" id="cboestado" class="combobox combobox-entidad">
+{% for dis in entidad_federativa %}
+
+<option value="{{ dis }}">{{ dis }}</option>
+
+{% endfor %}
+
+</select>
+
+
+<!-- Combobox 3 -->
+
+<label for="combobox3">Elección</label>
+
+<select name="com<select name="combobox3" id="cboeleccion" class="combobox combobox-eleccion">
+  bobox3" id="combobox3" class="combobox">
+
+{% for dis in eleccion %}
+
+<option value="{{ dis }}">{{ dis }}</option>
+
+{% endfor %}
+
+</select>
+
+<label for="combobox4">Cargo</label>
+<select name="combobox4" id="cbocargo" class="combobox combobox-cargo"></select>
+
+
+
+</center>
+
+{% endblock %}
+
+
+
+{% block contenido %}
+
+
+
+
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.1/css/all.min.css">
+
+
+{% if messages %}
+  <div class="messages-container">
+    <ul class="messages">
+      {% for message in messages %}
+        <li{% if message.tags %} class="{{ message.tags }}"{% endif %}>
+          <!-- Agregamos un ícono de alerta -->
+          <span class="icon">
+            {% if message.tags == 'success' %}
+              <i class="fas fa-check-circle"></i>
+            {% elif message.tags == 'error' %}
+              <i class="fas fa-exclamation-circle"></i>
+            {% endif %}
+          </span>
+          <div class="message-text">
+            {{ message }}
+            <!-- Agregamos el botón de cerrar -->
+            <a href="{% url 'regican' %}" class="close-btn" onclick="cerrarMensaje(this)">X</a>
+          </div>
+        </li>
+      {% endfor %}
+    </ul>
+  </div>
+{% endif %}
+
+
+
+
+<script>
+  function cerrarMensaje(btn) {
+    // Obtén el elemento padre li del botón
+    var mensajeLi = btn.parentNode;
+
+    // Oculta el mensaje
+    mensajeLi.style.display = 'none';
+  }
+</script>
+
+
+
+{% load static %}
+
+
+
+
+
+<style>
+
+.messages-container {
+  position: fixed;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  z-index: 9999;
+  width: 30%;
+  padding: 20px;
+  box-sizing: border-box;
+}
+
+
+  .messages {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+  }
+
+  .messages li {
+    display: flex;
+    align-items: center;
+    padding: 10px;
+    margin-bottom: 10px;
+    border: 1px solid #ccc;
+    border-radius: 5px;
+  }
+
+  .messages li.success {
+    background-color: #d4edda;
+    border-color: #c3e6cb;
+    color: #155724;
+  }
+
+  .messages li.error {
+    background-color: #f8d7da;
+    border-color: #f5c6cb;
+    color: #721c24;
+  }
+
+  .icon {
+    margin-right: 10px;
+  }
+
+  .message-text {
+    flex-grow: 1;
+  }
+
+  .close-btn {
+    margin-left: 300px;
+    text-decoration: none;
+    color: #000;
+  }
+
+
+
+
+
+h1{
+    margin-top: -30px; /* Ajusta el valor según tus necesidades del TITULO */
+  }
+/* Estilo para el combobox del Año */
+.combobox-año {
+  padding: 10px;
+  font-size: 16px;
+  border: 2px solid #000000;
+  border-radius: 5px;
+  margin: 30px;
+  width: 150px;
+  background-color: #ffffffe5;
+  margin-left: 2px; /* Ajusta el valor del margen izquierdo según tus necesidades */
+}
+
+
+/* Estilo para el combobox de la Entidad Federativa */
+.combobox-entidad {
+  padding: 10px;
+  font-size: 16px;
+  border: 2px solid #000000;
+  border-radius: 5px;
+  margin: 30px;
+  width: 300px;
+  background-color: #ffffffe5; /* Puedes cambiar el color según tus preferencias */
+  margin-inline-start: 2px;
+}
+
+/* Estilo para el combobox de la Elección */
+.combobox-eleccion {
+  padding: 10px;
+  font-size: 16px;
+  border: 2px solid #000000;
+  border-radius: 5px;
+  margin: 30px;
+  width: 300px;
+  background-color: #ffffffe5; /* Puedes cambiar el color según tus preferencias */
+  margin-inline-start: 2px;
+}
+
+/* Estilo para el combobox del Cargo */
+.combobox-cargo {
+  padding: 10px;
+  font-size: 16px;
+  border: 2px solid #000000;
+  border-radius: 5px;
+  margin: 10px;
+  width: 200px;
+  top: 30%;
+  background-color: #ffffffe5;
+  margin-inline-start: 2px; /* Estilos específicos para el combobox de Cargo */
+}
+
+  /* Estilo para las etiquetas de los combobox */
+  label {
+    display:contents;
+    margin: 10px 0 5px 0;
+  }
+
+
+  /* Contenedor de la tabla */
+  .table-container {
+    width: 100%;
+    overflow-y: auto;
+    max-height: 550px; /* Ajusta la altura máxima según tus necesidades */
+  }
+
+  /* Tabla responsiva */
+  .table-responsive {
+    display: block;
+    overflow-x: auto;
+    white-space: nowrap;
+  }
+
+  .text-center {
+    text-align: center;
+    color: #686565;
+  }
+
+  /* Estilo general de la tabla */
+  .custom-table {
+    font-family: sans-serif;
+    border-collapse: collapse;
+    width: 100%;
+    max-width: none;
+  }
+
+  .custom-table th,
+  .custom-table td {
+    padding: 15px;
+    text-align: left;
+    border: 2px solid #ddd;
+  }
+
+  .custom-table th {
+    background-color: #ff69b4e5;
+    font-weight: bold;
+  }
+
+
+
+  /* Estilo de los botones */
+  .custom-table td a {
+    color: #000;
+  }
+
+  .btn-info,
+  .btn-delate {
+    background-color: transparent;
+    border: none;
+  }
+
+  .table-container {
+    margin-top: -10px; /* Ajusta el valor según tus necesidades */
+  }
+
+
+  .main-container {
+    width: 70%;
+    margin: 50px 0 auto; /* Elimina el margen superior */
+    overflow-x: auto;
+    position: fixed; /* Agrega posición fija */
+    top: 25%; /* Coloca el contenedor en la parte superior */
+    left: 50%; /* Ajusta la posición horizontal según tus necesidades */
+    transform: translateX(-50%); /* Centra el contenedor horizontalmente */
+}
+
+
+</style>
+
+
+
+
+<div class="main-container">
+
+  
+  <div class="table-container mx-auto">
+    <div class="table-responsive">
+      <table id="tabla-candidatos" class="table table-hover table-bordered table-striped shadow-sm custom-table">
+  
+      <thead>
+        <tr>
+          <th>Nombres</th>
+          <th>Apellido Paterno</th>
+          <th>Apellido Materno</th>
+          <th>Nombre de Usuario</th>
+          <th>Acciones</th>
+        </tr>
+      </thead>
+
+      <tbody>
+
+        {% for proceso in elecciones_mostrar %}
+        <tr>
+          <td>{{ proceso.idproceso }}</td>
+          <td>{{ proceso.descrip }}</td>
+          <td>Capturado</td>
+          <td class="text-center">
+            <a name="" id="" class="btn btn-info" href="{% url 'procesos_editar'  proceso.idproceso %}" role="button">Editar</a>
+            |
+            <a href="#" class="btn btn-delate" onclick="confirmarEliminar('{{ proceso.idproceso }}')" role="button">Eliminar</a>
+          </td>
+        </tr>
+
+        {% endfor %}
+
+      </tbody>
+    </table>
+  </div>
+</div>
+</div>
+
+<div id="botones-fila">
+
+  <button type="button" id="btnconsultar">Consultar</button>
+  <button type="button" id="btnagregar">Agregar</button>
+  <button type="button" id="cerrar-button">Cerrar</button>
+  
+</div>  
+
+
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+
+
+
+<script>
+
+
+
+console.log("Ejecutando JS");
+
+
+
+const listarCargos=async(idproceso)=>{
+    try {
+      const response = await fetch(`cargos/${idproceso}`);
+  const data = await response.json();
+  console.log(data);
+  
+   if (data.message=="Success"){
+  
+     let opciones = '';
+     data.cargos.forEach((Tipocargo)=>{
+  
+      opciones += `<option value="${Tipocargo.idtipo_cargo}">${Tipocargo.descrip_tcargo}</option>`;
+  
+     });
+     cbocargo.innerHTML = opciones;
+   }else{
+     alert("elecciones no encontradas");
+   }
+  
+  
+  } catch (error) {
+   console.log(error);
+  }
+  }
+  
+
+  const listardocumentosleccionEnTabla = async (nombre_proceso, idcargo) => {
+    console.log('Si entro a la fucion: '+nombre_proceso);
+    console.log('Si entro a la fucion: '+idcargo);
+    try {
+        const response = await fetch(`/Usuarios/get/${nombre_proceso}/${idcargo}`);
+        const data = await response.json();
+
+       // <td class="formule">${Candidatos.tipo !== null ? mapearValor(Candidatos.tipo) : ''}</td>  
+        if (data.message === "Success") {
+            let filas = '';
+            data.candidatos.forEach((Candidatos) => {
+                filas += `<tr>
+                            <td class="apaterno">${Candidatos.nombre !== null ? Candidatos.nombre : ''}</td>
+                            <td class="amaterno">${Candidatos.apaterno !== null ? Candidatos.apaterno : ''}</td>
+                            <td class="sobrenombres">${Candidatos.amaterno !== null ? Candidatos.amaterno : ''}</td>
+                            <td class="sobrenombres">${Candidatos.usuario !== null ? Candidatos.usuario : ''}</td>
+                                                   
+
+                            <td class="acciones text-center">
+                                <a name="" class="btn btn-info editar" data-parametro="${Candidatos.id_usuario}" data-parametro2="${Candidatos.id_usuario}" role="button">Editar</a>
+                                |
+                                <a name="" class="btn btn-delete eliminar" data-parametro="${Candidatos.id_usuario}" role="button">Eliminar</a>
+                            </td>
+                          </tr>`;
+            });
+
+            // Agregar las filas a la tabla con el id "tabla-casillas"
+            document.getElementById("tabla-candidatos").getElementsByTagName('tbody')[0].innerHTML = filas;
+
+            const botonesEditar = document.querySelectorAll('.editar');
+botonesEditar.forEach((boton) => {
+    boton.addEventListener('click', function() {
+        const parametro = this.getAttribute('data-parametro');
+        const parametro2 = this.getAttribute('data-parametro2');
+        // Ahora puedes usar los valores de "parametro" y "parametro2" en tu lógica
+        console.log('Editar con parámetros:', parametro, parametro2);
+        const añoSeleccionado = document.getElementById("cboaño").value;
+      ;
+        const cboeleccionSelectedOption = cboeleccion.options[cboeleccion.selectedIndex];
+       
+        const cbocargoSelectedOption = cbocargo.options[cbocargo.selectedIndex];
+        
+            window.location.href = `Usuarios/editar/${parametro}`
+            
+
+    });
+});
+
+
+
+            const botonesEliminar = document.querySelectorAll('.eliminar');
+            botonesEliminar.forEach((boton) => {
+                boton.addEventListener('click', function() {
+                    const parametro = this.getAttribute('data-parametro');
+                    // Ahora puedes usar el valor de "parametro" en tu lógica
+                    console.log('Eliminar con parámetro:', parametro);
+                    confirmarEliminar(parametro);
+                });
+            });
+
+        } else {
+          Swal.fire({
+  title: 'Sin candidatos registrados',
+  text: 'No hay candidatos registrados para este proceso.',
+  icon: 'info',
+  confirmButtonText: 'Aceptar'
+});
+
+        }
+
+    } catch (error) {
+        console.log(error);
+    }
+
+    const botonesReporte = document.querySelectorAll('.reporte');
+botonesReporte.forEach((boton) => {
+    boton.addEventListener('click', function() {
+        // Registra un mensaje en la consola
+        console.log('Botón de reporte clickeado');
+        const añoSeleccionado = document.getElementById("cboaño").value;
+        console.log("Año seleccionado:", añoSeleccionado);
+        const cboeleccionSelectedOption = cboeleccion.options[cboeleccion.selectedIndex];
+        console.log("Objeto seleccionado de cboeleccion: ", cboeleccionSelectedOption.text);
+        const cbocargoSelectedOption = cbocargo.options[cbocargo.selectedIndex];
+        console.log("Objeto seleccionado de cboeleccion: ", cbocargoSelectedOption.text);
+        const parametro = this.getAttribute('data-parametro');
+        console.log('Reporte para el candidato con id' , parametro);
+
+
+        const url = `/generar_pdf/${añoSeleccionado}/${cboeleccionSelectedOption.text}/${cbocargoSelectedOption.text}/${parametro}`;
+        window.location.href = url;
+    });
+});
+
+
+
+
+}
+
+  
+  const listarElecciones = async () => {
+  try {
+    const response = await fetch("/elecciones/");
+    const data = await response.json();
+    console.log(data);
+
+    if (data.message === "Success") {
+      let opciones = '';
+      data.elecciones.forEach((Procesos) => {
+        opciones += `<option value="${Procesos.idproceso}" data-idproceso="${Procesos.idproceso}">${Procesos.descrip}</option>`;
+      });
+      cboeleccion.innerHTML = opciones;
+    } else {
+      alert("elecciones no encontradas");
+    }
+  } catch (error) {
+    console.log(error);
+  }
+}
+  
+
+
+const listarEstados = async () => {
+    try {
+        const response = await fetch("/estados/")
+        const data = await response.json();
+        console.log(data);
+
+        if (data.message == "Success") {
+
+            let opciones = '';
+            data.estados.forEach((Estados) => {
+                opciones += `<option value="${Estados.idestado}">${Estados.nombre_edo}</option>`;
+            });
+            cboestado.innerHTML = opciones;
+
+
+        } else {
+            alert("elecciones no encontradas");
+        }
+
+    } catch (error) {
+        console.log(error);
+    }
+}
+
+
+
+
+const listarEleccionesPorAño = async (anio) => {
+  try {
+    const response = await fetch(`/Registro de Candidatura Ayuntamiento/getyear/${anio}`);
+    const data = await response.json();
+    console.log(data);
+
+    // Limpiar el contenido actual del cboeleccion
+    cboeleccion.innerHTML = '';
+
+
+    if (data.message === "Success") {
+      let opciones = '';
+      data.elecciones.forEach((Procesos) => {
+           opciones += `<option value="${Procesos.idproceso}" data-idproceso="${Procesos.idproceso}">${Procesos.descrip}</option>`; 
+          });
+      cboeleccion.innerHTML = opciones;
+    } else {
+      alert("Elecciones no encontradas");
+    }
+  } catch (error) {
+    console.log(error);
+  }
+}
+
+const cargainicial =async()=>{
+  
+  await listarEstados();
+  await listarElecciones();
+  await listarCargos(cboeleccion.value);
+  
+
+  cboestado.addEventListener("click", (event) => {
+    console.log(event);
+    console.log(event.target);
+    console.log(event.target.value);
+});
+
+cboaño.addEventListener("change", (event) => {
+    console.log(event);
+    console.log(event.target);
+    console.log(event.target.value);
+    listarEleccionesPorAño(event.target.value);
+});
+
+// aqui puedes programar los eventos de cada objeto mediante su atributo 'id'  
+btnconsultar.addEventListener("click", (event) => {
+    // Obtener el texto seleccionado del combo cboeleccion
+    const cboeleccionSelectedText = cboeleccion.options[cboeleccion.selectedIndex].text;
+    console.log("Texto seleccionado de cboeleccion: ", cboeleccionSelectedText);
+    // Obtener el velue seleccionado del combo cbocargo
+    console.log("Texto seleccionado de cbocargo: ", cbocargo.value);
+
+    // Llama a la función con los valores necesarios
+    listardocumentosleccionEnTabla(cboeleccionSelectedText,cbocargo.value);
+});
+
+
+cboeleccion.addEventListener("change", (event) => {
+  console.log(event);
+  console.log(event.currentTarget);
+  console.log(event.currentTarget.value);
+  listarCargos(event.currentTarget.value);
+  var tablaCasillas = document.getElementById("tabla-casillas");
+tablaCasillas.getElementsByTagName('tbody')[0].innerHTML = '';
+
+});
+
+
+
+
+btnagregar.addEventListener("click", (event) => {
+    // Construye la URL con los parámetros seleccionados
+    const añoSeleccionado = document.getElementById("cbocargo").value;
+    console.log("Idcargo: ", añoSeleccionado);
+    const cboeleccionSelectedOption = cboeleccion.options[cboeleccion.selectedIndex];
+    console.log("Objeto seleccionado de cboeleccion: ", cboeleccionSelectedOption.text);
+    console.log("Año: ", cboaño.value );
+
+   const url = `Usuarios/agregar/${cboeleccionSelectedOption.text}/${cbocargo.value}/${cboaño.value}`;
+
+// Redirige a la URL construida
+   window.location.href = url;
+});
+
+btnimprimir.addEventListener("click", (event) => {
+    // Construye la URL con los parámetros seleccionados
+    const añoSeleccionado = document.getElementById("cboaño").value;
+    console.log("Año seleccionado:", añoSeleccionado);
+    const cboeleccionSelectedOption = cboeleccion.options[cboeleccion.selectedIndex];
+    console.log("Objeto seleccionado de cboeleccion: ", cboeleccionSelectedOption.text);
+    const cbocargoSelectedOption = cbocargo.options[cbocargo.selectedIndex];
+    console.log("Objeto seleccionado de cboeleccion: ", cbocargoSelectedOption.text);
+
+    const tipo="N";
+    const id=0;
+    // Construye la URL con los parámetros seleccionados
+   const url = `/Imprimir/reporte/${añoSeleccionado}/${cboeleccionSelectedOption.text}/${cbocargo.value}`;
+
+// Redirige a la URL construida
+   window.location.href = url;
+
+});
+
+
+
+
+
+
+  }
+
+
+
+
+
+window.addEventListener("load", async () => {
+  await cargainicial(); 
+  });
+
+
+    var consultarAgregarButton = document.getElementById('cerrar-button');
+
+// Agrega un evento de clic al botón
+consultarAgregarButton.addEventListener('click', function() {
+    // Redirige a la URL específica utilizando JavaScript
+    window.location.href = "{% url 'inicio' %}";
+});
+
+</script>
+<script>
+ function confirmarEliminar(idcandidato) {
+      Swal.fire({
+          title: '¿Estás seguro de eliminar este registro?',
+          text: '¡No podrás revertir esto!',
+          icon: 'warning',
+          showCancelButton: true,
+          confirmButtonColor: '#dc3545',
+          cancelButtonColor: '#6c757d',
+          confirmButtonText: 'Sí, eliminarlo',
+          cancelButtonText: 'Cancelar'
+      }).then((result) => {
+          if (result.isConfirmed) {
+              window.location.href = `Usuarios/eliminar/${idcandidato}`;
+          }
+      });
+  }
+
+  function confirmarAgregarCandidato() {
+    Swal.fire({
+        title: '¿Qué tipo de candidato deseas agregar?',
+        icon: 'question',
+        showCancelButton: true,
+        confirmButtonColor: '#28a745',
+        cancelButtonColor: '#6c757d',
+        confirmButtonText: 'Propietario',
+        cancelButtonText: 'Suplente'
+    }).then((result) => {
+        if (result.isConfirmed) {
+            // Aquí puedes redirigir o realizar acciones específicas para agregar un candidato propietario
+              // Construye la URL con los parámetros seleccionados
+              const añoSeleccionado = document.getElementById("cboaño").value;
+              console.log("Año seleccionado:", añoSeleccionado);
+              const cboeleccionSelectedOption = cboeleccion.options[cboeleccion.selectedIndex];
+              console.log("Objeto seleccionado de cboeleccion: ", cboeleccionSelectedOption.text);
+              const cbocargoSelectedOption = cbocargo.options[cbocargo.selectedIndex];
+              console.log("Objeto seleccionado de cboeleccion: ", cbocargoSelectedOption.text);
+
+              const tipo="P";
+              const id=0;
+              const tutilo="Propietario";
+              const url = `regicandagregar/${añoSeleccionado}/${cboeleccionSelectedOption.text}/${cbocargoSelectedOption.text}/${tipo}/${id}/${tutilo}`;
+
+           // Redirige a la URL construida
+               window.location.href = url;
+
+        } else {
+
+              const añoSeleccionado = document.getElementById("cboaño").value;
+              console.log("Año seleccionado:", añoSeleccionado);
+              const cboeleccionSelectedOption = cboeleccion.options[cboeleccion.selectedIndex];
+              console.log("Objeto seleccionado de cboeleccion: ", cboeleccionSelectedOption.text);
+              const cbocargoSelectedOption = cbocargo.options[cbocargo.selectedIndex];
+              console.log("Objeto seleccionado de cboeleccion: ", cbocargoSelectedOption.text);
+
+              const tipo="S";
+              const id=0;
+              const tutilo="Suplente";
+              const url = `regicandagregar/Suplente/${añoSeleccionado}/${cboeleccionSelectedOption.text}/${cbocargoSelectedOption.text}/${tipo}/${id}/${tutilo}`;
+
+           // Redirige a la URL construida
+               window.location.href = url;
+
+            // Aquí puedes redirigir o realizar acciones específicas para agregar un candidato suplente
+            console.log('Agregar candidato suplente');
+        }
+    });
+}
+
+
+function mapearValor(letra) {
+  switch (letra) {
+    case 'P':
+      return 'Propietario';
+    case 'S':
+      return 'Suplente';
+    case 'N':
+      return 'No aplica';
+    default:
+      return letra; // Si la letra no coincide con ninguna de las opciones, devolver la letra original
+  }
+}
+
+
+
+cboeleccion.addEventListener("change", (event) => {
+  console.log(event);
+  console.log(event.currentTarget);
+  console.log(event.currentTarget.value);
+  var tablaCasillas = document.getElementById("tabla-candidatos");
+tablaCasillas.getElementsByTagName('tbody')[0].innerHTML = '';
+
+});
+
+
+cbocargo.addEventListener("change", (event) => {
+  console.log(event);
+  console.log(event.currentTarget);
+  console.log(event.currentTarget.value);
+  var tablaCasillas = document.getElementById("tabla-candidatos");
+tablaCasillas.getElementsByTagName('tbody')[0].innerHTML = '';
+
+});
+
+
+  
+  </script>
+
+
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@10"></script>
+
+
+
+
+
+{% endblock %}

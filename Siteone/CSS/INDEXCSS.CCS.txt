@@ -1,0 +1,114 @@
+
+  /* Contenedor de la tabla */
+  .table-container {
+    width: 100%;
+    overflow-y: auto;
+    max-height: 600px; /* Ajusta la altura máxima según tus necesidades */
+  }
+
+  /* Tabla responsiva */
+  .table-responsive {
+    display: block;
+    overflow-x: auto;
+    white-space: nowrap;
+  }
+
+  .text-center {
+    text-align: center;
+    color: #686565;
+  }
+
+  /* Estilo general de la tabla */
+  .custom-table {
+    font-family: sans-serif;
+    border-collapse: collapse;
+    width: 100%;
+    max-width: none;
+  }
+
+  .custom-table th,
+  .custom-table td {
+    padding: 15px;
+    text-align: left;
+    border: 2px solid #ddd;
+  }
+
+  .custom-table th {
+    background-color: #ff69b4e5;
+    font-weight: bold;
+  }
+
+  .custom-table tbody tr:nth-child(even) {
+    background-color: #f2f2f2;
+  }
+
+  /* Estilo de los botones */
+  .custom-table td a {
+    color: #000;
+  }
+
+  .btn-info,
+  .btn-delate {
+    background-color: transparent;
+    border: none;
+  }
+
+  .btn-agregar {
+    background-color: #fc7dbd;
+    color: #000000;
+    padding: 20px 30px;
+    border: none;
+    border-radius: 10px;
+    display: block;
+    margin: 20px auto; /* Centra los botones */
+    text-decoration: none;
+    font-size: 16px;
+    cursor: pointer;
+    transition: background-color 0.3s ease, color 0.3s ease;
+  }
+
+  .btn-agregar:hover {
+    background-color: #FF66B2;
+  }
+
+  /* Estilo de los botones en fila */
+  #botones-fila {
+    position: fixed;
+    bottom: 5%;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 100%;
+    text-align: center;
+  }
+
+  #botones-fila button {
+    width: 300px;
+    height: 65px;
+    background-color: #ff69b4e5;
+    margin: 0 15px; /* Ajusta el margen entre botones si es necesario */
+    border-radius: 10px;
+    color: rgb(0, 0, 0);
+    transition: all 0.5s ease;
+  }
+
+  #botones-fila button:hover {
+    transform: scale(1.1);
+    box-shadow: 0 0 10px #ff69b4e5;
+  }
+
+  .table-container {
+    margin-top: -10px; /* Ajusta el valor según tus necesidades */
+  }
+
+
+  .main-container {
+    width: 70%;
+    margin: 0 auto; /* Elimina el margen superior */
+    overflow-x: auto;
+    position: fixed; /* Agrega posición fija */
+    top: 20%; /* Coloca el contenedor en la parte superior */
+    left: 50%; /* Ajusta la posición horizontal según tus necesidades */
+    transform: translateX(-50%); /* Centra el contenedor horizontalmente */
+}
+
+

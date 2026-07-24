@@ -1,0 +1,113 @@
+{% extends "base.html" %}
+
+{% block titulo %} Agregar Documentos de Elección {% endblock %}
+
+{% block encabezado %}<center> <h1 class="text-center mb-4" style="color: #ff69b4e5;">Agregar Documentos de Elección</h1></center>{% endblock %}
+
+{% block contenido %}
+
+<style>
+ 
+
+/* Estilo personalizado para los combo box */
+select {
+  width: 250px;
+  height: 50px;
+  padding: 10px;
+  font-size: 16px;
+  border: 2px solid #ff69b4e5;
+  border-radius: 5px;
+  background-color: white; /* Puedes ajustar el color de fondo según tus preferencias */
+  color: #000000; /* Puedes ajustar el color del texto según tus preferencias */
+}
+
+/* Estilo para resaltar el combo box cuando está enfocado */
+select:focus {
+  border-color: #ff69b4e5;
+  outline: none; /* Elimina el contorno predeterminado del enfoque */
+  box-shadow: 0 0 5px #ff69b4e5; /* Agrega una sombra cuando el combo box está enfocado */
+}
+
+
+.row {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  background-color: rgb(255, 255, 255);
+  margin-top: -30px;
+  width: 1500px;
+  height: 200px;
+  
+}
+
+input {
+  width: 250px;
+  height: 50px;
+  padding: 25px;
+  font-size: 16px;
+  border-color: #ff69b4e5;
+}
+
+/* Clase personalizada para controlar el margen inferior de las columnas */
+.mb-3-custom {
+  margin-bottom: 2rem; /* Puedes ajustar el valor según tus necesidades */
+}
+
+
+.form-container::-webkit-scrollbar {
+  width: 12px;
+}
+
+.form-container::-webkit-scrollbar-thumb {
+  background-color: #ff69b4e5;
+  border-radius: 6px;
+}
+
+.form-container::-webkit-scrollbar-track {
+  background-color: #f5f5f5;
+}
+.form-label {
+    color: #6b6b6b;
+    font-weight: bold;
+  }
+
+</style>
+
+  <body>
+    <form enctype="multipart/form-data" method="post" class="form-container">
+      {% csrf_token %}
+      <div class="row">
+      
+        <div class="col-md-3 mb-3 mb-3-custom">
+          <label for="{{ formulario.idproceso.id_for_label }}">{{ formulario.idproceso.label }}</label>
+          {{ formulario.idproceso }}
+        </div>
+        
+        <div class="col-md-3 mb-3 mb-3-custom">
+          <label for="{{ formulario.idtipo_doc.id_for_label }}">{{ formulario.idtipo_doc.label }}</label>
+          {{ formulario.idtipo_doc }}
+        </div>
+        
+
+      </div>
+  
+      <div id="botones-fila">
+        <button name="" style="color: black" id="" class="btn btn-fila" type="submit">Guardar Datos</button>
+        <button class="btn btn-fila" style="color: black ">Cancelar</button>
+        <button class="btn btn-fila" style="color: black" id="cerrar-button">Cerrar</button>
+      </div>
+    </form>
+
+  <script>
+    var consultarAgregarButton = document.getElementById('cerrar-button');
+    consultarAgregarButton.addEventListener('click', function() {
+      window.location.href = "{% url 'docelecciones' %}";
+    });
+  </script>
+
+  <script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.11.6/dist/umd/popper.min.js"></script>
+  <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
+</body>
+
+{% endblock %}

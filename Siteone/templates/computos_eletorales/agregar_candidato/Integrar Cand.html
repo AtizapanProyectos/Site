@@ -1,0 +1,445 @@
+
+
+{% extends "base.html" %} 
+
+{% block titulo %} Candidatos en Contienda {% endblock %}
+
+{% block encabezado %}<center> 
+  <h1 class="text-center mb-4" style="color: #3a3a3ae5;">Integrar un candidato a la Contienda</h1> 
+  <br>
+  <br>
+  <h1 class="text-center mb-4" style="color: #3a3a3ae5;">Año: {{anio}}</h1>
+  <br>
+  <br>
+  <h1 class="text-center mb-4" style="color: #3a3a3ae5;">{{nombreedo}}</h1>
+  <br>
+  <br>
+  <h1 class="text-center mb-4" style="color: #3a3a3ae5;">{{nombreeleccion}}</h1>
+  <br>
+  <br>
+  <h1 class="text-center mb-4" style="color: #3a3a3ae5;">{{cargo}}</h1>
+  <br>
+  <br>
+  </center>
+  {% endblock %}
+
+
+
+
+{% block contenido %}
+
+
+
+
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.1/css/all.min.css">
+
+{% if message %}
+
+    <script>
+      console.log("eNTRO AL MENSAJE")
+        // Verificar si hay un mensaje
+        Swal.fire({
+            icon: 'info',
+            title: 'Verificación',
+            text: "{{ message }}", // Mostrar el mensaje recibido
+        });
+    </script>
+{% endif %}
+
+
+
+
+<script>
+  function cerrarMensaje(btn) {
+    // Obtén el elemento padre li del botón
+    var mensajeLi = btn.parentNode;
+
+    // Oculta el mensaje
+    mensajeLi.style.display = 'none';
+  }
+</script>
+
+
+
+{% load static %}
+
+<style>
+
+
+.contenedorcombos {
+  position: fixed;
+  top: 50%;
+  margin: 0 auto;
+  left: 50%;
+  width: 30%;
+  padding: 20px;
+  box-sizing: border-box;
+}
+
+
+.messages-container {
+  position: fixed;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  z-index: 9999;
+  width: 30%;
+  padding: 20px;
+  box-sizing: border-box;
+}
+
+
+  .messages {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+  }
+
+  .messages li {
+    display: flex;
+    align-items: center;
+    padding: 10px;
+    margin-bottom: 10px;
+    border: 1px solid #ccc;
+    border-radius: 5px;
+  }
+
+  .messages li.success {
+    background-color: #d4edda;
+    border-color: #c3e6cb;
+    color: #155724;
+  }
+
+  .messages li.error {
+    background-color: #f8d7da;
+    border-color: #f5c6cb;
+    color: #721c24;
+  }
+
+  .icon {
+    margin-right: 10px;
+  }
+
+  .message-text {
+    flex-grow: 1;
+  }
+
+  .close-btn {
+    margin-left: 300px;
+    text-decoration: none;
+    color: #000;
+  }
+
+
+
+
+h1{
+    margin-top: -30px; /* Ajusta el valor según tus necesidades del TITULO */
+  }
+
+
+  
+  /* Estilo para el combobox del Año */
+.combobox-año {
+  padding: 10px;
+  font-size: 16px;
+  border: 2px solid #000000;
+  border-radius: 5px;
+  margin: 45px;
+  width: 120px;
+  top: 30%;
+  background-color: #ffffffe5;
+  margin-inline-start: 10px;/* Estilos específicos para el combobox de Año */
+}
+
+/* Estilo para el combobox de la Entidad Federativa */
+.combobox-entidad {
+  padding: 10px;
+  font-size: 16px;
+  border: 2px solid #000000;
+  border-radius: 5px;
+  margin: 10px;
+  width: 190px;
+  top: 30%;
+  background-color: #ffffffe5;
+  margin-inline-start: 5px; /* Estilos específicos para el combobox de Entidad Federativa */
+}
+
+/* Estilo para el combobox de la Elección */
+.combobox-eleccion {
+  padding: 10px;
+  font-size: 16px;
+  border: 2px solid #000000;
+  border-radius: 5px;
+  margin: 10px;
+  width: 210px;
+  top: 70%;
+  background-color: #ffffffe5;
+  margin-inline-start: 2px;  /* Estilos específicos para el combobox de Elección */
+}
+
+/* Estilo para el combobox del Cargo */
+.combobox-cargo {
+  padding: 10px;
+  font-size: 16px;
+  border: 2px solid #000000;
+  border-radius: 5px;
+  margin: 10px;
+  width: 200px;
+  top: 30%;
+  background-color: #ffffffe5;
+  margin-inline-start: 2px; /* Estilos específicos para el combobox de Cargo */
+}
+
+/* Estilo para el combobox del Distrito */
+.combobox-distrito {
+  padding: 10px;
+  font-size: 16px;
+  border: 2px solid #000000;
+  border-radius: 5px;
+  margin: 10px;
+  top: 30%;
+  width: 220px;
+  background-color: #ffffffe5;
+  margin-inline-start: 2px; /* Estilos específicos para el combobox de Distrito */
+}
+
+
+/* Estilo para las etiquetas de los combobox */
+label {
+  display:contents;
+  margin: 10px 0 5px 0;
+}
+
+
+/* Contenedor de la tabla */
+.table-container {
+  width: 100%;
+  overflow-y: auto;
+  max-height: 450px; /* Ajusta la altura máxima según tus necesidades */
+}
+
+/* Tabla responsiva */
+.table-responsive {
+  display: block;
+  overflow-x: auto;
+  white-space: nowrap;
+}
+
+.text-center {
+  text-align: center;
+  color: #686565;
+}
+
+/* Estilo general de la tabla */
+.custom-table {
+  font-family: sans-serif;
+  border-collapse: collapse;
+  width: 100%;
+  max-width: none;
+}
+
+.custom-table th,
+.custom-table td {
+  padding: 15px;
+  text-align: left;
+  border: 2px solid #ddd;
+}
+
+.custom-table th {
+  background-color: #ff69b4e5;
+  font-weight: bold;
+}
+
+.custom-table tbody tr:nth-child(even) {
+  background-color: #f2f2f2;
+}
+
+/* Estilo de los botones */
+.custom-table td a {
+  color: #000;
+}
+
+.btn-info,
+.btn-delate {
+  background-color: transparent;
+  border: none;
+}
+
+.table-container {
+  margin-top: -10px; /* Ajusta el valor según tus necesidades */
+}
+
+
+.main-container {
+  width: 76%;
+  margin: 0 auto; /* Elimina el margen superior */
+  overflow-x: auto;
+  position: fixed; /* Agrega posición fija */
+  top: 30%; /* Coloca el contenedor en la parte superior */
+  left: 50%; /* Ajusta la posición horizontal según tus necesidades */
+  transform: translateX(-50%); /* Centra el contenedor horizontalmente */
+}
+
+
+
+</style>
+
+
+
+
+<div class="main-container">
+
+  
+  <div class="table-container mx-auto">
+    <div class="table-responsive">
+      <table id="tabla-representantes" class="table table-hover table-bordered table-striped shadow-sm custom-table">
+  
+      <thead>
+        <tr>
+          <th>Nombres</th>
+          <th>Apellido Paterno</th>
+          <th>Apellido Materno</th>
+          <th>Sobrenombre</th>
+          <th>Estatus</th>
+          <th>Acciones</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for candidato in candidatos_mostrar.paquetes %}
+        <tr>
+          <td>{{ candidato.1 }}</td>
+          <td>{{ candidato.2 }}</td>
+          <td>{{ candidato.3 }}</td>
+          <td>{{ candidato.4 }}</td>
+          <td>{{ candidato.5 }}</td>
+          <td class="text-center">
+            <button class="btn btn-info" onclick="visualizarDocumento('{{ candidato.0 }}', '{{ candidato.5 }}')">
+                Integrar
+            </button>
+            |
+            <button class="btn btn-info" onclick="manejarDocumento('{{ candidato.0 }}', '{{ candidato.5 }}')">
+              Agregar Foto
+          </button>
+        </td>
+
+        </tr>
+        {% endfor %}
+      </tbody>
+      
+    </table>
+  </div>
+</div>
+</div>
+
+<div id="botones-fila">
+  <button type="button" id="cerrar-button">Cerrar</button>
+  
+</div>  
+
+
+<script>
+  console.log("EJECUTANDO JS")
+
+  // Obtén el token CSRF del cookie
+  const csrftoken = document.cookie.match(/csrftoken=([^ ;]*)/)[1];
+
+  function manejarDocumento(idCandidato,  estatus) {
+    // Verificar si el candidato está "En Contienda"
+    if (estatus !== 'En Contienda') {
+        // Mostrar un SweetAlert indicando que el candidato debe estar en contienda para agregar una foto
+        Swal.fire({
+            icon: 'warning',
+            title: 'Advertencia',
+            text: 'El candidato debe estar en contienda para agregar una foto.',
+        });
+        return; // Detener la ejecución de la función
+    }
+
+    const input = document.createElement('input');
+    input.type = 'file';
+    input.accept = 'image/*'; // Acepta cualquier tipo de imagen
+
+    input.addEventListener('change', function (event) {
+        const file = event.target.files[0];
+
+        if (file) {
+            const formData = new FormData();
+            formData.append('archivo', file);
+            formData.append('idCandidato', idCandidato);
+
+            fetch("{% url 'Foto_candidatos_subir' %}", {
+                method: 'POST',
+                body: formData,
+                headers: {
+                    'X-CSRFToken': csrftoken
+                }
+            })
+            .then(response => response.json())
+            .then(data => {
+                console.log('Archivo enviado correctamente:', data);
+                // Puedes agregar aquí lógica adicional si es necesario
+                window.location.reload();
+            })
+            .catch(error => {
+                console.error('Error al enviar el archivo:', error);
+            });
+        } else {
+            console.log('Ningún archivo seleccionado');
+        }
+    });
+
+    input.click();
+}
+
+function visualizarDocumento(idCandidato, estatus) {
+    // Verificar si el candidato está "En Contienda"
+    if (estatus === 'En Contienda') {
+        // Mostrar un SweetAlert indicando que el candidato ya está en contienda
+        Swal.fire({
+            icon: 'warning',
+            title: 'Advertencia',
+            text: 'El candidato ya se encuentra en contienda',
+        });
+        return; // Detener la ejecución de la función
+    } else {
+        // Realizar una solicitud POST al servidor para integrar al candidato en contienda
+        fetch('/Candidatos/en/contienda/Integrar/' + idCandidato, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRFToken': csrftoken,
+            },
+            body: JSON.stringify({ idCandidato: idCandidato }),
+        })
+        .then(response => response.json())
+        .then(data => {
+            console.log('Candidato integrado exitosamente:', data);
+            // Puedes agregar aquí lógica adicional si es necesario
+            window.location.reload();
+        })
+        .catch(error => {
+            console.error('Error al integrar al candidato:', error);
+        });
+    }
+}
+
+
+
+document.getElementById('cerrar-button').addEventListener('click', function() {
+  // Redirige a la URL 'Registro de Candidatura Ayuntamiento'
+  window.location.href = "{% url 'regican' %}";
+});
+
+
+document.getElementById('cerrar-button').addEventListener('click', function() {
+  // Redirige a la URL 'Registro de Candidatura Ayuntamiento'
+  window.location.href = "{% url 'candidatos_contienda' %}";
+});
+</script>
+
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@10"></script>
+
+
+
+{% endblock %}

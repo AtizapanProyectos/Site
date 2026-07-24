@@ -1,0 +1,72 @@
+{% load static %}
+
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sistema de Tecnología Electoral | Inicio</title>
+    <link rel="shortcut icon" href="{% static 'images/logo.png' %}" sizes="500x500" type="image/x-icon">
+    <style>
+        body {
+            margin: 0;
+            padding: 0;
+            font-family: Arial, sans-serif;
+            background-image: url("{% static 'images/fondo.png' %}");
+            background-size: 100% 100%;
+            background-position: center;
+            height: 100vh;
+
+        }
+
+        .container {
+            position: relative;
+            min-height: 100vh; /* Asegura que el contenido siempre ocupe al menos el 100% de la altura de la ventana */
+            padding-bottom: 50px; /* Espacio para el botón */
+            box-sizing: border-box;
+        }
+
+        .features {
+            position: absolute;
+            bottom: 80px; /* Ajuste para mover el botón hacia arriba */
+            width: 100%;
+            text-align: center;
+        }
+
+        /* Estilos para el botón */
+        .btn {
+            display: inline-block;
+            background-color: #b3157ed5;
+            color: #fff;
+            padding: 35px 100px;
+            border-radius: 5px;
+            text-decoration: none;
+            transition: background-color 0.3s ease;
+        }
+
+        .btn:hover {
+            background-color: #fc1eb2;
+        }
+
+        /* Estilos para el logo */
+        .logo {
+            position: absolute;
+            top: 20px;
+            left: 20px;
+            width: 100px; /* ajusta el tamaño del logo según lo necesites */
+            height: auto;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <!-- Logo -->
+        <img src="{% static 'images/logo.png' %}" alt="Logo" class="logo" height="150">
+        <!-- Contenido de tu página aquí -->
+    </div>
+    <!-- Botón al final de la página -->
+    <div class="features">
+        <a href="{% url 'login' %}" class="btn">INGRESA AL SITE</a>
+    </div>
+</body>
+</html>

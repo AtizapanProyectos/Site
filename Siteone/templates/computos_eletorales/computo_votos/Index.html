@@ -1,0 +1,1183 @@
+
+
+{% extends "base.html" %}
+
+{% block titulo %} Cómputo de Votos {% endblock %}
+
+{% block encabezado %}<center> <h1 class="text-center mb-4" style="color: #515151e5;">Cómputo de Votos</h1> </center>{% endblock %}
+
+
+
+{% block combos %}
+<center>
+  <div class="contenedorcombos">
+    <div class="combo-item">
+      <label for="combobox2">Año</label>
+      <select name="combobox2" id="cboaño" class="combobox combobox-año">
+        {% for año in años %}
+        <option value="{{año}}">{{año}}</option>
+        {% endfor %}
+      </select>
+    </div>
+
+    <div class="combo-item">
+      <label for="combobox1">Entidad Federativa</label>
+      <select name="combobox1" id="cboestado" class="combobox combobox-entidad">
+        {% for dis in entidad_federativa %}
+        <option value="{{ dis }}">{{ dis }}</option>
+        {% endfor %}
+      </select>
+    </div>
+
+    <div class="combo-item">
+      <label for="combobox3">Elección</label>
+      <select name="combobox3" id="cboeleccion" class="combobox combobox-eleccion">
+        {% for dis in eleccion %}
+        <option value="{{ dis }}">{{ dis }}</option>
+        {% endfor %}
+      </select>
+    </div>
+
+    <div class="combo-item">
+      <label for="combobox4">Cargo</label>
+      <select name="combobox4" id="cbocargo" class="combobox combobox-cargo"></select>
+    </div>
+
+    <div class="combo-item" style="display: none;">
+      <label for="combobox5">Municipio</label>
+      <select name="combobox5" id="cbomuni" class="combobox combobox-muni"></select>
+    </div>
+
+    <div class="combo-item" style="display: none;">
+      <label for="combobox6">Distrito</label>
+      <select name="combobox6" id="cbodis" class="combobox combobox-dis"></select>
+    </div>
+
+    <div class="combo-item">
+      <label for="combobox4">Casilla</label>
+      <select name="combobox4" id="cbocasilla" class="combobox combobox-cargo"></select>
+    </div>
+  </div>
+</center>
+
+
+{% endblock %}
+
+
+
+{% block contenido %}
+
+
+
+
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.1/css/all.min.css">
+
+
+{% if messages %}
+  <div class="messages-container">
+    <ul class="messages">
+      {% for message in messages %}
+        <li{% if message.tags %} class="{{ message.tags }}"{% endif %}>
+          <!-- Agregamos un ícono de alerta -->
+          <span class="icon">
+            {% if message.tags == 'success' %}
+              <i class="fas fa-check-circle"></i>
+            {% elif message.tags == 'error' %}
+              <i class="fas fa-exclamation-circle"></i>
+            {% endif %}
+          </span>
+          <div class="message-text">
+            {{ message }}
+            <!-- Agregamos el botón de cerrar -->
+            <a href="{% url 'distritos' %}" class="close-btn" onclick="cerrarMensaje(this)">X</a>
+          </div>
+        </li>
+      {% endfor %}
+    </ul>
+  </div>
+{% endif %}
+
+
+
+
+<script>
+  function cerrarMensaje(btn) {
+    // Obtén el elemento padre li del botón
+    var mensajeLi = btn.parentNode;
+
+    // Oculta el mensaje
+    mensajeLi.style.display = 'none';
+  }
+</script>
+
+
+
+{% load static %}
+
+<style>
+
+.contenedorcombos {
+  position: fixed;
+  top: 20%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: 80%; /* Ajusta el ancho del contenedor */
+  padding: 40px;
+  box-sizing: border-box;
+  display: flex;
+  flex-wrap: wrap; /* Permite que los elementos salten a la siguiente línea si es necesario */
+  justify-content: center; /* Centra los elementos */
+  gap: 20px; /* Espacio entre los elementos */
+}
+
+
+
+
+.messages-container {
+  position: fixed;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  z-index: 9999;
+  width: 30%;
+  padding: 20px;
+  box-sizing: border-box;
+}
+
+
+  .messages {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+  }
+
+  .messages li {
+    display: flex;
+    align-items: center;
+    padding: 10px;
+    margin-bottom: 10px;
+    border: 1px solid #ccc;
+    border-radius: 5px;
+  }
+
+  .messages li.success {
+    background-color: #d4edda;
+    border-color: #c3e6cb;
+    color: #155724;
+  }
+
+  .messages li.error {
+    background-color: #f8d7da;
+    border-color: #f5c6cb;
+    color: #721c24;
+  }
+
+  .icon {
+    margin-right: 10px;
+  }
+
+  .message-text {
+    flex-grow: 1;
+  }
+
+  .close-btn {
+    margin-left: 300px;
+    text-decoration: none;
+    color: #000;
+  }
+
+
+
+
+h1{
+    margin-top: -30px; /* Ajusta el valor según tus necesidades del TITULO */
+  }
+
+
+  .combobox-año,
+.combobox-entidad,
+.combobox-eleccion,
+.combobox-cargo,
+.combobox-dis,
+.combobox-muni {
+  padding: 10px;
+  font-size: 16px;
+  border: 2px solid #000000;
+  border-radius: 5px;
+  background-color: #ffffffe5;
+  /* Remover márgenes grandes */
+  margin: 0;
+  width: 180px; /* Ajusta el ancho según tus necesidades */
+}
+
+.combobox-dis, .combobox-muni {
+  display: none; /* Elementos ocultos por defecto */
+}
+
+/* Estilo para las etiquetas de los combobox */
+label {
+  display:contents;
+  margin: 10px 0 5px 0;
+}
+
+
+/* Contenedor de la tabla */
+.table-container {
+  width: 100%;
+  overflow-y: auto;
+  max-height: 450px; /* Ajusta la altura máxima según tus necesidades */
+}
+
+/* Tabla responsiva */
+.table-responsive {
+  display: block;
+  overflow-x: auto;
+  white-space: nowrap;
+}
+
+.text-center {
+  text-align: center;
+  color: #686565;
+}
+
+/* Estilo general de la tabla */
+.custom-table {
+  font-family: sans-serif;
+  border-collapse: collapse;
+  width: 100%;
+  max-width: none;
+}
+
+.custom-table th,
+.custom-table td {
+  padding: 15px;
+  text-align: left;
+  border: 2px solid #ddd;
+}
+
+.custom-table th {
+  background-color: #ff69b4e5;
+  font-weight: bold;
+}
+
+.custom-table tbody tr:nth-child(even) {
+  background-color: #f2f2f2;
+}
+
+/* Estilo de los botones */
+.custom-table td a {
+  color: #000;
+}
+
+.btn-info,
+.btn-delate {
+  background-color: transparent;
+  border: none;
+}
+
+.table-container {
+  margin-top: -10px; /* Ajusta el valor según tus necesidades */
+}
+
+
+.main-container {
+  width: 76%;
+  margin: 0 auto; /* Elimina el margen superior */
+  overflow-x: auto;
+  position: fixed; /* Agrega posición fija */
+  top: 25%; /* Coloca el contenedor en la parte superior */
+  left: 50%; /* Ajusta la posición horizontal según tus necesidades */
+  transform: translateX(-50%); /* Centra el contenedor horizontalmente */
+}
+#dato1 {
+  display: none;
+  margin-right: 20px; /* Margen derecho de 20px para separar del siguiente elemento */
+}
+
+#dato2 {
+  display: none;
+  margin-left: 20px; /* Margen izquierdo de 20px para separar del elemento anterior */
+}
+
+#datos {
+  color: #515151e5;
+  text-align: center; /* Centra el texto horizontalmente */
+  margin: 1px auto 35px auto; /* Margen superior de 1px, margen inferior de 35px, centrado horizontalmente */
+  font-size: 35px; /* Tamaño de fuente más grande */
+  font-weight: bold; /* Texto en negrita */
+}
+
+
+</style>
+
+
+
+
+<div class="main-container">
+
+  <div id="datos">
+    <div id="dato1">Captura: Uno</div>
+    <div id="dato2">       Estatus de Paquete: Cotejo</div>
+  </div>
+
+
+  <div class="table-container mx-auto">
+    <div class="table-responsive">
+      <table id="tabla-representantes" class="table table-hover table-bordered table-striped shadow-sm custom-table">
+  
+      <thead>
+        <tr>
+          <th>Distrito</th>
+          <th>Casilla</th>
+          <th>Coalición/Individual</th>
+          <th>Siglas</th>
+          <th>Partidos</th>
+          <th>Candidatos</th>
+          <th> </th>
+          <th>Nombre</th>
+          <th> </th>
+          <th>Sobrenombre</th>
+          <th>Votos</th>
+          
+          </tr>
+      </thead>
+
+      <tbody>
+
+
+      </tbody>
+    </table>
+  </div>
+</div>
+</div>
+
+<div id="botones-fila">
+  <button type="button" id="btnconsultar">Consultar</button>
+  <button type="button" id="savevotos">Guardar Votos</button>
+  <button type="button" id="cerrar-button">Cerrar</button>
+  
+</div>  
+
+
+<script>
+
+btnconsultar.addEventListener("click", (event) => {
+      // Muestra en la consola los valores seleccionados de los combos
+
+      const anio = cboaño.value;
+      console.log("Año Seleccionado de cbocargo: ", anio);
+  
+      // Obtiene el objeto seleccionado del combo cboeleccion
+      const cboeleccionSelectedOption = cboeleccion.options[cboeleccion.selectedIndex];
+      console.log("Objeto seleccionado de cboeleccion: ", cboeleccionSelectedOption.text);
+      
+      const cbocargoSelectedOption = cbocargo.options[cbocargo.selectedIndex];
+      console.log("Cargo: ", cbocargoSelectedOption.text);
+      console.log("Casilla : ", cbocasilla.value);
+      // Llama a la función con los valores necesarios
+      listarRepresentantesEnTabla( anio, cboeleccionSelectedOption.text, cbocargo.value,cbocasilla.value );
+  
+  });
+
+
+  function checkVisibleCombobox() {
+    const comboboxMuni = document.getElementById('cbomuni');
+    const comboboxDis = document.getElementById('cbodis');
+
+
+
+    // Verifica si el combobox de municipio está visible
+    if (window.getComputedStyle(comboboxMuni).display !== 'none') {
+        console.log("El combobox de Municipio está visible.");
+        
+        const selectedCargoValue = cbocargo.value;
+        const cboeleccionSelectedOption = cboeleccion.options[cboeleccion.selectedIndex];
+        listarCasillas(selectedCargoValue, cboeleccionSelectedOption.text, cbomuni.value);
+        return "cbomuni";
+    }
+
+    // Verifica si el combobox de distrito está visible
+    if (window.getComputedStyle(comboboxDis).display !== 'none') {
+        console.log("El combobox de Distrito está visible.");
+        const selectedCargoValue = cbocargo.value;
+        const cboeleccionSelectedOption = cboeleccion.options[cboeleccion.selectedIndex];
+        listarCasillas(selectedCargoValue, cboeleccionSelectedOption.text, cbodis.value);
+        return "cbodis";
+    }
+
+    console.log("No hay combobox visible.");
+    return null;
+}
+
+
+
+
+
+// Evento change para el select cboeleccion
+cboeleccion.addEventListener("change", (event) => {
+ 
+
+  // Llamar a la función listarCargos con el valor seleccionado de cboeleccion
+  listarCargos(event.currentTarget.value);
+ 
+ // Obtener el texto seleccionado del select cboeleccion
+ const selectedText = event.currentTarget.options[event.currentTarget.selectedIndex].text;
+  // Obtener el valor seleccionado del select cbocargo
+  const selectedCargoValue = cbocargo.value;
+
+   // Mostrar en la consola el texto seleccionado de elección y el valor seleccionado de cbocargo
+   console.log("Nombre de la elección:", selectedText);
+  console.log("Valor seleccionado de cbocargo:", selectedCargoValue);
+  
+});
+
+
+
+cbodis.addEventListener("change", (event) => {
+ 
+  // Obtener el texto seleccionado del select cboeleccion
+const selectedText = event.currentTarget.options[event.currentTarget.selectedIndex].text;
+ // Obtener el valor seleccionado del select cbocargo
+ 
+
+
+ // Llamar a la función listarCargos con el valor seleccionado de cboeleccion
+ //listarCargos(event.currentTarget.value);
+//listarCasillas
+const selectedCargoValue = cbocargo.value;
+ const cboeleccionSelectedOption = cboeleccion.options[cboeleccion.selectedIndex];
+listarCasillas(selectedCargoValue, cboeleccionSelectedOption.text, cbodis.value);
+
+ 
+});
+
+cbomuni.addEventListener("change", (event) => {
+ 
+ // Obtener el texto seleccionado del select cboeleccion
+const selectedText = event.currentTarget.options[event.currentTarget.selectedIndex].text;
+// Obtener el valor seleccionado del select cbocargo
+
+
+
+// Llamar a la función listarCargos con el valor seleccionado de cboeleccion
+//listarCargos(event.currentTarget.value);
+//listarCasillas
+const selectedCargoValue = cbocargo.value;
+const cboeleccionSelectedOption = cboeleccion.options[cboeleccion.selectedIndex];
+listarCasillas(selectedCargoValue, cboeleccionSelectedOption.text, cbomuni.value);
+
+
+});
+
+
+const listarNumerodeElecciones=async(idtipo_cargo, idproceso)=>{
+    var tipo=null;
+    try {
+   
+    const response =await fetch(`/NumeroEleccion/${idproceso}/${idtipo_cargo}`)
+    const data = await response.json();
+    console.log(data);
+   
+     if (data.message=="Success"){
+   
+       let opciones = '';
+
+
+       data.results.forEach((Distritos)=>{
+        tipo=Distritos.idtipoc;
+
+        if (Distritos.idtipoc === 'AY') {
+        // Código a ejecutar si Distritos.idtipoc es igual a 'AY'
+
+          // Ocultar el label y select para "Municipio"
+          document.querySelector('label[for="combobox5"]').style.display = 'block';
+          document.getElementById('cbomuni').style.display = 'block';
+
+          document.querySelector('label[for="combobox6"]').style.display = 'none';
+          document.getElementById('cbodis').style.display = 'none';
+          opciones += `<option value="${Distritos.idMunicipio}">${Distritos.nombre}</option>`;
+
+        } else if (Distritos.idtipoc==='CO'){
+        // Código a ejecutar si Distritos.idtipoc no es igual a 'AY'
+      
+          // Ocultar el label y select para "Distrito"
+          document.querySelector('label[for="combobox6"]').style.display = 'block';
+          document.getElementById('cbodis').style.display = 'block';
+          document.querySelector('label[for="combobox5"]').style.display = 'none';
+          document.getElementById('cbomuni').style.display = 'none';
+          opciones += `<option value="${Distritos.idDistrito}">${Distritos.nombre}</option>`;
+
+
+        } else {
+          document.querySelector('label[for="combobox5"]').style.display = 'none';
+          document.getElementById('cbomuni').style.display = 'none';
+          document.querySelector('label[for="combobox6"]').style.display = 'none';
+          document.getElementById('cbodis').style.display = 'none';
+          const selectedCargoValue = cbocargo.value;
+          const cboeleccionSelectedOption = cboeleccion.options[cboeleccion.selectedIndex];
+          listarCasillas(selectedCargoValue, cboeleccionSelectedOption.text, 0);
+
+        }
+
+          // Limpiar el contenido actual del select de "Municipio"
+
+   
+
+       });
+       console.log("esoooo: "+tipo)
+ 
+
+
+       if (tipo === 'AY') {
+    // Código a ejecutar si Distritos.idtipoc es igual a 'AY'
+    console.log('El valor de idtipoc es AY');
+    cbomuni.innerHTML = opciones;
+} else if (tipo==='CO') {
+    // Código a ejecutar si Distritos.idtipoc no es igual a 'AY'
+    console.log('El valor de idtipoc no es AY');
+    cbodis.innerHTML = opciones;
+}
+
+  
+
+       
+
+       
+     }else{
+       alert("Distritos no encontrados");
+     }
+   
+   
+    } catch (error) {
+     console.log(error);
+    }
+
+
+   }
+
+
+
+// Evento change para el select cbocargo
+cbocargo.addEventListener("change", (event) => {
+  // Obtener el texto seleccionado del select cboeleccion
+  const selectedText = cboeleccion.options[cboeleccion.selectedIndex].text;
+  // Obtener el valor seleccionado del select cbocargo
+  const selectedValue = event.currentTarget.value;
+
+  // Mostrar en la consola el texto seleccionado de elección y el valor seleccionado de cbocargo
+  console.log("Nombre de la elección:", selectedText);
+  console.log("Valor seleccionado de cbocargo:", selectedValue);
+
+  // Llamar a la función listarCasillas con el valor seleccionado de cbocargo
+  console.log(cbocargo.value);
+listarNumerodeElecciones(cbocargo.value, cboeleccion.value);
+let filas = '';
+document.getElementById("tabla-representantes").getElementsByTagName('tbody')[0].innerHTML = filas;
+
+
+});
+
+
+
+  console.log("Ejecutando JS");
+  
+  
+  
+  const listarCargos=async(idproceso)=>{
+      try {
+        const response = await fetch(`/cargos/${idproceso}`);
+    const data = await response.json();
+    console.log(data);
+    
+     if (data.message=="Success"){
+    
+       let opciones = '';
+       data.cargos.forEach((Tipocargo)=>{
+    
+        opciones += `<option value="${Tipocargo.idtipo_cargo}">${Tipocargo.descrip_tcargo}</option>`;
+    
+       });
+       cbocargo.innerHTML = opciones;
+     }else{
+       alert("elecciones no encontradas");
+     }
+    
+    
+    } catch (error) {
+     console.log(error);
+    }
+    }
+    
+  const listarCasillas=async(idproceso, eleccion, iddistrito)=>{
+      try {
+        const response = await fetch(`/casillas/${idproceso}/${eleccion}/${iddistrito}`);
+    const data = await response.json();
+    console.log(data);
+    
+     if (data.message=="Success"){
+    
+       let opciones = '';
+       data.cargos.forEach((Casillas)=>{
+    
+        opciones += `<option value="${Casillas.folioc}">${Casillas.direccion +" -"+Casillas.folioc}</option>`;
+    
+       });
+       cbocasilla.innerHTML = opciones;
+     }else{
+       cbocasilla.innerHTML = '';
+       alert("Casillas no encontradas");
+     }
+    
+    
+    } catch (error) {
+     console.log(error);
+    }
+    }
+    
+    
+    const listarElecciones = async () => {
+    try {
+      const response = await fetch(`/elecciones/`);
+      const data = await response.json();
+      console.log(data);
+  
+      if (data.message === "Success") {
+        let opciones = '';
+        data.elecciones.forEach((Procesos) => {
+          opciones += `<option value="${Procesos.idproceso}" data-idproceso="${Procesos.idproceso}">${Procesos.descrip}</option>`;
+        });
+        cboeleccion.innerHTML = opciones;
+      } else {
+        alert("elecciones no encontradas");
+      }
+    } catch (error) {
+      console.log(error);
+    }
+  }
+
+
+
+  const listarCasillasEnTabla = async (cbocargoValue, eleccion) => {
+  try {
+    const response = await fetch(`/Paquxetes/Entrega/casilla/get/recoleccion/all/${eleccion}/${cbocargoValue}/`);
+    const data = await response.json();
+
+    if (data.message === "Success") {
+      let filas = '';
+
+      const dato1 = data.paquetes[0][21];
+      const dato2 = data.paquetes[0][22];
+      const dato3 = data.paquetes[0][23];
+      
+      document.getElementById('dato1').innerText = `Entregados: ${dato1}      Faltantes: ${dato2}       Total: ${dato3}`;
+
+      data.paquetes.forEach((Paquetes) => {
+    const convertirDato = (dato) => {
+        if (dato === 'S') return 'Si';
+        else if (dato === 'N') return 'No';
+        else return ' ';
+    };
+
+    filas += `<tr>
+    <td class="folioC">${Paquetes[0]}</td>
+    <td class="direccion">${Paquetes[1]}</td>
+    <td class="estatus">${Paquetes[2]}</td>
+    <td class="estatus">${convertirDato(Paquetes[10])}</td>
+    <td class="estatus">${convertirDato(Paquetes[12])}</td>
+    <td class="estatus">${convertirDato(Paquetes[11])}</td>
+    <td class="estatus">${convertirDato(Paquetes[14])}</td>
+    <td class="estatus">${convertirDato(Paquetes[13])}</td>
+    <td class="estatus">${Paquetes[16] !== null ? Paquetes[16] : ''}</td>
+    <td class="estatus">${Paquetes[17] !== null ? Paquetes[17] : ''}</td>
+    <td class="estatus">${Paquetes[18] !== null ? Paquetes[18] : ''}</td>
+    <td class="estatus">${Paquetes[19] && Paquetes[19] ? `<a href="${window.location.origin}{% get_media_prefix %}${Paquetes[19]}" target="_blank"><img src="${window.location.origin}{% get_media_prefix %}${Paquetes[19]}" height="100"></a>` : ''}</td>
+    <td class="estatus">${Paquetes[20] && Paquetes[20] ? `<a href="${window.location.origin}{% get_media_prefix %}${Paquetes[20]}" target="_blank"><img src="${window.location.origin}{% get_media_prefix %}${Paquetes[20]}" height="100"></a>` : ''}</td>
+    <td class="estatus">Ubicación</td>
+</tr>`;
+
+});
+
+
+
+      document.getElementById("tabla-casillas").getElementsByTagName('tbody')[0].innerHTML = filas;
+
+      const botonesEditar = document.querySelectorAll('.editar');
+
+      botonesEditar.forEach((boton) => {
+    boton.addEventListener('click', () => {
+        const fila = boton.closest('tr');
+        const folioC = fila.querySelector('.folioC').innerText;
+        const estado = fila.querySelector('.estatus').innerText;
+        const añoSeleccionado = document.getElementById("cboaño").value;
+        const cboeleccionSelectedOption = cboeleccion.options[cboeleccion.selectedIndex].text;
+        const cbocargoSelectedOption = cbocargo.options[cbocargo.selectedIndex].text;
+
+        if (estado === 'ENTREGADO') {
+            console.log("Visualizar paquete: " + folioC);
+           const url = `/Paquetes/entrega/casilla/Visualizar/${cboeleccionSelectedOption}/${cbocargoSelectedOption}/${folioC}/${añoSeleccionado}`;
+           window.location.href = url;
+
+        } else {
+            console.log("Armar Paquete: " + folioC);
+           const url = `/Paquetes/Entregar/casilla/recoleccion/${cboeleccionSelectedOption}/${cbocargoSelectedOption}/${folioC}/${añoSeleccionado}`;
+           window.location.href = url;
+
+        }
+
+        // Aquí puedes hacer más acciones según el estado del paquete
+    });
+});
+
+
+
+      const botonesEliminar = document.querySelectorAll('.reporte');
+
+      botonesEliminar.forEach((boton) => {
+        boton.addEventListener('click', () => {
+          const folioC = boton.closest('tr').querySelector('.folioC').innerText;
+          console.log("FolioC reporte: " + folioC);
+          const fila = boton.closest('tr');
+          const estado = fila.querySelector('.estatus').innerText;
+          const añoSeleccionado = document.getElementById("cboaño").value;
+          const cboeleccionSelectedOption = cboeleccion.options[cboeleccion.selectedIndex].text;
+          const cbocargoSelectedOption = cbocargo.options[cbocargo.selectedIndex].text;
+
+
+          const url = `/generar_pdf/Armado/Paquetes/entrega/cae/${añoSeleccionado}/${cboeleccionSelectedOption}/${cbocargoSelectedOption}/${folioC}`;
+           window.location.href = url;
+        });
+      });
+
+    } else {
+      alert("No Existen Registros Para la Selección");
+    }
+
+  } catch (error) {
+    console.log(error);
+  }
+}
+
+  const listarEstados = async () => {
+      try {
+          const response = await fetch(`/estados/`)
+          const data = await response.json();
+          console.log(data);
+  
+          if (data.message == "Success") {
+  
+              let opciones = '';
+              data.estados.forEach((Estados) => {
+                  opciones += `<option value="${Estados.idestado}">${Estados.nombre_edo}</option>`;
+              });
+              cboestado.innerHTML = opciones;
+  
+          } else {
+              alert("elecciones no encontradas");
+          }
+  
+      } catch (error) {
+          console.log(error);
+      }
+  }
+  
+  
+  const listarDistritos = async (idestado) => {
+    try {
+        const response = await fetch(`/getdistritos/${idestado}`);
+        const data = await response.json();
+        console.log(data);
+
+        if (data.message === "Success") {
+            let opciones = '<option value="0">Todos los Distritos</option>'; // Opción adicional
+            data.distritos.forEach((Distritos) => {
+                opciones += `<option value="${Distritos.iddistrito}">${Distritos.nombredistrito+" -"+Distritos.iddistrito}</option>`;
+            });
+            cbodistrito.innerHTML = opciones;
+        } else {
+            alert("Distritos no encontrados");
+        }
+    } catch (error) {
+        console.log(error);
+    }
+}
+
+
+  const listarRepresentantesEnTabla = async (anio, eleccion, cargo, folioc) => {
+    try {
+
+
+        const response = await fetch(`/get/Paquete/no/contado/${anio}/${eleccion}/${cargo}/${folioc}`);
+        const data = await response.json();
+
+        if (data.message === "Success") {
+
+            let filas = '';
+            data.candidatos.forEach((Candidatos) => {
+
+              if (Candidatos[10] == 0) {
+        document.getElementById('dato1').style.display = 'block';
+        document.getElementById('dato2').style.display = 'block';
+    }
+
+
+
+    filas += `<tr>
+        <td class="folioC">${Candidatos[8]}</td>
+        <td class="folioC">${Candidatos[9]}</td>
+        <td class="folioC">${Candidatos[0]}</td>
+        <td class="direccion">${Candidatos[1]}</td>
+        <td class="direccion">${Candidatos[2] ? `<a href="${window.location.origin}{% get_media_prefix %}${Candidatos[2]}" target="_blank"><img src="${window.location.origin}{% get_media_prefix %}${Candidatos[2]}" height="200"></a>` : ''}</td>
+        <td class="direccion">${Candidatos[3] ? `<a href="${window.location.origin}{% get_media_prefix %}${Candidatos[3]}" target="_blank"><img src="${window.location.origin}{% get_media_prefix %}${Candidatos[3]}" height="200"></a>` : ''}</td>
+        <td class="direccion">${Candidatos[4]}</td>
+        <td class="direccion">${Candidatos[5]}</td>
+        <td class="direccion">${Candidatos[6]}</td>
+        <td class="direccion">${Candidatos[7]}</td>
+        <td class="votos" contenteditable="true">${Candidatos[10]}</td>
+        
+    </tr>`;
+});
+
+
+            // Agregar las filas a la tabla con el id "tabla-casillas"
+            document.getElementById("tabla-representantes").getElementsByTagName('tbody')[0].innerHTML = filas;
+
+            // Obtener todos los elementos con la clase 'editar'
+            const botonesEditar = document.querySelectorAll('.editar');
+
+            // Iterar sobre los elementos y agregar un evento de clic
+            botonesEditar.forEach((boton) => {
+                boton.addEventListener('click', function() {
+                    // Obtener el folioC de la fila actual
+                    const folioC = this.getAttribute('data-folioc');
+                    const cboeleccionSelectedOption = cboeleccion.options[cboeleccion.selectedIndex];
+                    console.log("Objeto seleccionado de cboeleccion: ", cboeleccionSelectedOption.text);
+                    console.log("Editar - folioC:", folioC); 
+                    const cbocargoSelectedOption = cbocargo.options[cbocargo.selectedIndex];
+                   console.log("Cargo: ", cbocargoSelectedOption.text);
+                   const anio = cboaño.value;
+                    window.location.href = `/editar/representantes/${folioC}/${cboeleccionSelectedOption.text}/${cbocargoSelectedOption.text}/${anio}`;
+                });
+            });
+
+            // Obtener todos los elementos con la clase 'eliminar'
+            const botonesEliminar = document.querySelectorAll('.eliminar');
+
+            // Iterar sobre los elementos y agregar un evento de clic
+            botonesEliminar.forEach((boton) => {
+                boton.addEventListener('click', function() {
+                    // Obtener el folioC de la fila actual
+                    const folioC = this.getAttribute('data-folioc');
+                    console.log("Eliminar - folioC:", folioC);
+                    // Confirmar la eliminación antes de redirigir 
+                    confirmarEliminar(folioC);
+                    
+                });
+            });
+
+            // Obtener todos los elementos con la clase 'documentos'
+            const botonesDocumentos = document.querySelectorAll('.documentos');
+
+            // Iterar sobre los elementos y agregar un evento de clic
+            botonesDocumentos.forEach((boton) => {
+                boton.addEventListener('click', function() {
+                    // Obtener el folioC de la fila actual
+                    const folioC = this.getAttribute('data-folioc');
+                    console.log("Documentos - folioC:", folioC);
+                    const cboeleccionSelectedOption = cboeleccion.options[cboeleccion.selectedIndex];
+                    console.log("Objeto seleccionado de cboeleccion: ", cboeleccionSelectedOption.text);
+                    // Agregar aquí la lógica para la función de documentos
+                    window.location.href = `/Documentos/representantes/${folioC}/${cboeleccionSelectedOption.text}`;
+                });
+            });
+
+                        // Obtener todos los elementos con la clase 'documentos'
+            const botonesReporte = document.querySelectorAll('.Reporte');
+
+            // Iterar sobre los elementos y agregar un evento de clic
+            botonesReporte.forEach((boton) => {
+                boton.addEventListener('click', function() {
+                    // Obtener el folioC de la fila actual
+                    const folioC = this.getAttribute('data-folioc');
+                    console.log("Documentos - folioC:", folioC);
+                    const cboeleccionSelectedOption = cboeleccion.options[cboeleccion.selectedIndex];
+                    console.log("Objeto seleccionado de cboeleccion: ", cboeleccionSelectedOption.text);
+                    const añoSeleccionado = document.getElementById("cboaño").value;
+                    console.log(añoSeleccionado);
+                    
+
+
+                     
+                    // Agregar aquí la lógica para la función de documentos
+                    window.location.href = `/generar_pdf/Representantes/${añoSeleccionado}/${cboeleccionSelectedOption.text}/${folioC}`;
+                });
+            });
+
+
+        } else {
+          Swal.fire({
+           title: 'Aun no se ha recibido el paquete Electoral',
+           icon: 'info'
+            });
+
+        }
+
+    } catch (error) {
+        Swal.fire({
+           title: 'Aun no se ha recibido el paquete Electoral',
+           icon: 'info'
+            });
+        console.log(error);
+    }
+}
+
+  
+  
+  const listarEleccionesPorAño = async (anio) => {
+    try {
+      const response = await fetch(`eleccionesfilter/${anio}`);
+      const data = await response.json();
+      console.log(data);
+  
+      // Limpiar el contenido actual del cboeleccion
+      cboeleccion.innerHTML = '';
+      cbocargo.innerHTML = '';
+  
+      if (data.message === "Success") {
+        let opciones = '';
+        data.elecciones.forEach((Procesos) => {
+             opciones += `<option value="${Procesos.idproceso}" data-idproceso="${Procesos.idproceso}">${Procesos.descrip}</option>`; 
+            });
+        cboeleccion.innerHTML = opciones;
+      } else {
+        alert("Elecciones no encontradas");
+      }
+    } catch (error) {
+      console.log(error);
+    }
+  }
+  
+  
+    const cargainicial =async()=>{
+    
+    await listarEstados();
+    await listarEstados();
+  await listarElecciones();
+  await listarCargos(cboeleccion.value);
+  await listarDistritos(cboestado.value);
+  const cboeleccionSelectedOption = cboeleccion.options[cboeleccion.selectedIndex];
+  await listarNumerodeElecciones(cbocargo.value, cboeleccion.value);
+  await checkVisibleCombobox();
+
+
+  let primeraCaptura = true;
+let valoresAnteriores = [];
+
+
+
+
+// Función para obtener el valor de una cookie
+function getCookie(name) {
+  let cookieValue = null;
+  if (document.cookie && document.cookie !== '') {
+    const cookies = document.cookie.split(';');
+    for (let i = 0; i < cookies.length; i++) {
+      const cookie = cookies[i].trim();
+      if (cookie.substring(0, name.length + 1) === (name + '=')) {
+        cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+        break;
+      }
+    }
+  }
+  return cookieValue;
+}
+
+
+
+
+
+
+
+
+
+
+
+savevotos.addEventListener("click", (event) => {
+    if (primeraCaptura) {
+        Swal.fire({
+            title: 'Continue con la captura 2',
+            icon: 'info'
+           
+        });
+        document.getElementById('dato1').innerText = 'Captura: Dos';
+        // Realizar acciones para la primera captura
+        primeraCaptura = false;
+        // Obtener todos los valores de la columna 9
+        const tabla = document.getElementById('tabla-representantes');
+        const filas = tabla.rows;
+        for (let i = 1; i < filas.length; i++) { // Empezando desde 1 para omitir la fila de encabezados
+            const valor = filas[i].cells[10].innerText; // Columna 9 (índice 8)
+            valoresAnteriores.push(valor);
+        }
+        // Poner todos los valores de la tabla de la columna 9 en 0, excepto el de la fila 0
+        for (let i = 1; i < filas.length; i++) {
+            filas[i].cells[10].innerText = i === 0 ? filas[i].cells[10].innerText : "0";
+        }
+    } else {
+        // Realizar acciones para la segunda captura
+        // Comparar los valores actuales con los anteriores
+        const tabla = document.getElementById('tabla-representantes');
+        const filas = tabla.rows;
+        let coincide = true;
+        for (let i = 1; i < filas.length; i++) {
+            const valorActual = filas[i].cells[10].innerText;
+            if (valorActual !== valoresAnteriores[i - 1]) { // Se resta 1 porque valoresAnteriores no incluye la fila de encabezados
+                coincide = false;
+                break;
+            }
+        }
+        if (coincide) {
+
+              // hacer un data y mnadarlo al servidor 
+              // Obtener el número de filas de la tabla
+              let table = document.getElementById("tabla-representantes");
+              let rowCount = table.rows.length;
+
+              // Crear un arreglo para almacenar los valores de las columnas 1, 2 y 9
+              let tablaData = [];
+
+              // Obtener los valores de las columnas 1, 2 y 9 y almacenarlos en el arreglo
+              for (let i = 0; i < rowCount; i++) {
+              let row = [
+              table.rows[i].cells[2].textContent, // Columna 1
+              table.rows[i].cells[3].textContent, // Columna 2
+              table.rows[i].cells[10].textContent // Columna 9
+              ];
+              tablaData.push(row);
+              }
+
+               // Obtener otros valores
+              const anio = cboaño.value;
+              const cboeleccionSelectedOption = cboeleccion.options[cboeleccion.selectedIndex].text;
+              const cbocargoSelectedOption = cbocargo.options[cbocargo.selectedIndex].text;
+              const folioc = cbocasilla.value;
+
+              const requestData = {
+                data: tablaData,
+                anio: anio,
+                cboeleccion: cboeleccionSelectedOption,
+                cbocargo: cbocargoSelectedOption,
+                folioc: folioc
+                };
+
+                const requestBody = JSON.stringify(requestData);
+
+                // Enviar los datos al servidor utilizando fetch
+                fetch('/guardar_datos/', {
+                method: 'POST',
+                headers: {
+                 'Content-Type': 'application/json',
+                 'X-CSRFToken': getCookie('csrftoken'), // Incluir el token CSRF para Django
+                  },
+                 body: requestBody,
+                })
+                .then(response => response.json())
+                .then(data => {
+                console.log('Respuesta del servidor:', data);
+                  // Manejar la respuesta del servidor según tus necesidades
+                })
+               .catch(error => {
+                 console.error('Error al enviar los datos:', error);
+                 // Manejar el error según tus necesidades
+                });
+
+                Swal.fire({
+                title: '¡Perfecto! Datos guardados con éxito',
+                icon: 'success'
+            });
+            let filas = '';
+            document.getElementById("tabla-representantes").getElementsByTagName('tbody')[0].innerHTML = filas;
+
+        } else {
+            // Poner todos los valores de la tabla de la columna 9 en 0
+            for (let i = 1; i < filas.length; i++) {
+                filas[i].cells[10].innerText = "0";
+            }
+            primeraCaptura = true; // Reiniciar para simular el primer click
+            Swal.fire({
+                title: 'Algun dato no coincide, favor de empezar de nuevo',
+                icon: 'error'
+            });
+            document.getElementById('dato1').innerText = 'Captura: Uno';
+        }
+    }
+});
+
+    }
+    
+
+
+ 
+    
+    
+
+    
+    window.addEventListener("load", async () => {
+    await cargainicial(); 
+    listarNumerodeElecciones(cbocargo.value, cboeleccion.value);
+
+
+    });
+    
+    
+        var consultarAgregarButton = document.getElementById('cerrar-button');
+    
+    // Agrega un evento de clic al botónd
+    consultarAgregarButton.addEventListener('click', function() {
+        // Redirige a la URL específica utilizando JavaScript
+        window.location.href = "{% url 'inicio' %}";
+    });
+    
+  
+  
+  
+  </script>
+
+
+
+
+<script>
+
+    // Obtén el elemento del botón
+    var consultarAgregarButton = document.getElementById('cerrar-button');
+
+// Agrega un evento de clic al botón
+consultarAgregarButton.addEventListener('click', function() {
+    // Redirige a la URL específica utilizando JavaScript
+    window.location.href = "{% url 'inicio' %}";
+});
+
+</script>
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@10"></script>
+<script>
+
+
+  function confirmarEliminar(idDistrito) {
+      Swal.fire({
+          title: '¿Estás seguro de eliminar este registro?',
+          text: '¡No podrás revertir esto!',
+          icon: 'warning',
+          showCancelButton: true,
+          confirmButtonColor: '#3085d6',
+          cancelButtonColor: '#d33',
+          confirmButtonText: 'Sí, eliminarlo',
+          cancelButtonText: 'Cancelar'
+      }).then((result) => {
+          if (result.isConfirmed) {
+              // Realizar la solicitud de eliminación
+              window.location.href = "{% url 'distritos_eliminar' 0 %}".replace('0', idDistrito);
+          }
+      });
+  }
+  </script>
+
+{% endblock %}

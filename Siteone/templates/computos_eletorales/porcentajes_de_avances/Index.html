@@ -1,0 +1,841 @@
+
+{% extends "base.html" %}
+
+{% block titulo %} Porcentajes de Avances {% endblock %}
+
+{% block encabezado %}<center> <h1 class="text-center mb-4" style="color: #515151e5;">Porcentajes de Avances</h1> </center>{% endblock %}
+
+{% block combos %}
+
+<center>
+
+<label for="combobox2">Año</label>
+
+<select name="combobox2" id="cboaño" class="combobox combobox-año">
+{% for año in años %}
+
+<option value="{{año}}">{{año}}</option>
+
+{% endfor %}
+
+</select>
+
+
+<!-- Combobox 1 -->
+
+<label for="combobox1">Entidad Federativa</label>
+
+<select name="combobox1" id="cboestado" class="combobox combobox-entidad">
+{% for dis in entidad_federativa %}
+
+<option value="{{ dis }}">{{ dis }}</option>
+
+{% endfor %}
+
+</select>
+
+
+<!-- Combobox 3 -->
+
+<label for="combobox3">Elección</label>
+
+<select name="com<select name="combobox3" id="cboeleccion" class="combobox combobox-eleccion">
+  bobox3" id="combobox3" class="combobox">
+
+{% for dis in eleccion %}
+
+<option value="{{ dis }}">{{ dis }}</option>
+
+{% endfor %}
+
+</select>
+
+<label for="combobox4">Cargo</label>
+<select name="combobox4" id="cbocargo" class="combobox combobox-cargo"></select>
+
+
+<label for="combobox5" style="display: none;">Municipio</label>
+<select name="combobox5" id="cbomuni" class="combobox combobox-cargo" style="display: none;"></select>
+
+
+<label for="combobox6" style="display: none;">Distrito</label>
+<select name="combobox6" id="cbodis" class="combobox combobox-cargo"style="display: none;"></select>
+
+
+
+
+</center>
+ 
+
+
+
+{% endblock %}
+
+
+{% block contenido %}
+
+
+<meta charset="UTF-8" />
+<meta http-equiv="X-UA-Compatible" content="IE=edge" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.2.2/dist/css/bootstrap.min.css" integrity="sha384-Zenh87qX5JnK2Jl0vWa8Ck2rdkQ2Bzep5IDxbcnCeuOxjzrPF/et3URy9Bv1WTRi" crossorigin="anonymous" />
+<!-- Styles -->
+<link rel="stylesheet" href="styles.css" />
+
+<head>
+    <meta charset="UTF-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>ECharts Tutorial</title>
+    <!-- Bootstrap -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.2.2/dist/css/bootstrap.min.css" integrity="sha384-Zenh87qX5JnK2Jl0vWa8Ck2rdkQ2Bzep5IDxbcnCeuOxjzrPF/et3URy9Bv1WTRi" crossorigin="anonymous" />
+    <!-- Styles -->
+    <link rel="stylesheet" href="styles.css" />
+</head>
+<body style="background-color: white;">
+
+  <div class="container">
+      <div class="row my-4">
+          <!-- Aquí se eliminan las dos primeras columnas -->
+      </div>
+      <div id="chart-container">
+      <div class="row my-4">
+        <div class="col-sm-12 col-md-8 col-lg-8 col-xl-8">
+          <div id="chart3" class="chart"></div>
+      </div>
+      
+          <div class="col-sm-12 col-md-4 col-lg-4 col-xl-4">
+              <div id="chart4" class="chart"></div>
+          </div>
+      </div>
+    </div>
+  </div>
+  <div id="botones-fila">
+    <button type="button" id="btnconsultar">Consultar</button>
+    <button type="button" id="cerrar-button">Cerrar</button>
+    
+  </div>  
+  <!-- Bootstrap -->
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.2.2/dist/js/bootstrap.bundle.min.js" integrity="sha384-OERcA2EqjJCMA+/3y+gxIOqMEjwtxJY7qPCqsdltbNJuaOe923+mo//f6V8Qbsw3" crossorigin="anonymous"></script>
+  <!-- Apache ECharts -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/echarts/5.4.0/echarts.min.js"></script>
+  <!-- JavaScript -->
+  <script src="main.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+</body>
+
+
+
+<script>
+
+    
+var consultarAgregarButton = document.getElementById('cerrar-button');
+    
+    // Agrega un evento de clic al botónd
+    consultarAgregarButton.addEventListener('click', function() {
+        // Redirige a la URL específica utilizando JavaScript
+        window.location.href = "{% url 'inicio' %}";
+    });
+
+
+cboeleccion.addEventListener('change', async () => {
+
+
+  listarCargos(cboeleccion.value);
+
+});
+
+/*
+cbocargo.addEventListener('change', async () => {
+
+document.getElementById('chart-container').style.display = 'none';
+
+});
+
+*/
+
+// Función para mostrar el div de las gráficas al hacer clic en el botón de Consultar
+const mostrarGraficas = () => {
+    document.getElementById('chart-container').style.display = 'block';
+
+
+
+      const cboEleccion = document.getElementById('cboeleccion');
+      const cboCargo = document.getElementById('cbocargo');
+
+      // Obtener el texto seleccionado en cboeleccion
+      const textoEleccion = cboEleccion.options[cboEleccion.selectedIndex].text;
+
+      // Obtener el valor seleccionado en cbocargo
+      const valorCargo = cboCargo.value;
+      
+       // Inicializar y mostrar las gráficas
+       initCharts(textoEleccion, valorCargo);
+
+
+}
+
+
+    // Agrega un event listener al botón Consultar
+    document.getElementById('btnconsultar').addEventListener('click', mostrarGraficas);
+
+
+
+
+    const ObtenerData = async (idproceso, nombreeleccion) => {
+    try {
+        const response = await fetch(`/conteo/actas/${idproceso}/${nombreeleccion}`);
+        const data = await response.json();
+        console.log(data);
+
+        if (data.message === "Success" /* &&  data.actas.length === 1 && !data.actas[0].every(value => value === 0)*/) {
+          
+            const actas = data.actas[0];
+            const values = [actas[0], actas[1], actas[3], actas[2], actas[4]];
+            console.log(values);
+
+            const chart3 = echarts.init(document.getElementById("chart3"));
+            chart3.setOption(getOptionChart3(values));
+            chart3.resize();
+
+            const chart4 = echarts.init(document.getElementById("chart4"));
+            chart4.setOption(getOptionChart4(actas[1], actas[2]));
+            chart4.resize();
+
+
+        } else  {
+            Swal.fire({
+                title: 'Error',
+                text: 'Ha ocurrido un error. Por favor, inténtalo de nuevo.',
+                icon: 'error',
+                confirmButtonText: 'Aceptar'
+            });
+        }
+    } catch (error) {
+        console.log(error);
+    }
+}
+
+
+
+  
+const listarCargos=async(idproceso)=>{
+      try {
+        const response = await fetch(`/cargos/${idproceso}`);
+    const data = await response.json();
+    console.log(data);
+    
+     if (data.message=="Success"){
+    
+       let opciones = '';
+       data.cargos.forEach((Tipocargo)=>{
+    
+        opciones += `<option value="${Tipocargo.idtipo_cargo}">${Tipocargo.descrip_tcargo}</option>`;
+    
+       });
+       cbocargo.innerHTML = opciones;
+     }else{
+       alert("elecciones no encontradas");
+     }
+    
+    
+    } catch (error) {
+     console.log(error);
+    }
+    }
+    
+
+
+
+const listarElecciones = async () => {
+    try {
+      const response = await fetch(`/elecciones/`);
+      const data = await response.json();
+      console.log(data);
+  
+      if (data.message === "Success") {
+        let opciones = '';
+        data.elecciones.forEach((Procesos) => {
+          opciones += `<option value="${Procesos.idproceso}" data-idproceso="${Procesos.idproceso}">${Procesos.descrip}</option>`;
+        });
+        cboeleccion.innerHTML = opciones;
+      } else {
+        alert("elecciones no encontradas");
+      }
+    } catch (error) {
+      console.log(error);
+    }
+  }
+
+
+
+
+const listarEleccionesPorAño = async (anio) => {
+    try {
+      const response = await fetch(`eleccionesfilter/${anio}`);
+      const data = await response.json();
+      console.log(data);
+  
+      // Limpiar el contenido actual del cboeleccion
+      cboeleccion.innerHTML = '';
+      cbocargo.innerHTML = '';
+  
+      if (data.message === "Success") {
+        let opciones = '';
+        data.elecciones.forEach((Procesos) => {
+             opciones += `<option value="${Procesos.idproceso}" data-idproceso="${Procesos.idproceso}">${Procesos.descrip}</option>`; 
+            });
+        cboeleccion.innerHTML = opciones;
+      } else {
+        alert("Elecciones no encontradas");
+      }
+    } catch (error) {
+      console.log(error);
+    }
+  }
+  
+
+
+
+
+const listarEstados = async () => {
+      try {
+          const response = await fetch(`/estados/`)
+          const data = await response.json();
+          console.log(data);
+  
+          if (data.message == "Success") {
+  
+              let opciones = '';
+              data.estados.forEach((Estados) => {
+                  opciones += `<option value="${Estados.idestado}">${Estados.nombre_edo}</option>`;
+              });
+              cboestado.innerHTML = opciones;
+  
+          } else {
+              alert("elecciones no encontradas");
+          }
+  
+      } catch (error) {
+          console.log(error);
+      }
+  }
+  
+
+  const listarNumerodeElecciones=async(idtipo_cargo, idproceso)=>{
+    var tipo=null;
+    try {
+   
+    const response =await fetch(`/NumeroEleccion/${idproceso}/${idtipo_cargo}`)
+    const data = await response.json();
+    console.log(data);
+   
+     if (data.message=="Success"){
+   
+       let opciones = '';
+
+
+       data.results.forEach((Distritos)=>{
+        tipo=Distritos.idtipoc;
+
+        if (Distritos.idtipoc === 'AY') {
+        // Código a ejecutar si Distritos.idtipoc es igual a 'AY'
+
+          // Ocultar el label y select para "Municipio"
+          document.querySelector('label[for="combobox5"]').style.display = 'block';
+          document.getElementById('cbomuni').style.display = 'block';
+
+          document.querySelector('label[for="combobox6"]').style.display = 'none';
+          document.getElementById('cbodis').style.display = 'none';
+          opciones += `<option value="${Distritos.idMunicipio}">${Distritos.nombre}</option>`;
+
+        } else if (Distritos.idtipoc==='CO'){
+        // Código a ejecutar si Distritos.idtipoc no es igual a 'AY'
+      
+          // Ocultar el label y select para "Distrito"
+          document.querySelector('label[for="combobox6"]').style.display = 'block';
+          document.getElementById('cbodis').style.display = 'block';
+          document.querySelector('label[for="combobox5"]').style.display = 'none';
+          document.getElementById('cbomuni').style.display = 'none';
+          opciones += `<option value="${Distritos.idDistrito}">${Distritos.nombre}</option>`;
+
+
+        } else {
+          document.querySelector('label[for="combobox5"]').style.display = 'none';
+          document.getElementById('cbomuni').style.display = 'none';
+          document.querySelector('label[for="combobox6"]').style.display = 'none';
+          document.getElementById('cbodis').style.display = 'none';
+        }
+
+          // Limpiar el contenido actual del select de "Municipio"
+
+   
+
+       });
+       console.log("esoooo: "+tipo)
+ 
+
+
+       if (tipo === 'AY') {
+    // Código a ejecutar si Distritos.idtipoc es igual a 'AY'
+    console.log('El valor de idtipoc es AY');
+    cbomuni.innerHTML = opciones;
+} else if (tipo==='CO') {
+    // Código a ejecutar si Distritos.idtipoc no es igual a 'AY'
+    console.log('El valor de idtipoc no es AY');
+    cbodis.innerHTML = opciones;
+}
+
+  
+
+       
+
+       
+     }else{
+       alert("Distritos no encontrados");
+     }
+   
+   
+    } catch (error) {
+     console.log(error);
+    }
+
+
+   }
+
+
+
+
+const cargainicial =async()=>{
+    
+
+    await listarEstados();
+    await listarElecciones();
+    await listarCargos(cboeleccion.value);
+
+    cbocargo.addEventListener("change", (event) => {
+
+console.log(cbocargo.value);
+listarNumerodeElecciones(cbocargo.value, cboeleccion.value);
+
+});
+
+    
+    }
+
+
+window.addEventListener("load", async () => {
+    await cargainicial(); 
+    listarNumerodeElecciones(cbocargo.value, cboeleccion.value);
+
+
+
+    });
+
+    const getOptionChart3 = (values) => {
+    const categories = ["Total de Actas", "Actas de Cotejo", "Actas Cotejadas", "Actas de Recuento", "Actas Recontadas"];
+
+    return {
+        tooltip: {
+            show: true
+        },
+        xAxis: {
+            type: "category",
+            data: categories,
+            axisLabel: {
+                interval: 0,
+                rotate: 0,
+                margin: 10
+            }
+        },
+        yAxis: {
+            type: "value"
+        },
+        series: [
+            {
+                data: values,
+                type: "bar",
+                label: {
+                    show: true,
+                    position: 'top'
+                },
+                itemStyle: {
+                    normal: {
+                        borderWidth: 2,
+                        borderColor: 'white', // Cambiar el color del borde a blanco
+                        color: function(params) {
+                            if (params.dataIndex === 0) {
+                                return '#FFFFFF'; // Cambiar el color de la primera barra a blanco
+                            } else if (params.dataIndex <= 2) {
+                                return '#91CC75';
+                            } else {
+                                return '#5470C6';
+                            }
+                        }
+                    }
+                }
+            }
+        ]
+    };
+};
+
+const getOptionChart4 = (cotejo, recuento) => {
+    let data = [];
+
+    // Verificar si ambos parámetros son 0
+    if (cotejo === 0 && recuento === 0) {
+        // Si ambos son 0, dibujar toda la gráfica en gris
+        data = [
+            { value: 1, name: "Sin datos", itemStyle: { color: "gray" } }
+        ];
+    } else {
+        // Si al menos uno de los parámetros es diferente de 0, dibujar la gráfica normalmente
+        data = [
+            { value: recuento, name: "Actas de Recuento" },
+            { value: cotejo, name: "Actas de Cotejo" }
+        ];
+    }
+
+    return {
+        tooltip: {
+            trigger: "item",
+            formatter: "{a} <br/>{b}: {c} ({d}%)"
+        },
+        legend: {
+            top: "5%",
+            left: "center"
+        },
+        series: [
+            {
+                name: "Total",
+                type: "pie",
+                radius: ["40%", "70%"],
+                avoidLabelOverlap: false,
+                itemStyle: {
+                    borderRadius: 5,
+                    borderColor: "#fff",
+                    borderWidth: 2
+                },
+                label: {
+                    show: true,
+                    position: "outside",
+                    formatter: "{d}%"
+                },
+                emphasis: {
+                    label: {
+                        show: true,
+                        fontSize: "20",
+                        fontWeight: "bold"
+                    }
+                },
+                labelLine: {
+                    show: true
+                },
+                data: data
+            }
+        ]
+    };
+};
+const initCharts = (textoEleccion, valorCargo) => {
+
+
+    console.log("Texto de cboeleccion en initCharts:", textoEleccion);
+    console.log("Valor de cbocargo en initCharts:", valorCargo);
+
+    //LLAMAR A OBTENER DATA
+    ObtenerData(valorCargo, textoEleccion); 
+
+
+};
+
+
+</script>
+ 
+
+<style>
+
+
+#chart-container {
+        display: none;
+    }
+
+    :root {
+        --color-base: #ffffff; /* Cambiar a blanco */
+        --color-1: #b7bfc7;
+        --color-2: #abc5de;
+    }
+
+    body {
+        background: var(--color-base); /* Cambiar el fondo a blanco */
+    }
+
+    .chart {
+        width: 100%;
+        min-height: 400px;
+    }
+
+
+
+.contenedorcombos {
+  position: fixed;
+  top: 50%;
+  margin: 0 auto;
+  left: 50%;
+  width: 30%;
+  padding: 20px;
+  box-sizing: border-box;
+}
+
+
+.messages-container {
+  position: fixed;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  z-index: 9999;
+  width: 30%;
+  padding: 20px;
+  box-sizing: border-box;
+}
+
+
+  .messages {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+  }
+
+  .messages li {
+    display: flex;
+    align-items: center;
+    padding: 10px;
+    margin-bottom: 10px;
+    border: 1px solid #ccc;
+    border-radius: 5px;
+  }
+
+  .messages li.success {
+    background-color: #d4edda;
+    border-color: #c3e6cb;
+    color: #155724;
+  }
+
+  .messages li.error {
+    background-color: #f8d7da;
+    border-color: #f5c6cb;
+    color: #721c24;
+  }
+
+  .icon {
+    margin-right: 10px;
+  }
+
+  .message-text {
+    flex-grow: 1;
+  }
+
+  .close-btn {
+    margin-left: 300px;
+    text-decoration: none;
+    color: #000;
+  }
+
+
+
+
+h1{
+    margin-top: -30px; /* Ajusta el valor según tus necesidades del TITULO */
+  }
+
+
+  
+  /* Estilo para el combobox del Año */
+.combobox-año {
+  padding: 10px;
+  font-size: 16px;
+  border: 2px solid #000000;
+  border-radius: 5px;
+  margin: 45px;
+  width: 120px;
+  top: 30%;
+  background-color: #ffffffe5;
+  margin-inline-start: 10px;/* Estilos específicos para el combobox de Año */
+}
+
+/* Estilo para el combobox de la Entidad Federativa */
+.combobox-entidad {
+  padding: 10px;
+  font-size: 16px;
+  border: 2px solid #000000;
+  border-radius: 5px;
+  margin: 10px;
+  width: 190px;
+  top: 30%;
+  background-color: #ffffffe5;
+  margin-inline-start: 5px; /* Estilos específicos para el combobox de Entidad Federativa */
+}
+
+/* Estilo para el combobox de la Elección */
+.combobox-eleccion {
+  padding: 10px;
+  font-size: 16px;
+  border: 2px solid #000000;
+  border-radius: 5px;
+  margin: 10px;
+  width: 210px;
+  top: 70%;
+  background-color: #ffffffe5;
+  margin-inline-start: 2px;  /* Estilos específicos para el combobox de Elección */
+}
+
+/* Estilo para el combobox del Cargo */
+.combobox-cargo {
+  padding: 10px;
+  font-size: 16px;
+  border: 2px solid #000000;
+  border-radius: 5px;
+  margin: 10px;
+  width: 200px;
+  top: 30%;
+  background-color: #ffffffe5;
+  margin-inline-start: 2px; /* Estilos específicos para el combobox de Cargo */
+}
+
+/* Estilo para el combobox del Distrito */
+.combobox-distrito {
+  padding: 10px;
+  font-size: 16px;
+  border: 2px solid #000000;
+  border-radius: 5px;
+  margin: 10px;
+  top: 30%;
+  width: 220px;
+  background-color: #ffffffe5;
+  margin-inline-start: 2px; /* Estilos específicos para el combobox de Distrito */
+}
+
+
+/* Estilo para las etiquetas de los combobox */
+label {
+  display:contents;
+  margin: 10px 0 5px 0;
+}
+
+
+/* Contenedor de la tabla */
+.table-container {
+  width: 100%;
+  overflow-y: auto;
+  max-height: 450px; /* Ajusta la altura máxima según tus necesidades */
+}
+
+/* Tabla responsiva */
+.table-responsive {
+  display: block;
+  overflow-x: auto;
+  white-space: nowrap;
+}
+
+.text-center {
+  text-align: center;
+  color: #686565;
+}
+
+/* Estilo general de la tabla */
+.custom-table {
+  font-family: sans-serif;
+  border-collapse: collapse;
+  width: 100%;
+  max-width: none;
+}
+
+.custom-table th,
+.custom-table td {
+  padding: 15px;
+  text-align: left;
+  border: 2px solid #ddd;
+}
+
+.custom-table th {
+  background-color: #ff69b4e5;
+  font-weight: bold;
+}
+
+.custom-table tbody tr:nth-child(even) {
+  background-color: #f2f2f2;
+}
+
+/* Estilo de los botones */
+.custom-table td a {
+  color: #000;
+}
+
+.btn-info,
+.btn-delate {
+  background-color: transparent;
+  border: none;
+}
+
+.table-container {
+  margin-top: -10px; /* Ajusta el valor según tus necesidades */
+}
+
+
+.main-container {
+  width: 76%;
+  margin: 0 auto; /* Elimina el margen superior */
+  overflow-x: auto;
+  position: fixed; /* Agrega posición fija */
+  top: 25%; /* Coloca el contenedor en la parte superior */
+  left: 50%; /* Ajusta la posición horizontal según tus necesidades */
+  transform: translateX(-50%); /* Centra el contenedor horizontalmente */
+}
+#dato1 {
+  margin-right: 20px; /* Margen derecho de 20px para separar del siguiente elemento */
+}
+
+#dato2 {
+  margin-left: 20px; /* Margen izquierdo de 20px para separar del elemento anterior */
+}
+
+#datos {
+  color: #ffffffe5;
+  text-align: center; /* Centra el texto horizontalmente */
+  margin: 1px auto 35px auto; /* Margen superior de 1px, margen inferior de 35px, centrado horizontalmente */
+  font-size: 35px; /* Tamaño de fuente más grande */
+  font-weight: bold; /* Texto en negrita */
+}
+
+
+body {
+    background: -webkit-linear-gradient(to right, var(--color-base), var(--color-1), var(--color-2), var(--color-2), var(--color-1), var(--color-2), var(--color-base));
+    background: linear-gradient(to right, var(--color-base), var(--color-1), var(--color-2), var(--color-2), var(--color-1), var(--color-2), var(--color-base));
+    background-size: 400% 400%;
+    animation: gradient 20s ease infinite;
+}
+
+@keyframes gradient {
+    0% {
+        background-position: 0% 50%;
+    }
+    50% {
+        background-position: 100% 50%;
+    }
+    100% {
+        background-position: 0% 50%;
+    }
+}
+
+.chart {
+    width: 100%;
+    min-height: 400px;
+}
+body {
+    background-color: white;
+}
+
+</style>
+</html>
+
+{% endblock %}

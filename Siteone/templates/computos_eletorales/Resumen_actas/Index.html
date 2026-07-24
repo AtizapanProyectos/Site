@@ -1,0 +1,618 @@
+
+{% extends "base.html" %}
+
+{% block titulo %} Porcentajes de Avances {% endblock %}
+
+{% block encabezado %}<center> <h1 class="text-center mb-4" style="color: #515151e5;">Resumen de Actas</h1> </center>{% endblock %}
+{% load static %}
+{% block combos %}
+<div id="combobox-container">
+  <div>
+    <label for="combobox2">Año</label>
+    <select name="combobox2" id="cboaño" class="form-select combobox-año">
+      {% for año in años %}
+        <option value="{{año}}">{{año}}</option>
+      {% endfor %}
+    </select>
+  </div>
+  <div>
+    <label for="combobox1">Entidad Federativa</label>
+    <select name="combobox1" id="cboestado" class="form-select combobox-entidad">
+      {% for dis in entidad_federativa %}
+        <option value="{{ dis }}">{{ dis }}</option>
+      {% endfor %}
+    </select>
+  </div>
+  <div>
+    <label for="combobox3">Elección</label>
+    <select name="combobox3" id="cboeleccion" class="form-select combobox-eleccion">
+      {% for dis in eleccion %}
+        <option value="{{ dis }}">{{ dis }}</option>
+      {% endfor %}
+    </select>
+  </div>
+  <div>
+    <label for="combobox4">Cargo</label>
+    <select name="combobox4" id="cbocargo" class="form-select combobox-cargo"></select>
+  </div>
+
+
+  <div>
+    <label for="combobox5">Municipio</label>
+    <select name="combobox5" id="cbomuni" class="form-select combobox-cargo"></select>
+  </div>
+  
+  
+  <label for="combobox6" style="display: none;">Distrito</label>
+  <select name="combobox6" id="cbodis" class="combobox combobox-cargo"style="display: none;"></select>
+  
+  
+
+</div>
+
+
+{% endblock %}
+
+
+{% block contenido %}
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <style>
+
+/* Contenedor principal */
+.contenedorcombos {
+  position: fixed;
+  top: 50%;
+  left: 50%;
+  width: 30%;
+  padding: 20px;
+  box-sizing: border-box;
+  transform: translate(-50%, -50%);
+}
+
+/* Combobox estilos */
+.form-select {
+  padding: 10px;
+  font-size: 16px;
+  border: 2px solid #000000;
+  border-radius: 5px;
+  background-color: #ffffffe5;
+  margin-bottom: 10px;
+}
+
+/* Contenedor para los comboboxes y botones */
+#combobox-container {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  gap: 10px;
+  padding: 20px;
+}
+
+#combobox-container label {
+  display: block;
+  text-align: center;
+  margin-bottom: 5px;
+  font-weight: bold;
+}
+
+#botones-fila {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 10px;
+  margin-top: 20px;
+}
+
+/* Estilos específicos para cada combobox */
+.combobox-año,
+.combobox-entidad,
+.combobox-eleccion,
+.combobox-cargo {
+  width: 300px;
+}
+
+/* Responsive adjustments */
+@media (max-width: 459px) {
+  #combobox-container {
+    flex-direction: column;
+    align-items: center;
+  }
+
+  #botones-fila {
+    flex-direction: column;
+    align-items: center;
+  }
+}
+
+/* Estilos adicionales para el contenido */
+.container {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+  gap: 20px;
+  width: 80%;
+  background-color: #fff;
+  padding: 20px;
+  box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+  position: relative;
+}
+
+.live-indicator {
+  position: absolute;
+  top: 10px;
+  left: 10px;
+  display: flex;
+  align-items: center;
+  gap: 5px;
+}
+
+.live-indicator .dot {
+  width: 10px;
+  height: 10px;
+  background-color: red;
+  border-radius: 50%;
+  animation: blink 1s infinite;
+}
+
+@keyframes blink {
+  0%, 50%, 100% {
+    opacity: 1;
+  }
+  25%, 75% {
+    opacity: 0;
+  }
+}
+
+.card {
+  background-color: #fff;
+  border: 1px solid #ddd;
+  border-radius: 10px;
+  text-align: center;
+  padding: 20px;
+}
+
+.image-box {
+  width: 100%;
+  height: 200px;
+  border-radius: 10px;
+  margin-bottom: 20px;
+  overflow: hidden;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.image-box img {
+  width: 250px;
+  height: 250px;
+  object-fit: cover;
+  object-position: center;
+}
+
+.info {
+  margin-bottom: 20px;
+}
+
+.logos {
+  display: flex;
+  justify-content: space-around;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+
+.logo {
+  width: 60px;
+  height: 60px;
+  border-radius: 10px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  background-color: #fff;
+  border: 1px solid #ddd;
+  flex-direction: column;
+}
+
+.logo img {
+  width: 100%;
+  height: auto;
+  border-radius: 10px;
+}
+
+.logo p {
+  margin: 5px 0 0 0;
+}
+
+#botones-fila.botones-fijos {
+  position: fixed;
+  bottom: 10px;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 9999;
+}
+@media (max-width: 767px) {
+  .table-responsive {
+    max-width: 367px; /* Establece un ancho máximo para la tabla */
+    overflow-x: auto; /* Permite el desplazamiento horizontal si es necesario */
+    -webkit-overflow-scrolling: touch; /* Mejora el desplazamiento en dispositivos móviles */
+  }
+
+  #botones-fila.botones-fijos {
+  position: absolute;
+  bottom: -190px; /* Ajusta este valor según tu preferencia */
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 9999;
+}
+
+
+.combobox {
+    border: 1px solid #ccc; /* Borde más delgado */
+    border-radius: 3px; /* Radio de borde más pequeño */
+    background-color: #fff; /* Fondo blanco */
+  }
+
+  .combobox {
+    margin: 10px 0; /* Ajusta el margen superior e inferior */
+  }
+
+  label {
+  font-size: 12px; /* Ajusta el tamaño de fuente de las etiquetas */
+  font-weight: bold; /* Hace que las letras sean negritas */
+  margin-bottom: 2px; /* Ajusta el margen inferior de las etiquetas */
+}
+
+
+
+  h2.encabezado-paquete {
+    font-size: 16px; /* Ajusta el tamaño de fuente según tus preferencias */
+  }
+
+
+  h2.encabezado-tablas {
+    color: rgba(87, 87, 87, 0.898); /* Ajusta el color del texto según tus preferencias */
+    font-size: 16px; /* Ajusta el tamaño de fuente según tus preferencias */
+  }
+
+  .custom-table th {
+    font-size: 12px; /* Ajusta el tamaño de fuente según tus preferencias */
+  }
+
+  .custom-table td {
+    font-size: 11px; /* Ajusta este tamaño según tus preferencias */
+  }
+
+
+
+}
+  
+    </style>
+</head>
+
+<body>
+
+  <div class="container">
+    <div class="live-indicator">
+        <div class="dot"></div>
+        <span></span>
+    </div>
+    {% if resumen %}
+     {% for candidato in resumen.candidatos %}
+    <div class="card">
+        <div class="image-box">
+            <img src="http://127.0.0.1:8000/images/{{candidato.0}}" alt="Renán Barrera Juárez">
+        </div>
+        <div class="info">
+            <h3>{{ candidato.1}} {{ candidato.2}} {{ candidato.3}}<br>{{ candidato.4}}</h3>
+            <p>{{ candidato.6}}</p>
+           <!-- <p><strong>VOTOS 0%</strong></p> -->
+            <p><strong> {{ candidato.17}} VOTOS</strong></p>
+        </div>
+   
+        {% if candidato.7 %}
+        <div class="logos">
+          <div class="logo">
+              <img src="http://127.0.0.1:8000/images/{{ candidato.7}}" alt="MORENA">
+              <p>{{ candidato.12}}</p>
+          </div>
+        {% endif %}  
+
+        {% if candidato.8 %}
+        <div class="logos">
+          <div class="logo">
+              <img src="http://127.0.0.1:8000/images/{{ candidato.8}}" alt="MORENA">
+              <p>{{ candidato.13}}</p>
+          </div>
+        {% endif %}  
+
+        {% if candidato.9 %}
+        <div class="logos">
+          <div class="logo">
+              <img src="http://127.0.0.1:8000/images/{{ candidato.9}}" alt="MORENA">
+              <p>{{ candidato.14}}</p>
+          </div>
+        {% endif %}  
+
+        {% if candidato.10 %}
+        <div class="logos">
+          <div class="logo">
+              <img src="http://127.0.0.1:8000/images/{{ candidato.10}}" alt="MORENA">
+              <p>{{ candidato.15}}</p>
+          </div>
+        {% endif %}  
+
+        {% if candidato.11 %}
+        <div class="logos">
+          <div class="logo">
+              <img src="http://127.0.0.1:8000/images/{{ candidato.11}}" alt="MORENA">
+              <p>{{ candidato.16}}</p>
+          </div>
+        {% endif %}  
+         
+       
+       
+        
+    </div>
+
+    
+    </div>
+    {% endfor %}
+    {% endif %}
+    <!-- Puedes agregar más divs de "card" aquí -->
+</div>
+<div id="botones-fila" class="botones-fijos">
+  <button type="button" id="btnconsultar" >Consultar</button>
+  <button type="button" id="btncerrar" >Cerrar</button>
+</div> 
+
+
+    <script>
+
+ btnconsultar.addEventListener("click", (event) => {
+    // Muestra en la consola los valores seleccionados de los combos
+
+
+    const url = `/Resumen de Actas/Consulta/${cboeleccion.value}/${cbocargo.value}`;
+
+    // Redirige a la nueva URL
+    window.location.href = url;
+});
+
+
+
+var consultarAgregarButton = document.getElementById('btncerrar');
+    // Agrega un evento de clic al botónd
+    consultarAgregarButton.addEventListener('click', function() {
+        // Redirige a la URL específica utilizando JavaScript
+        window.location.href = "{% url 'inicio' %}";
+    });
+    
+
+        
+const listarCargos=async(idproceso)=>{
+      try {
+        const response = await fetch(`/cargos/${idproceso}`);
+    const data = await response.json();
+    console.log(data);
+    
+     if (data.message=="Success"){
+    
+       let opciones = '';
+       data.cargos.forEach((Tipocargo)=>{
+    
+        opciones += `<option value="${Tipocargo.idtipo_cargo}">${Tipocargo.descrip_tcargo}</option>`;
+    
+       });
+       cbocargo.innerHTML = opciones;
+     }else{
+       alert("elecciones no encontradas");
+     }
+    
+    
+    } catch (error) {
+     console.log(error);
+    }
+    }
+    
+
+
+
+const listarElecciones = async () => {
+    try {
+      const response = await fetch(`/elecciones/`);
+      const data = await response.json();
+      console.log(data);
+  
+      if (data.message === "Success") {
+        let opciones = '';
+        data.elecciones.forEach((Procesos) => {
+          opciones += `<option value="${Procesos.idproceso}" data-idproceso="${Procesos.idproceso}">${Procesos.descrip}</option>`;
+        });
+        cboeleccion.innerHTML = opciones;
+      } else {
+        alert("elecciones no encontradas");
+      }
+    } catch (error) {
+      console.log(error);
+    }
+  }
+
+
+
+
+const listarEleccionesPorAño = async (anio) => {
+    try {
+      const response = await fetch(`eleccionesfilter/${anio}`);
+      const data = await response.json();
+      console.log(data);
+  
+      // Limpiar el contenido actual del cboeleccion
+      cboeleccion.innerHTML = '';
+      cbocargo.innerHTML = '';
+  
+      if (data.message === "Success") {
+        let opciones = '';
+        data.elecciones.forEach((Procesos) => {
+             opciones += `<option value="${Procesos.idproceso}" data-idproceso="${Procesos.idproceso}">${Procesos.descrip}</option>`; 
+            });
+        cboeleccion.innerHTML = opciones;
+      } else {
+        alert("Elecciones no encontradas");
+      }
+    } catch (error) {
+      console.log(error);
+    }
+  }
+  
+
+
+
+
+const listarEstados = async () => {
+      try {
+          const response = await fetch(`/estados/`)
+          const data = await response.json();
+          console.log(data);
+  
+          if (data.message == "Success") {
+  
+              let opciones = '';
+              data.estados.forEach((Estados) => {
+                  opciones += `<option value="${Estados.idestado}">${Estados.nombre_edo}</option>`;
+              });
+              cboestado.innerHTML = opciones;
+  
+          } else {
+              alert("elecciones no encontradas");
+          }
+  
+      } catch (error) {
+          console.log(error);
+      }
+  }
+  
+
+  const listarNumerodeElecciones=async(idtipo_cargo, idproceso)=>{
+    var tipo=null;
+    try {
+   
+    const response =await fetch(`/NumeroEleccion/${idproceso}/${idtipo_cargo}`)
+    const data = await response.json();
+    console.log(data);
+   
+     if (data.message=="Success"){
+   
+       let opciones = '';
+
+
+       data.results.forEach((Distritos)=>{
+        tipo=Distritos.idtipoc;
+
+        if (Distritos.idtipoc === 'AY') {
+        // Código a ejecutar si Distritos.idtipoc es igual a 'AY'
+
+          // Ocultar el label y select para "Municipio"
+          document.querySelector('label[for="combobox5"]').style.display = 'block';
+          document.getElementById('cbomuni').style.display = 'block';
+
+          document.querySelector('label[for="combobox6"]').style.display = 'none';
+          document.getElementById('cbodis').style.display = 'none';
+          opciones += `<option value="${Distritos.idMunicipio}">${Distritos.nombre}</option>`;
+
+        } else if (Distritos.idtipoc==='CO'){
+        // Código a ejecutar si Distritos.idtipoc no es igual a 'AY'
+      
+          // Ocultar el label y select para "Distrito"
+          document.querySelector('label[for="combobox6"]').style.display = 'block';
+          document.getElementById('cbodis').style.display = 'block';
+          document.querySelector('label[for="combobox5"]').style.display = 'none';
+          document.getElementById('cbomuni').style.display = 'none';
+          opciones += `<option value="${Distritos.idDistrito}">${Distritos.nombre}</option>`;
+
+
+        } else {
+          document.querySelector('label[for="combobox5"]').style.display = 'none';
+          document.getElementById('cbomuni').style.display = 'none';
+          document.querySelector('label[for="combobox6"]').style.display = 'none';
+          document.getElementById('cbodis').style.display = 'none';
+        }
+
+          // Limpiar el contenido actual del select de "Municipio"
+
+   
+
+       });
+       console.log("esoooo: "+tipo)
+ 
+
+
+       if (tipo === 'AY') {
+    // Código a ejecutar si Distritos.idtipoc es igual a 'AY'
+    console.log('El valor de idtipoc es AY');
+    cbomuni.innerHTML = opciones;
+} else if (tipo==='CO') {
+    // Código a ejecutar si Distritos.idtipoc no es igual a 'AY'
+    console.log('El valor de idtipoc no es AY');
+    cbodis.innerHTML = opciones;
+}
+
+  
+
+       
+
+       
+     }else{
+       alert("Distritos no encontrados");
+     }
+   
+   
+    } catch (error) {
+     console.log(error);
+    }
+
+
+   }
+
+
+const cargainicial =async()=>{
+    
+
+    await listarEstados();
+    await listarElecciones();
+    await listarCargos(cboeleccion.value);
+
+    cbocargo.addEventListener("change", (event) => {
+
+console.log(cbocargo.value);
+listarNumerodeElecciones(cbocargo.value, cboeleccion.value);
+
+});
+
+    
+    }
+
+
+window.addEventListener("load", async () => {
+    await cargainicial(); 
+    listarNumerodeElecciones(cbocargo.value, cboeleccion.value);
+
+
+
+
+    });
+
+
+
+
+        // Agregar clase fade-in después de que la página se haya cargado completamente
+        window.onload = function() {
+            document.querySelector('.container').classList.add('fade-in');
+        };
+    </script>
+
+</body>
+
+</html>
+
+{% endblock %}

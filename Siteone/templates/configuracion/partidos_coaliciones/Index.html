@@ -1,0 +1,610 @@
+{% extends "base.html" %} 
+
+{% block titulo %} Catálogo de Partidos Coaliciones {% endblock %}
+
+{% block encabezado %}<center> <h1 class="text-center mb-4" style="color: #515151e5;">Catálogo de Partidos Coaliciones</h1> </center>{% endblock %}
+
+{% block combos %} 
+
+
+  <center>
+    <!-- Combobox 2 -->
+    <label for="combobox2">Año</label>
+    <select name="combobox2" id="cboaño" class="combobox combobox-año">
+      {% for año in años %}
+        <option value="{{año}}">{{año}}</option>
+      {% endfor %}
+    </select>
+
+    <!-- Combobox 1 -->
+    <label for="combobox1">Entidad Federativa</label>
+    <select name="combobox1" id="cboestado" class="combobox combobox-entidad"></select>
+
+  </center>
+
+
+{% endblock %}
+
+
+
+{% block contenido %}
+
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.1/css/all.min.css">
+
+
+{% if messages %}
+  <div class="messages-container">
+    <ul class="messages">
+      {% for message in messages %}
+        <li{% if message.tags %} class="{{ message.tags }}"{% endif %}>
+          <!-- Agregamos un ícono de alerta -->
+          <span class="icon">
+            {% if message.tags == 'success' %}
+              <i class="fas fa-check-circle"></i>
+            {% elif message.tags == 'error' %}
+              <i class="fas fa-exclamation-circle"></i>
+            {% endif %}
+          </span>
+          <div class="message-text">
+            {{ message }}
+            <!-- Agregamos el botón de cerrar -->
+            <a href="{% url 'partidoscolas_coaliciones' %}" class="close-btn" onclick="cerrarMensaje(this)">X</a>
+          </div>
+        </li>
+      {% endfor %}
+    </ul>
+  </div>
+{% endif %}
+
+
+
+
+<script>
+  function cerrarMensaje(btn) {
+    // Obtén el elemento padre li del botón
+    var mensajeLi = btn.parentNode;
+
+    // Oculta el mensaje
+    mensajeLi.style.display = 'none';
+  }
+</script>
+
+
+{% load static %}
+
+
+<style>
+
+
+
+
+
+.contenedorcombos {
+  position: fixed;
+  top: 50%;
+  margin: 0 auto;
+  left: 50%;
+  width: 30%;
+  padding: 20px;
+  box-sizing: border-box;
+}
+
+
+.messages-container {
+  position: fixed;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  z-index: 9999;
+  width: 30%;
+  padding: 20px;
+  box-sizing: border-box;
+}
+
+
+  .messages {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+  }
+
+  .messages li {
+    display: flex;
+    align-items: center;
+    padding: 10px;
+    margin-bottom: 10px;
+    border: 1px solid #ccc;
+    border-radius: 5px;
+  }
+
+  .messages li.success {
+    background-color: #d4edda;
+    border-color: #c3e6cb;
+    color: #155724;
+  }
+
+  .messages li.error {
+    background-color: #f8d7da;
+    border-color: #f5c6cb;
+    color: #721c24;
+  }
+
+  .icon {
+    margin-right: 10px;
+  }
+
+  .message-text {
+    flex-grow: 1;
+  }
+
+  .close-btn {
+    margin-left: 300px;
+    text-decoration: none;
+    color: #000;
+  }
+
+
+
+
+h1{
+    margin-top: -30px; /* Ajusta el valor según tus necesidades del TITULO */
+  }
+
+
+  
+  /* Estilo para el combobox del Año */
+.combobox-año {
+  padding: 10px;
+  font-size: 16px;
+  border: 2px solid #000000;
+  border-radius: 5px;
+  margin: 45px;
+  width: 120px;
+  top: 30%;
+  background-color: #ffffffe5;
+  margin-inline-start: 10px;/* Estilos específicos para el combobox de Año */
+}
+
+/* Estilo para el combobox de la Entidad Federativa */
+.combobox-entidad {
+  padding: 10px;
+  font-size: 16px;
+  border: 2px solid #000000;
+  border-radius: 5px;
+  margin: 10px;
+  width: 190px;
+  top: 30%;
+  background-color: #ffffffe5;
+  margin-inline-start: 5px; /* Estilos específicos para el combobox de Entidad Federativa */
+}
+
+/* Estilo para el combobox de la Elección */
+.combobox-eleccion {
+  padding: 10px;
+  font-size: 16px;
+  border: 2px solid #000000;
+  border-radius: 5px;
+  margin: 10px;
+  width: 210px;
+  top: 70%;
+  background-color: #ffffffe5;
+  margin-inline-start: 2px;  /* Estilos específicos para el combobox de Elección */
+}
+
+/* Estilo para el combobox del Cargo */
+.combobox-cargo {
+  padding: 10px;
+  font-size: 16px;
+  border: 2px solid #000000;
+  border-radius: 5px;
+  margin: 10px;
+  width: 200px;
+  top: 30%;
+  background-color: #ffffffe5;
+  margin-inline-start: 2px; /* Estilos específicos para el combobox de Cargo */
+}
+
+/* Estilo para el combobox del Distrito */
+.combobox-distrito {
+  padding: 10px;
+  font-size: 16px;
+  border: 2px solid #000000;
+  border-radius: 5px;
+  margin: 10px;
+  top: 30%;
+  width: 220px;
+  background-color: #ffffffe5;
+  margin-inline-start: 2px; /* Estilos específicos para el combobox de Distrito */
+}
+
+
+/* Estilo para las etiquetas de los combobox */
+label {
+  display:contents;
+  margin: 10px 0 5px 0;
+}
+
+
+/* Contenedor de la tabla */
+.table-container {
+  width: 100%;
+  overflow-y: auto;
+  max-height: 450px; /* Ajusta la altura máxima según tus necesidades */
+}
+
+/* Tabla responsiva */
+.table-responsive {
+  display: block;
+  overflow-x: auto;
+  white-space: nowrap;
+}
+
+.text-center {
+  text-align: center;
+  color: #686565;
+}
+
+/* Estilo general de la tabla */
+.custom-table {
+  font-family: sans-serif;
+  border-collapse: collapse;
+  width: 100%;
+  max-width: none;
+}
+
+.custom-table th,
+.custom-table td {
+  padding: 15px;
+  text-align: left;
+  border: 2px solid #ddd;
+}
+
+.custom-table th {
+  background-color: #ff69b4e5;
+  font-weight: bold;
+}
+
+.custom-table tbody tr:nth-child(even) {
+  background-color: #f2f2f2;
+}
+
+/* Estilo de los botones */
+.custom-table td a {
+  color: #000;
+}
+
+.btn-info,
+.btn-delate {
+  background-color: transparent;
+  border: none;
+}
+
+
+.table-container {
+  margin-top: -10px; /* Ajusta el valor según tus necesidades */
+}
+
+
+.main-container {
+  width: 76%;
+  margin: 0 auto; /* Elimina el margen superior */
+  overflow-x: auto;
+  position: fixed; /* Agrega posición fija */
+  top: 30%; /* Coloca el contenedor en la parte superior */
+  left: 50%; /* Ajusta la posición horizontal según tus necesidades */
+  transform: translateX(-50%); /* Centra el contenedor horizontalmente */
+}
+
+
+</style>
+
+
+
+<div class="main-container">
+ 
+  <div class="table-container mx-auto">
+    <div class="table-responsive">
+      <table  id="tabla-casillas" class="table table-hover table-bordered table-striped shadow-sm custom-table">
+      <thead>
+        <tr>
+          <th>Clave</th>
+          <th>Descripción</th>
+          <th>Tipo</th>
+          <th>Acciones</th>
+        </tr>
+      </thead>
+
+      <tbody>
+
+        {% for casilla in casillas_mostrar %}
+        <tr>
+          <td>{{ casilla.0 }}</td>
+          <td>{{ casilla.1 }}</td>
+          <td class="text-center">
+            <a name="" id="" class="btn btn-info" href="{% url 'casillas_editar'  casilla.0 %}" role="button">Editar</a>
+            |
+            <a name="" id="" class="btn btn-delate" href="{% url 'casillas_eliminar'  casilla.0 %}" role="button">Eliminar</a>
+          </td>
+        </tr>
+
+        {% endfor %}
+
+      </tbody>
+    </table>
+  </div>
+</div>
+</div>
+<div id="botones-fila">
+  <button type="button" id="btnconsultar">Consultar</button>
+  <button type="button" id="btnagregar">Agregar</button>
+  <button type="button" id="cerrar-button">Cerrar</button>
+  
+</div>  
+
+
+<script src="https://code.jquery.com/jquery-3.6.4.min.js"></script>
+
+
+<script>
+
+
+console.log("Ejecutando JS");
+
+
+
+const listarCargos=async(idtipoc_id)=>{
+    try {
+      const response = await fetch(`/cargos/${idtipoc_id}`);
+  const data = await response.json();
+  console.log(data);
+  
+   if (data.message=="Success"){
+  
+     let opciones = '';
+     data.cargos.forEach((Tipocargo)=>{
+  
+      opciones += `<option value="${Tipocargo.idtipo_cargo}">${Tipocargo.descrip_tcargo}</option>`;
+  
+     });
+     cbocargo.innerHTML = opciones;
+   }else{
+     alert("elecciones no encontradas");
+   }
+  
+  
+  } catch (error) {
+   console.log(error);
+  }
+  }
+  
+
+  
+  const listarElecciones = async () => {
+  try {
+    const response = await fetch("/elecciones/");
+    const data = await response.json();
+    console.log(data);
+
+    if (data.message === "Success") {
+      let opciones = '';
+      data.elecciones.forEach((Procesos) => {
+        opciones += `<option value="${Procesos.idtipoc_id}" data-idproceso="${Procesos.idtipoc_id}">${Procesos.descrip}</option>`;
+      });
+      cboeleccion.innerHTML = opciones;
+    } else {
+      alert("elecciones no encontradas");
+    }
+  } catch (error) {
+    console.log(error);
+  }
+}
+const listarCoalicionesEnTabla = async () => {
+    try {
+        const response = await fetch(`/partidos/coaliciones/get/`);
+        const data = await response.json();
+
+        if (data.message === "Success") {
+            let filas = '';
+            data.coali.forEach((coali) => {
+                filas += `<tr>
+                            <td class="idprocesopartido">${coali.idprocesopartido}</td>
+                            <td class="direccion">${coali.coliacion}</td>
+                            <td class="tipo">${coali.tipo}</td>
+                            <td class="acciones text-center">
+                                <a name="" class="btn btn-info editar" role="button" data-folioc="${coali.idprocesopartido}">Editar</a>
+                                |
+                                <a name="" class="btn btn-delete eliminar" data-folioc="${coali.idprocesopartido}" role="button">Eliminar</a>
+                            </td>
+                          </tr>`;
+            });
+
+            document.getElementById("tabla-casillas").getElementsByTagName('tbody')[0].innerHTML = filas;
+
+            const botonesEditar = document.querySelectorAll('.editar');
+            botonesEditar.forEach((boton) => {
+                boton.addEventListener('click', function() {
+                    const folioC = this.getAttribute('data-folioc');
+                    console.log(folioC);
+                    // Redirigir a la URL de edición con el folioC
+                    window.location.href = `/partidos/coaliciones/editar/${folioC}`;
+                });
+            });
+
+            const botonesEliminar = document.querySelectorAll('.eliminar');
+            botonesEliminar.forEach((boton) => {
+                boton.addEventListener('click', function() {
+                    const folioC = this.getAttribute('data-folioc');
+                    confirmarEliminar(folioC);
+                });
+            });
+
+        } else {
+            alert("No Existen Registros Para la Selección");
+        }
+
+    } catch (error) {
+        console.log(error);
+    }
+}
+
+const listarEstados = async () => {
+    try {
+        const response = await fetch("/estados/")
+        const data = await response.json();
+        console.log(data);
+
+        if (data.message == "Success") {
+
+            let opciones = '';
+            data.estados.forEach((Estados) => {
+                opciones += `<option value="${Estados.idestado}">${Estados.nombre_edo}</option>`;
+            });
+            cboestado.innerHTML = opciones;
+
+           
+           
+        } else {
+            alert("elecciones no encontradas");
+        }
+
+    } catch (error) {
+        console.log(error);
+    }
+}
+
+
+
+
+const listarEleccionesPorAño = async (anio) => {
+  try {
+    const response = await fetch(`/eleccionesfilter/${anio}`);
+    const data = await response.json();
+    console.log(data);
+
+    // Limpiar el contenido actual del cboeleccion
+    cboeleccion.innerHTML = '';
+    cbocargo.innerHTML = '';
+
+    if (data.message === "Success") {
+      let opciones = '';
+      data.elecciones.forEach((Procesos) => {
+           opciones += `<option value="${Procesos.idtipoc_id}" data-idproceso="${Procesos.idtipoc_id}">${Procesos.descrip}</option>`; 
+          });
+      cboeleccion.innerHTML = opciones;
+    } else {
+      alert("Elecciones no encontradas");
+    }
+  } catch (error) {
+    console.log(error);
+  }
+}
+
+
+  const cargainicial =async()=>{
+  
+  await listarEstados();
+
+  cboestado.addEventListener("click", (event) => {
+    console.log(event);
+    console.log(event.target);
+    console.log(event.target.value);
+    var tablaCasillas = document.getElementById("tabla-casillas");
+tablaCasillas.getElementsByTagName('tbody')[0].innerHTML = '';
+});
+
+cboaño.addEventListener("change", (event) => {
+    console.log(event);
+    console.log(event.target);
+    console.log(event.target.value);
+    listarEleccionesPorAño(event.target.value);
+    var tablaCasillas = document.getElementById("tabla-casillas");
+tablaCasillas.getElementsByTagName('tbody')[0].innerHTML = '';
+
+});
+
+
+
+
+
+btnconsultar.addEventListener("click", (event) => {
+
+
+    listarCoalicionesEnTabla();
+
+});
+
+
+btnagregar.addEventListener("click", (event) => {
+
+
+    // Construye la URL con los parámetros seleccionados
+     const url = `/partidos/coaliciones/agregar/${cboaño.value}`;
+
+    // Redirige a la URL construida
+    window.location.href = url;
+
+});
+
+
+
+
+  
+cboeleccion.addEventListener("change", (event) => {
+  console.log(event);
+  console.log(event.currentTarget);
+  console.log(event.currentTarget.value);
+  listarCargos(event.currentTarget.value);
+  var tablaCasillas = document.getElementById("tabla-casillas");
+tablaCasillas.getElementsByTagName('tbody')[0].innerHTML = '';
+
+});
+
+
+  
+  }
+  
+  
+  window.addEventListener("load", async () => {
+  await cargainicial(); 
+  });
+  
+  
+      var consultarAgregarButton = document.getElementById('cerrar-button');
+  
+  // Agrega un evento de clic al botón
+  consultarAgregarButton.addEventListener('click', function() {
+      // Redirige a la URL específica utilizando JavaScript
+      window.location.href = "{% url 'inicio' %}";
+  });
+  
+
+
+
+</script>
+
+<script>
+function confirmarEliminar(folioc) {
+    Swal.fire({
+        title: '¿Estás seguro de eliminar este registro?',
+        text: '¡No podrás revertir esto!',
+        icon: 'warning',
+        showCancelButton: true,
+        confirmButtonColor: '#dc3545',
+        cancelButtonColor: '#6c757d',
+        confirmButtonText: 'Sí, eliminarlo',
+        cancelButtonText: 'Cancelar'
+    }).then((result) => {
+        if (result.isConfirmed) {
+            // Realizar la solicitud de eliminación
+            window.location.href = `/partidos/coaliciones/eliminar/${folioc}`;
+        }
+    });
+}
+
+  </script>
+
+
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@10"></script>
+
+
+{% endblock %}

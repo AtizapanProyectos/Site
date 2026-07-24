@@ -1,0 +1,197 @@
+{% extends "base.html" %} 
+
+{% block titulo %} Catálogo de Entidades Federativas {% endblock %}
+
+{% block encabezado %}<center> <h1 class="text-center mb-4" style="color: #515151e5;">Catálogo de Entidades Federativas</h1> </center>{% endblock %}
+
+
+{% block contenido %}
+
+{% load static %}
+
+<style>
+
+
+  /* Contenedor de la tabla */
+  .table-container {
+    width: 100%;
+    overflow-y: auto;
+    max-height: 600px; /* Ajusta la altura máxima según tus necesidades */
+  }
+
+  /* Tabla responsiva */
+  .table-responsive {
+    display: block;
+    overflow-x: auto;
+    white-space: nowrap;
+  }
+
+  .text-center {
+    text-align: center;
+    color: #686565;
+  }
+
+  /* Estilo general de la tabla */
+  .custom-table {
+    font-family: sans-serif;
+    border-collapse: collapse;
+    width: 100%;
+    max-width: none;
+  }
+
+  .custom-table th,
+  .custom-table td {
+    padding: 15px;
+    text-align: left;
+    border: 2px solid #ddd;
+  }
+
+  .custom-table th {
+    background-color: #ff69b4e5;
+    font-weight: bold;
+  }
+
+  .custom-table tbody tr:nth-child(even) {
+    background-color: #f2f2f2;
+  }
+
+  /* Estilo de los botones */
+  .custom-table td a {
+    color: #000;
+  }
+
+  .btn-info,
+  .btn-delate {
+    background-color: transparent;
+    border: none;
+  }
+
+  .btn-agregar {
+    background-color: #fc7dbd;
+    color: #000000;
+    padding: 20px 30px;
+    border: none;
+    border-radius: 10px;
+    display: block;
+    margin: 20px auto; /* Centra los botones */
+    text-decoration: none;
+    font-size: 16px;
+    cursor: pointer;
+    transition: background-color 0.3s ease, color 0.3s ease;
+  }
+
+  .btn-agregar:hover {
+    background-color: #FF66B2;
+  }
+
+  .table-container {
+    margin-top: -10px; /* Ajusta el valor según tus necesidades */
+  }
+
+
+  .main-container {
+    width: 70%;
+    margin: 0 auto; /* Elimina el margen superior */
+    overflow-x: auto;
+    position: fixed; /* Agrega posición fija */
+    top: 20%; /* Coloca el contenedor en la parte superior */
+    left: 50%; /* Ajusta la posición horizontal según tus necesidades */
+    transform: translateX(-50%); /* Centra el contenedor horizontalmente */
+}
+
+
+</style>
+
+
+
+<div class="main-container">
+
+  <div class="table-container mx-auto">
+    <div class="table-responsive">
+      <table class="table table-hover table-bordered table-striped shadow-sm custom-table">
+      <thead>
+        <tr>
+          <th>Id del Estado</th>
+          <th>Nombre del Estado</th>
+          <th>Total de Habitantes</th>
+          <th>Acciones</th>
+        </tr>
+      </thead>
+
+      <tbody>
+
+        {% for principio in estados_mostrar %}
+        <tr>
+          <td>{{ principio.idestado }}</td>
+          <td>{{ principio.nombre_edo }}</td>
+          <td>{{ principio.tot_habitantes }}</td>
+          <td class="text-center">
+            <a name="" id="" class="btn btn-info" href="{% url 'estados_editar'  principio.idestado%}" role="button">Editar</a>
+          <!--   | -->
+            <a name="" id="" class="btn btn-delate" href="#" onclick="confirmarEliminar('{{ principio.idestado }}')" role="button"> </a>
+          </td>
+        </tr>
+
+        {% endfor %}
+
+      </tbody>
+    </table>
+  </div>
+</div>
+</div>
+
+
+
+<div id="botones-fila">
+  <button type="button" id="consultar-button">Consultar</button>
+ <!--  <button type="button" id="consultar-agregar">Agregar</button> -->
+ <button type="button" id="btncerrar">Cerrar</button>
+  
+</div>  
+
+
+
+<script>
+
+
+const url = "/Inicio";  // Puedes modificar esto según tu configuración de URLs en Django
+
+// Agrega un event listener al botón con el id 'btncerrar'
+document.getElementById('btncerrar').addEventListener("click", (event) => {
+  // Redirige a la URL construida
+  window.location.href = url;
+  console.log("se presionó");
+});
+
+    // Obtén el elemento del botón
+    var consultarAgregarButton = document.getElementById('consultar-agregar');
+
+    // Agrega un evento de clic al botón
+    consultarAgregarButton.addEventListener('click', function() {
+        // Redirige a la URL específica utilizando JavaScript
+        window.location.href = "{% url 'estados_agregar' %}";
+    });
+
+</script>
+<script>
+  function confirmarEliminar(idEstado) {
+      Swal.fire({
+          title: '¿Estás seguro de eliminar este registro?',
+          text: '¡No podrás revertir esto!',
+          icon: 'warning',
+          showCancelButton: true,
+          confirmButtonColor: '#3085d6',
+          cancelButtonColor: '#d33',
+          confirmButtonText: 'Sí, eliminarlo',
+          cancelButtonText: 'Cancelar'
+      }).then((result) => {
+          if (result.isConfirmed) {
+              // Realizar la solicitud de eliminación
+              window.location.href = "{% url 'estados_eliminar' 0 %}".replace('0', idEstado);
+          }
+      });
+  }
+  </script>
+  <script src="https://cdn.jsdelivr.net/npm/sweetalert2@10"></script>
+
+{% endblock %}

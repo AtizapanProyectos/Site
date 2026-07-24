@@ -1,0 +1,772 @@
+{% extends "base.html" %} 
+
+{% block titulo %} Catálogo de Casillas {% endblock %}
+
+
+{% block encabezado %}<center> <h1 class="text-center mb-4" style="color: #515151e5;">Catálogo de Casillas</h1> </center>{% endblock %}
+{% block combos %}
+<div class="combos-container">
+  <br />
+  <br />
+  <div class="combobox-group">
+    <label for="combobox2">Año</label>
+    <select name="combobox2" id="cboaño" class="combobox combobox-año">
+      {% for año in años %}
+        <option value="{{año}}">{{año}}</option>
+      {% endfor %}
+    </select>
+  </div>
+
+  <div class="combobox-group">
+    <label for="combobox1">Entidad Federativa</label>
+    <select name="combobox1" id="cboestado" class="combobox combobox-entidad"></select>
+  </div>
+
+  <div class="combobox-group">
+    <label for="combobox3">Proceso Electoral</label>
+    <select name="combobox3" id="cboeleccion" class="combobox combobox-eleccion"></select>
+  </div>
+
+  <div class="combobox-group">
+    <label for="combobox5">Distrito</label>
+    <select name="combobox5" id="cbodistrito" class="combobox combobox-distrito"></select>
+  </div>
+</div>
+<br />
+<br />
+{% endblock %}
+
+
+{% block contenido %}
+
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.1/css/all.min.css">
+
+
+{% if messages %}
+  <div class="messages-container">
+    <ul class="messages">
+      {% for message in messages %}
+        <li{% if message.tags %} class="{{ message.tags }}"{% endif %}>
+          <!-- Agregamos un ícono de alerta -->
+          <span class="icon">
+            {% if message.tags == 'success' %}
+              <i class="fas fa-check-circle"></i>
+            {% elif message.tags == 'error' %}
+              <i class="fas fa-exclamation-circle"></i>
+            {% endif %}
+          </span>
+          <div class="message-text">
+            {{ message }}
+            <!-- Agregamos el botón de cerrar -->
+            <a href="{% url 'casillas' %}" class="close-btn" onclick="cerrarMensaje(this)">X</a>
+          </div>
+        </li>
+      {% endfor %}
+    </ul>
+  </div>
+{% endif %}
+
+
+
+
+<script>
+  function cerrarMensaje(btn) {
+    // Obtén el elemento padre li del botón
+    var mensajeLi = btn.parentNode;
+
+    // Oculta el mensaje
+    mensajeLi.style.display = 'none';
+  }
+</script>
+
+
+{% load static %}
+
+
+<style>
+
+
+  .table-container-horizontal {
+    overflow-x: auto;
+    white-space: nowrap;
+  }
+
+  .combos-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  margin-bottom: 20px;
+}
+
+  .messages-container {
+    position: relative;
+    z-index: 9999;
+    width: 100%;
+    padding: 10px;
+    box-sizing: border-box;
+  }
+
+  .messages {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+  }
+
+  .messages li {
+    display: flex;
+    align-items: center;
+    padding: 10px;
+    margin-bottom: 10px;
+    border: 1px solid #ccc;
+    border-radius: 5px;
+  }
+
+  .messages li.success {
+    background-color: #d4edda;
+    border-color: #c3e6cb;
+    color: #155724;
+  }
+
+  .messages li.error {
+    background-color: #f8d7da;
+    border-color: #f5c6cb;
+    color: #721c24;
+  }
+
+  .icon {
+    margin-right: 10px;
+  }
+
+  .message-text {
+    flex-grow: 1;
+  }
+
+  .close-btn {
+    margin-left: 10px;
+    text-decoration: none;
+    color: #000;
+  }
+
+  h1 {
+    margin-top: 10px;
+  }
+
+  .combobox {
+  padding: 8px;
+  font-size: 19px;
+  border: 2px solid #000000;
+  border-radius: 5px;
+  margin: 5px;
+  width: 90%;
+  max-width: 300px;
+  background-color: #ffffffe5;
+  box-sizing: border-box; 
+}
+label {
+  display: block;
+
+  margin: 10px 0 5px 0;
+}
+
+  .table-container {
+    width: 100%;
+    overflow-y: auto;
+    max-height: 300px;
+  }
+
+  .table-responsive {
+    display: block;
+    overflow-x: auto;
+    white-space: nowrap;
+  }
+
+  .text-center {
+    text-align: center;
+    color: #686565;
+  }
+
+  .custom-table {
+    font-family: sans-serif;
+    border-collapse: collapse;
+    width: 100%;
+    max-width: none;
+  }
+
+  .custom-table th{
+
+padding: 8px;
+text-align: left;
+border: 1px solid #ddd;
+color: rgba(87, 87, 87, 0.898);
+}
+.custom-table td 
+{
+padding: 8px;
+text-align: left;
+border: 1px solid #ddd;
+
+color: #000000e5;
+}
+
+  .custom-table th {
+    background-color: #ff69b4e5;
+    font-weight: bold;
+  }
+
+  .custom-table tbody tr:nth-child(even) {
+    background-color: #f2f2f2;
+  }
+
+  .custom-table td a {
+    color: #000;
+  }
+
+  .btn-info,
+  .btn-delate {
+    background-color: transparent;
+    border: none;
+  }
+
+  #botones-fila {
+    display: flex;
+    justify-content: center;
+    margin-top: 10px;
+  }
+
+  #botones-fila button {
+    margin: 0 5px;
+  }
+
+  #dato1,
+  #dato2,
+  #dato3 {
+    color: #515151e5;
+    display: none;
+    text-align: center;
+    margin: 1px auto 10px auto;
+    font-size: 18px;
+    font-weight: bold;
+  }
+
+  .sticky-top {
+    position: sticky;
+    top: 0;
+    background-color: #ff69b4e5;
+    z-index: 1;
+  }
+
+  /* Estilos para móviles (por defecto) */
+@media (max-width: 767px) {
+  label {
+    text-align: center; /* Centra el texto de las etiquetas */
+    width: 100%; /* Asegura que la etiqueta ocupe todo el ancho disponible */
+  }
+  .combos-container {
+    flex-direction: column;
+  }
+  .combobox {
+    width: 100%; /* Cambia esto de 'block' a '100%' */
+    max-width: none; /* Elimina el max-width para móviles */
+    margin: 10px 0; /* Ajusta el margen vertical y elimina el horizontal */
+  }
+  .combobox-group {
+    width: 75%; /* Asegura que el grupo ocupe todo el ancho disponible */
+  }
+}
+
+  /* Desktop styles */
+  @media (min-width: 768px) {
+    .combos-container {
+    flex-direction: row;
+    justify-content: center;
+    flex-wrap: wrap;
+  }
+
+    .combobox {
+      width: auto;
+      margin: 10px;
+    }
+
+    .messages-container {
+      position: fixed;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      z-index: 9999;
+      width: 30%;
+      padding: 20px;
+      box-sizing: border-box;
+    }
+
+    .messages li {
+      padding: 10px;
+      margin-bottom: 10px;
+      border: 1px solid #ccc;
+      border-radius: 5px;
+    }
+
+    .close-btn {
+      margin-left: 300px;
+      text-decoration: none;
+      color: #000;
+    }
+
+    .custom-table th,
+    .custom-table td {
+      padding: 15px;
+    }
+
+    .custom-table th {
+      background-color: #ff69b4e5;
+      font-weight: bold;
+    }
+
+    .main-container {
+      width: 76%;
+      margin: 0 auto;
+      overflow-x: auto;
+      position: fixed;
+      top: 25%;
+      left: 50%;
+      transform: translateX(-50%);
+    }
+
+    #dato1,
+    #dato2,
+    #dato3 {
+      font-size: 28px;
+    }
+
+    .combobox-group {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    margin: 0 10px;
+  }
+
+  }
+</style>
+
+
+
+<div class="main-container">
+  <br />
+  <br />
+  <br />
+  
+  <div class="table-container mx-auto">
+    <div class="table-responsive">
+      <table  id="tabla-casillas" class="table table-hover table-bordered table-striped shadow-sm custom-table">
+      <thead>
+        <tr>
+          <th>Sección de la Casilla</th>
+          <th>Dirección de la Casilla</th>
+          <th>Acciones</th>
+        </tr>
+      </thead>
+
+      <tbody>
+
+        {% for casilla in casillas_mostrar %}
+        <tr>
+          <td>{{ casilla.0 }}</td>
+          <td>{{ casilla.1 }}</td>
+          <td class="text-center">
+            <a name="" id="" class="btn btn-info" href="{% url 'casillas_editar'  casilla.0 %}" role="button">Editar</a>
+            |
+            <a name="" id="" class="btn btn-delate" href="{% url 'casillas_eliminar'  casilla.0 %}" role="button">Eliminar</a>
+          </td>
+        </tr>
+
+        {% endfor %}
+
+      </tbody>
+    </table>
+  </div>
+</div>
+</div>
+<div id="botones-fila">
+  <button type="button" id="btnconsultar">Consultar</button>
+  <button type="button" id="btnagregar">Agregar</button>
+  <button type="button" id="cerrar-button">Cerrar</button>
+  
+</div>  
+
+
+<script src="https://code.jquery.com/jquery-3.6.4.min.js"></script>
+
+
+<script>
+
+
+console.log("Ejecutando JS");
+
+
+
+const listarCargos=async(idtipoc_id)=>{
+    try {
+      const response = await fetch(`cargos/${idtipoc_id}`);
+  const data = await response.json();
+  console.log(data);
+  
+   if (data.message=="Success"){
+  
+     let opciones = '';
+     data.cargos.forEach((Tipocargo)=>{
+  
+      opciones += `<option value="${Tipocargo.idtipo_cargo}">${Tipocargo.descrip_tcargo}</option>`;
+  
+     });
+     cbocargo.innerHTML = opciones;
+   }else{
+     alert("elecciones no encontradas");
+   }
+  
+  
+  } catch (error) {
+   console.log(error);
+  }
+  }
+  
+
+  
+  const listarElecciones = async () => {
+  try {
+    const response = await fetch("elecciones/");
+    const data = await response.json();
+    console.log(data);
+
+    if (data.message === "Success") {
+      let opciones = '';
+      data.elecciones.forEach((Procesos) => {
+        opciones += `<option value="${Procesos.idtipoc_id}" data-idproceso="${Procesos.idtipoc_id}">${Procesos.descrip}</option>`;
+      });
+      cboeleccion.innerHTML = opciones;
+    } else {
+      alert("elecciones no encontradas");
+    }
+  } catch (error) {
+    console.log(error);
+  }
+}
+  
+const listarCasillasEnTabla = async (cbodistritoValue, cboeleccionText) => {
+    try {
+
+        const response = await fetch(`/casillasget/${cbodistritoValue}/${cboeleccionText}/`);
+        const data = await response.json();
+
+        if (data.message === "Success") {
+            let filas = '';
+            data.casilla.forEach((Casillas) => {
+                filas += `<tr>
+                            <td class="folioC">${Casillas[0]}</td>
+                            <td class="direccion">${Casillas[1]}</td>
+                            <td class="acciones text-center">
+                                <a name="" class="btn btn-info editar" role="button">Editar</a>
+                                |
+                                <a name="" class="btn btn-delete eliminar" data-folioc="${Casillas[0]}" role="button">Eliminar</a>
+                            </td>
+                          </tr>`;
+            });
+
+            // Agregar las filas a la tabla con el id "tabla-casillas"
+            document.getElementById("tabla-casillas").getElementsByTagName('tbody')[0].innerHTML = filas;
+
+            // Obtener todos los elementos con la clase 'editar'
+            const botonesEditar = document.querySelectorAll('.editar');
+
+            // Iterar sobre los elementos y agregar un evento de clic
+            botonesEditar.forEach((boton) => {
+                boton.addEventListener('click', function() {
+                    // Obtener el folioC de la fila actual
+                    const folioC = this.closest('tr').querySelector('.folioC').innerText;
+                    const cboeleccionSelectedOption = cboeleccion.options[cboeleccion.selectedIndex];
+                   console.log("Objeto seleccionado de cboeleccion: ", cboeleccionSelectedOption.text);
+
+                    // Redirigir a la URL de edición con el folioC
+                    window.location.href = `casillas/editar/${folioC}/${cboeleccionSelectedOption.text}/${cbodistrito.value}/${cboaño.value}`;
+                });
+            });
+
+            // Obtener todos los elementos con la clase 'eliminar'
+            const botonesEliminar = document.querySelectorAll('.eliminar');
+
+            // Iterar sobre los elementos y agregar un evento de clic
+            botonesEliminar.forEach((boton) => {
+                boton.addEventListener('click', function() {
+                    // Obtener el folioC de la fila actual
+                    const folioC = this.getAttribute('data-folioc');
+
+                    // Confirmar la eliminación antes de redirigir
+                    confirmarEliminar(folioC);
+                });
+            });
+
+        } else {
+            alert("No Existen Registros Para la Selección");
+        }
+
+    } catch (error) {
+        console.log(error);
+    }
+}
+
+const Eliminarcasilla = async (idcasilla) => {
+  try {
+    const response = await fetch(`/casillas/eliminar/${idcasilla}`);
+    const data = await response.json();
+    console.log(data);
+
+    if (data.message === "Success") {
+      Swal.fire({
+  title: 'Eliminado!',
+  text: 'El registro se ha eliminado con éxito.',
+  icon: 'success',
+  confirmButtonText: 'Aceptar'
+});
+
+
+const cboeleccionSelectedOption = cboeleccion.options[cboeleccion.selectedIndex];
+    console.log("Objeto seleccionado de cboeleccion: ", cboeleccionSelectedOption.text);
+
+    // Llama a la función con los valores necesarios
+    listarCasillasEnTabla(cbodistrito.value, cboeleccionSelectedOption.text);
+
+
+
+    } else {
+     
+
+      Swal.fire({
+  title: 'Error!',
+  text: 'No se pudo eliminar el registro.',
+  icon: 'error',
+  confirmButtonText: 'Intentar de nuevo'
+});
+
+    }
+  } catch (error) {
+    console.log(error);
+  }
+}
+
+
+
+const listarEstados = async () => {
+    try {
+        const response = await fetch("estados/")
+        const data = await response.json();
+        console.log(data);
+
+        if (data.message == "Success") {
+
+            let opciones = '';
+            data.estados.forEach((Estados) => {
+                opciones += `<option value="${Estados.idestado}">${Estados.nombre_edo}</option>`;
+            });
+            cboestado.innerHTML = opciones;
+
+            // Después de cargar los estados, llamamos a listarDistritos con el primer estado
+            if (data.estados.length > 0) {
+                await listarDistritos(data.estados[0].idestado);
+            }
+        } else {
+            alert("elecciones no encontradas");
+        }
+
+    } catch (error) {
+        console.log(error);
+    }
+}
+
+
+
+ const listarDistritos=async(idestado)=>{
+  
+  try {
+ 
+  const response =await fetch(`getdistritos/${idestado}`)
+  const data = await response.json();
+  console.log(data);
+ 
+   if (data.message=="Success"){
+ 
+     let opciones = '';
+     data.distritos.forEach((Distritos)=>{
+ 
+       opciones += `<option value="${Distritos.iddistrito}">${Distritos.nombredistrito}</option>`;
+     });
+     cbodistrito.innerHTML = opciones;
+   }else{
+     alert("Distritos no encontrados");
+   }
+ 
+ 
+  } catch (error) {
+   console.log(error);
+  }
+ }
+
+
+const listarEleccionesPorAño = async (anio) => {
+  try {
+    const response = await fetch(`eleccionesfilter/${anio}`);
+    const data = await response.json();
+    console.log(data);
+
+    // Limpiar el contenido actual del cboeleccion
+    cboeleccion.innerHTML = '';
+    cbocargo.innerHTML = '';
+
+    if (data.message === "Success") {
+      let opciones = '';
+      data.elecciones.forEach((Procesos) => {
+           opciones += `<option value="${Procesos.idtipoc_id}" data-idproceso="${Procesos.idtipoc_id}">${Procesos.descrip}</option>`; 
+          });
+      cboeleccion.innerHTML = opciones;
+    } else {
+      alert("Elecciones no encontradas");
+    }
+  } catch (error) {
+    console.log(error);
+  }
+}
+
+
+  const cargainicial =async()=>{
+  
+  await listarEstados();
+  await listarElecciones();
+
+  
+
+  cboestado.addEventListener("click", (event) => {
+    console.log(event);
+    console.log(event.target);
+    console.log(event.target.value);
+    var tablaCasillas = document.getElementById("tabla-casillas");
+tablaCasillas.getElementsByTagName('tbody')[0].innerHTML = '';
+});
+
+cboaño.addEventListener("change", (event) => {
+    console.log(event);
+    console.log(event.target);
+    console.log(event.target.value);
+    listarEleccionesPorAño(event.target.value);
+    var tablaCasillas = document.getElementById("tabla-casillas");
+tablaCasillas.getElementsByTagName('tbody')[0].innerHTML = '';
+
+});
+
+
+cbodistrito.addEventListener("change", (event) => {
+
+  // Para borrar todas las filas de la tabla
+  var tablaCasillas = document.getElementById("tabla-casillas");
+tablaCasillas.getElementsByTagName('tbody')[0].innerHTML = '';
+
+});
+
+
+
+btnconsultar.addEventListener("click", (event) => {
+    // Muestra en la consola los valores seleccionados de los combos
+    console.log("Valor seleccionado de cbodistrito: ", cbodistrito.value);
+
+    // Obtiene el objeto seleccionado del combo cboeleccion
+    const cboeleccionSelectedOption = cboeleccion.options[cboeleccion.selectedIndex];
+    console.log("Objeto seleccionado de cboeleccion: ", cboeleccionSelectedOption.text);
+
+    // Llama a la función con los valores necesarios
+    listarCasillasEnTabla(cbodistrito.value, cboeleccionSelectedOption.text);
+
+});
+
+
+btnagregar.addEventListener("click", (event) => {
+
+
+
+    console.log("Valor seleccionado de cbodistrito: ", cbodistrito.value);
+
+    // Obtiene el objeto seleccionado del combo cboeleccion
+    const cboeleccionSelectedOption = cboeleccion.options[cboeleccion.selectedIndex];
+    console.log("Objeto seleccionado de cboeleccion: ", cboeleccionSelectedOption.text);
+
+    console.log("Objeto seleccionado año : ", cboaño.value);
+    
+    // Construye la URL con los parámetros seleccionados
+     const url = `/casillas/agregar/${cboeleccionSelectedOption.text}/${cbodistrito.value}/${cboaño.value}/${cboestado.value}`;
+
+    // Redirige a la URL construida
+    window.location.href = url;
+
+
+
+
+});
+
+
+
+
+  
+cboeleccion.addEventListener("change", (event) => {
+  console.log(event);
+  console.log(event.currentTarget);
+  console.log(event.currentTarget.value);
+  listarCargos(event.currentTarget.value);
+  var tablaCasillas = document.getElementById("tabla-casillas");
+tablaCasillas.getElementsByTagName('tbody')[0].innerHTML = '';
+
+});
+
+
+  
+  }
+  
+  
+  window.addEventListener("load", async () => {
+  await cargainicial(); 
+  });
+  
+  
+      var consultarAgregarButton = document.getElementById('cerrar-button');
+  
+  // Agrega un evento de clic al botón
+  consultarAgregarButton.addEventListener('click', function() {
+      // Redirige a la URL específica utilizando JavaScript
+      window.location.href = "{% url 'inicio' %}";
+  });
+  
+
+
+
+</script>
+
+<script>
+function confirmarEliminar(folioc) {
+    Swal.fire({
+        title: '¿Estás seguro de eliminar este registro?',
+        text: '¡No podrás revertir esto!',
+        icon: 'warning',
+        showCancelButton: true,
+        confirmButtonColor: '#dc3545',
+        cancelButtonColor: '#6c757d',
+        confirmButtonText: 'Sí, eliminarlo',
+        cancelButtonText: 'Cancelar'
+    }).then((result) => {
+        if (result.isConfirmed) {
+            // Realizar la solicitud de eliminación
+            Eliminarcasilla(folioc)
+        }
+    });
+}
+
+  </script>
+
+
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@10"></script>
+
+
+{% endblock %}

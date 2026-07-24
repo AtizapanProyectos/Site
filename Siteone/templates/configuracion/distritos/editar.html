@@ -1,0 +1,172 @@
+{% extends "base.html" %}
+
+{% block titulo %} Editar un Distrito {% endblock %}
+
+{% block encabezado %}<center> <h1 class="text-center mb-4" style="color: #3b3b3be5;">Catálogo de Distritos</h1></center>{% endblock %}
+
+{% block contenido %}
+
+<style>
+
+body {
+    overflow-y: auto;
+    scrollbar-width: thin; /* Para navegadores Firefox */
+    scrollbar-color: #ff69b4e5 #f5f5f5; /* Para navegadores Firefox */
+
+  }
+  .readonly-select {
+    pointer-events: none;
+}
+  body::-webkit-scrollbar {
+    width: 8px; /* Tamaño del indicador de desplazamiento para navegadores WebKit (Chrome, Safari, etc.) */
+  }
+
+  body::-webkit-scrollbar-thumb {
+    background-color: #ff69b4e5; /* Color del indicador de desplazamiento */
+  }
+
+  body::-webkit-scrollbar-track {
+    background-color: #f5f5f5; /* Color del fondo del indicador de desplazamiento */
+  }
+
+.form-control,
+input,select {
+    background-color: #f5f5f5;
+    border: 2px solid #000000e5;
+    border-radius: 10px;
+    padding: 15px;
+    font-size: 16px;
+    width: 100%;
+    margin-bottom: 30px;
+  }
+
+
+/* Contenedor de la tabla */
+.table-container {
+    width: 100%;
+    overflow-y: auto;
+    max-height: 500px; /* Ajusta la altura máxima según tus necesidades */
+    margin-bottom: 20px;
+  }
+/* Tabla responsiva */
+.table-responsive {
+  display: block;
+  overflow-x: auto;
+  white-space: nowrap;
+}
+
+.text-center {
+  text-align: center;
+  color: #686565;
+}
+
+/* Estilo general de la tabla */
+.custom-table {
+  font-family: sans-serif;
+  border-collapse: collapse;
+  width: 100%;
+  max-width: none;
+}
+
+.custom-table th,
+.custom-table td {
+  padding: 15px;
+  text-align: left;
+  border: 2px solid #ddd;
+}
+
+.custom-table th {
+  background-color: #ff69b4e5;
+  font-weight: bold;
+}
+
+.custom-table tbody tr:nth-child(even) {
+  background-color: #f2f2f2;
+}
+
+/* Estilo de los botones */
+.custom-table td a {
+  color: #000;
+}
+
+
+  .form-container {
+    max-width: 800px;
+    height: 500px;
+    width: 100%;
+    margin: 20px auto; /* Centra el formulario y agrega margen */
+    padding: 40px;
+    background-color: #ffffff;
+    border-radius: 20px;
+
+    margin-top: -180px;
+  }
+  .form-label {
+      color: #000000e5;
+      font-weight: bold;
+    }
+  
+  .form-control {
+      background-color: #f5f5f5;
+      border: 2px solid #000000e5;
+      border-radius: 10px;
+      padding: 15px;
+      font-size: 16px;
+      width: 100%;
+      margin-bottom: 30px;
+  }
+    
+  #botones-fila {
+  position: absolute;
+  bottom: -0px; /* Ajusta la distancia desde la parte inferior según tus necesidades */
+
+}
+
+
+</style>
+
+<body>
+  <form enctype="multipart/form-data" method="post" class="form-container">
+    {% csrf_token %}
+    <div class="row">
+      {% for campo in formulario %}
+        <div class="col-md-2">
+          <div class="form-group datepicker-container {% if campo.id_for_label == 'id_idproceso' %}no-datepicker{% endif %}">
+            <label for="{{ campo.id }}" class="form-label">{{ campo.label }}</label>
+            {{ campo }}
+            {% if campo.id_for_label == 'id_idproceso' %}
+              {# Si es el campo "Clave de la Elección", no mostrar el span del datepicker #}
+            {% else %}
+              <span class="ui-datepicker-trigger"></span>
+            {% endif %}
+          </div>
+        </div>
+        
+      {% endfor %}
+
+  </div>
+
+
+
+    <div id="botones-fila">
+      <button name="" style="color: black" id="btnsave" class="btn btn-fila" type="submit">Guardar Datos</button>
+      <button class="btn btn-fila" style="color: black "id="cancelar-button" type="button">Cancelar</button>
+      <button class="btn btn-fila" style="color: black" id="cerrar-button" type="button">Cerrar</button>
+    </div>
+  </form>
+
+
+
+  <script>
+    var consultarAgregarButton = document.getElementById('cerrar-button');
+    consultarAgregarButton.addEventListener('click', function() {
+      window.location.href = "{% url 'distritos' %}";
+    });
+  </script>
+
+  <script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.11.6/dist/umd/popper.min.js"></script>
+  <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
+</body>
+
+{% endblock %}

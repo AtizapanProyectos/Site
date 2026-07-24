@@ -1,0 +1,94 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Catálogo de Distritos</title>
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
+    <style>
+        body {
+            background-color: #ffffff; /* Color de fondo para resaltar el formulario */
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            margin: 0;
+        }
+
+     /* Agrega estas reglas para la clase "btn-fila" */
+     .btn-fila {
+    width: 300px;
+    height: 65px;
+    background-color: #ff69b4e5;
+    margin: 0 15px;
+    border-radius: 10px;
+    color: black; /* Cambiado de rgb(0, 0, 0) a black */
+    transition: all 0.5s ease;
+}
+
+.btn-fila:hover {
+    transform: scale(1.1);
+    box-shadow: 0 0 10px #ff69b4e5;
+}
+
+
+
+
+        .form-container {
+            max-width: 400px;
+            width: 100%;
+            padding: 20px;
+            background-color: #000000; /* Fondo del formulario */
+            border-radius: 10px;
+            box-shadow: 0 0 20px rgba(0, 0, 0, 0.2); /* Sombra más pronunciada */
+        }
+
+        .form-label {
+            color: #ff69b4e5; /* Color predominante para las etiquetas */
+            font-weight: bold;
+        }
+
+        .form-control {
+            border: 2px solid #ff69b4e5; /* Borde del campo de entrada */
+            border-radius: 5px;
+        }
+
+        h1.text-center {
+        margin-top: 0;
+        position: absolute;
+        top: 5%;
+        left: 50%;
+        transform: translate(-50%, -50%);}
+        .btn-agregar {
+    background-color: #fc7dbd;
+    color: #000000;
+    padding: 20px 30px;
+    border: none;
+    border-radius: 10px;
+    display: block;
+    margin: 20px auto; /* Centra los botones */
+    text-decoration: none;
+    font-size: 16px;
+    cursor: pointer;
+    transition: background-color 0.3s ease, color 0.3s ease;
+}
+
+.btn-agregar:hover {
+    background-color: #FF66B2;
+}
+
+#botones-fila {
+    position: fixed;
+    bottom: 5%;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 100%;
+    text-align: center;
+}
+
+
+
+
+    </style>
+</head>
+<body>

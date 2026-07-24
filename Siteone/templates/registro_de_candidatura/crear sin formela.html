@@ -1,0 +1,623 @@
+{% extends "base.html" %}
+
+{% block titulo %} Agregar un Candidato {% endblock %}
+
+{% block encabezado %}
+<center> 
+  <h2 class="text-center mb-4" style="color: #000000e5;">Proceso Electoral {{ anio }}</h2>
+  <h2 class="text-center mb-4" style="color: #000000e5;">{{nombre_partido}}</h2>
+  <h2 class="text-center mb-4" style="color: #000000e5;">Agregar un Candidato</h2>
+  <h2 class="text-center mb-4" style="color: #000000e5;">{{nombreeleccion}}</h2>
+  <h2 class="text-center mb-4" style="color: #000000e5;">{{nombrecargo}}</h2>
+
+</center>
+{% endblock %}
+
+{% block contenido %}
+
+<style>
+#botones-fila {
+  position: absolute;
+  bottom: -300px; /* Ajusta la distancia desde la parte inferior según tus necesidades */
+
+}
+#id_anos_cons[disabled] {
+  background-color: #c5c5c5; /* Cambia el color de fondo cuando está deshabilitado */
+  color: #737373; /* Cambia el color del texto cuando está deshabilitado */
+  
+}
+
+#id_grup_vulne[disabled] {
+  background-color: #c5c5c5; /* Cambia el color de fondo cuando está deshabilitado */
+  color: #737373; /* Cambia el color del texto cuando está deshabilitado */
+  
+}
+
+.form-container {
+  max-width: 1700px;
+  height: 500px;
+  width: 100%;
+ margin-top: -160px;
+  padding: 20px;
+  background-color: #ffffff;
+  border-radius: 20px;
+
+}
+
+.form-group {
+  margin-bottom: 50px;
+}
+
+.form-label {
+  color: #000000e5;
+  font-weight: bold;
+  display: block;
+  font-size: 18px; /* Ajusta el tamaño de las etiquetas */
+  margin-bottom: 15px; /* Espaciado entre etiquetas y campos */
+}
+
+.row {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+}
+
+.col-md-2 {
+  flex: 0 0 calc(20% - 15px);
+  max-width: calc(20% - 15px);
+  margin-right: 50px;
+}
+input {
+  width: 100%; /* O ajusta el porcentaje según tus preferencias */
+  height: 40px; /* Ajusta la altura según tus preferencias */
+  padding: 5px; /* Agrega un relleno alrededor del input */
+  box-sizing: border-box; /* Incluye el relleno y el borde en el tamaño total */
+  font-size: 16px; /* Ajusta el tamaño del texto dentro del input */
+  border-color: #000000e5;
+}
+select {
+  width: 100%; /* O ajusta el porcentaje según tus preferencias */
+  height: 40px; /* Ajusta la altura según tus preferencias */
+  padding: 5px; /* Agrega un relleno alrededor del select */
+  box-sizing: border-box; /* Incluye el relleno y el borde en el tamaño total */
+  font-size: 16px; /* Ajusta el tamaño del texto dentro del select */
+  border-color: #000000e5;
+}
+.datepicker-container {
+    position: relative;
+  }
+
+  .datepicker-container .ui-datepicker-trigger {
+    position: absolute;
+    top: 50%;
+    right: 10px;
+    transform: translateY(-50%);
+    cursor: pointer;
+  }
+
+  .ui-datepicker {
+    font-size: 14px;
+    background-color: white;
+    border: 1px solid #ffffff;
+    border-radius: 5px;
+  }
+
+  .ui-datepicker-header {
+    background-color: #5c5c5ce5;
+    color: rgb(0, 0, 0);
+    border: 1px solid #565656e5;
+    padding: 5px;
+  }
+
+  .ui-datepicker-title {
+    font-weight: bold;
+  }
+
+  .ui-datepicker-prev,
+  .ui-datepicker-next {
+    background-color: #474747e5;
+    color: rgb(0, 0, 0);
+    border: 1px solid #454545e5;
+    padding: 3px;
+  }
+
+  .ui-datepicker-prev:hover,
+  .ui-datepicker-next:hover {
+    background-color: #000000;
+    border: 1px solid #4d4d4d;
+  }
+
+  .ui-datepicker-calendar {
+    border: 1px solid #111111e5;
+  }
+
+  .ui-datepicker-calendar th {
+    background-color: #101010e5;
+    color: rgb(0, 0, 0);
+  }
+
+  .ui-datepicker-calendar td {
+    padding: 5px;
+  }
+
+  .ui-datepicker-calendar a {
+    color: #1a1a1ae5;
+  }
+
+  .ui-datepicker-calendar a:hover {
+    background-color: #686868e5;
+    color: rgb(0, 0, 0);
+  }
+  
+</style>
+
+
+<body>
+  <form enctype="multipart/form-data" method="post" class="form-container">
+    {% csrf_token %}
+  <div class="row">
+    {% for campo in formulario %}
+      <div class="col-md-2">
+        <div class="form-group datepicker-container {% if campo.id_for_label == 'id_idproceso' %}no-datepicker{% endif %}">
+          <label for="{{ campo.id }}" class="form-label">{{ campo.label_tag }}</label>
+          {{ campo }}
+          {% if campo.id_for_label == 'id_idproceso' %}
+            {# Si es el campo "Clave de la Elección", no mostrar el span del datepicker #}
+          {% else %}
+          <div id="mensaje-edad" style="display: none; position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); background-color: #ff69b4e5; padding: 20px; border-radius: 10px; color: white; text-align: center;"></div>
+            <span class="ui-datepicker-trigger"></span>
+          {% endif %}
+          {% if campo.errors %}
+            <div class="text-danger">
+              {% for error in campo.errors %}
+                {{ error }}
+              {% endfor %}
+            </div>
+          {% endif %}
+        </div>
+      </div>
+    {% endfor %}
+  </div>
+    
+    <div id="botones-fila">
+      <button name="" style="color: black" id="" class="btn btn-fila" type="submit">Guardar Datos</button>
+      <button class="btn btn-fila" style="color: black" id="cancelar-button" type="button">Cancelar</button>
+      <button class="btn btn-fila" style="color: black" id="cerrar-button">Cerrar</button>
+    </div>
+  </form>
+
+  <script src="https://code.jquery.com/jquery-3.5.1.min.js"></script>
+  <script src="https://code.jquery.com/ui/1.12.1/jquery-ui.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.11.6/dist/umd/popper.min.js"></script>
+  <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
+  <script src="https://code.jquery.com/ui/1.12.1/i18n/jquery-ui-i18n.min.js"></script>
+
+  <script>
+    // Establece el idioma a español
+    $.datepicker.setDefaults($.datepicker.regional['es']);
+
+    // Modifica los textos de Prev y Next a español
+    $.datepicker.setDefaults({
+      prevText: 'Ant',
+      nextText: 'Sig'
+    });
+  </script>
+
+<script>
+$(function() {
+    $('.datepicker-container input[type!="number"]:not(.no-datepicker)').each(function(index, element) {
+      var campoId = $(element).attr('id');
+      if (campoId === 'id_vig_ine') {
+        $(element).datepicker({
+          dateFormat: 'dd/mm/yy',
+          monthNames: ['Enero', 'Febrero', 'Marzo', 'Abril', 'Mayo', 'Junio', 'Julio', 'Agosto', 'Septiembre', 'Octubre', 'Noviembre', 'Diciembre'],
+          monthNamesShort: ['Ene', 'Feb', 'Mar', 'Abr', 'May', 'Jun', 'Jul', 'Ago', 'Sep', 'Oct', 'Nov', 'Dic'],
+          dayNames: ['Domingo', 'Lunes', 'Martes', 'Miércoles', 'Jueves', 'Viernes', 'Sábado'],
+          dayNamesShort: ['Dom', 'Lun', 'Mar', 'Mié', 'Jue', 'Vie', 'Sáb'],
+          dayNamesMin: ['Do', 'Lu', 'Ma', 'Mi', 'Ju', 'Vi', 'Sá'],
+          weekHeader: 'Sm',
+          firstDay: 1,
+          isRTL: false,
+          showMonthAfterYear: false,
+          yearSuffix: '',
+          onSelect: function(dateText, inst) {
+            validarFechaVencimiento(dateText);
+          }
+        });
+      }
+    });
+
+    // Elimina el datepicker del campo específico "Nombre de la Elección"
+    $('#id_descrip').datepicker('destroy');
+
+    function obtenerFechaHoraActualCMDX() {
+  // Obtener la fecha y hora actual en UTC
+  var fechaActualUTC = new Date();
+
+  // Ajustar a la zona horaria de la Ciudad de México (Central Standard Time)
+  var fechaHoraCMDX = fechaActualUTC.toLocaleString('es-MX', {
+    timeZone: 'America/Mexico_City',
+  });
+
+  return fechaHoraCMDX;
+}
+
+function validarFechaVencimiento(dateText) {
+      var fechaVencimiento = new Date(dateText);
+      var fechaActualCMDX = new Date(obtenerFechaHoraActualCMDX());
+      fechaVencimiento.setHours(0, 0, 0, 0);
+      fechaActualCMDX.setHours(0, 0, 0, 0);
+
+  // Verificar si la fecha de vencimiento es anterior o igual al día actual en CMDX
+  if (fechaVencimiento <= fechaActualCMDX) {
+      // Utilizar SweetAlert en lugar de crear manualmente un mensaje
+      Swal.fire({
+        icon: 'error',
+        title: 'Error',
+        text: 'La INE debe estar vigente.',
+      }).then(() => {
+        // Limpiar el campo de fecha usando el identificador correcto
+        $('#id_vig_ine').val("");
+      });
+    }
+  }
+});
+        
+
+  
+  $(function() {
+  $('.datepicker-container input[type!="number"]:not(.no-datepicker)').each(function(index, element) {
+    var campoId = $(element).attr('id');
+    if (campoId === 'id_fecha_nac') {
+      // Calcular la fecha mínima para ser mayor de edad (por ejemplo, 18 años atrás desde la fecha actual)
+      var fechaMinima = new Date();
+      fechaMinima.setFullYear(fechaMinima.getFullYear() - 18);
+
+      $(element).datepicker({
+        dateFormat: 'dd/mm/yy',
+        monthNames: ['Enero', 'Febrero', 'Marzo', 'Abril', 'Mayo', 'Junio', 'Julio', 'Agosto', 'Septiembre', 'Octubre', 'Noviembre', 'Diciembre'],
+        monthNamesShort: ['Ene', 'Feb', 'Mar', 'Abr', 'May', 'Jun', 'Jul', 'Ago', 'Sep', 'Oct', 'Nov', 'Dic'],
+        dayNames: ['Domingo', 'Lunes', 'Martes', 'Miércoles', 'Jueves', 'Viernes', 'Sábado'],
+        dayNamesShort: ['Dom', 'Lun', 'Mar', 'Mié', 'Jue', 'Vie', 'Sáb'],
+        dayNamesMin: ['Do', 'Lu', 'Ma', 'Mi', 'Ju', 'Vi', 'Sá'],
+        weekHeader: 'Sm',
+        firstDay: 1,
+        isRTL: false,
+        showMonthAfterYear: false,
+        yearSuffix: '',
+        minDate: fechaMinima, // Establecer la fecha mínima
+        defaultDate: fechaMinima, // Establecer la fecha predeterminada como la fecha mínima
+        onSelect: function(dateText, inst) {
+          validarEdad(dateText);
+        }
+      });
+    }
+  });
+
+
+    function validarEdad(dateText) {
+  var fechaNacimiento = new Date(dateText);
+  var fechaActual = new Date();
+  var edad = fechaActual.getFullYear() - fechaNacimiento.getFullYear();
+
+  // Verificar si la persona es menor de 18 años
+  if (edad < 18) {
+      // Utilizar SweetAlert en lugar de crear manualmente un mensaje
+      Swal.fire({
+        icon: 'error',
+        title: 'Error',
+        text: 'El Candidato debe ser mayor de 18 años.',
+      }).then(() => {
+        // Limpiar el campo de fecha
+        $('#id_fecha_nac').val("");
+      });
+    }
+  }
+});
+
+</script>
+<!-- SweetAlert2 CDN -->
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@10"></script>
+
+  <script>
+    var consultarAgregarButton = document.getElementById('cerrar-button');
+    consultarAgregarButton.addEventListener('click', function() {
+      window.location.href ="{% url 'regican' %}";
+    });
+    
+  </script>
+
+
+<script>
+// Agrega un evento blur para la validación de formato de correo
+document.getElementById('id_correo').addEventListener('blur', function() {
+    var correoInput = this;
+    var correoValue = correoInput.value.trim();
+    var correoRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+
+    if (correoRegex.test(correoValue)) {
+        // Correo válido
+        correoInput.classList.remove('invalid');
+    } else {
+        // Correo no válido, muestra SweetAlert
+        correoInput.classList.add('invalid');
+        Swal.fire({
+            icon: 'error',
+            title: 'Formato de Correo Inválido',
+            text: 'Por favor, ingrese un correo electrónico válido.',
+            confirmButtonColor: '#ff69b4',
+        });
+
+        // Borra el texto del campo
+        correoInput.value = '';
+    }
+});
+
+
+document.getElementById('id_tel').addEventListener('blur', function() {
+    var telInput = this;
+    var telValue = telInput.value.trim();
+    var telRegex = /^[0-9]{10}$/;
+
+    if (telRegex.test(telValue)) {
+        // Número de teléfono válido
+        telInput.classList.remove('invalid');
+    } else {
+        // Número de teléfono no válido, muestra SweetAlert
+        telInput.classList.add('invalid');
+        Swal.fire({
+            icon: 'error',
+            title: 'Formato de Número de Teléfono Inválido',
+            text: 'Por favor, ingrese un número de teléfono válido con 10 dígitos numéricos.',
+            confirmButtonColor: '#ff69b4',
+        });
+
+        // Borra el texto del campo
+        telInput.value = '';
+    }
+});
+
+
+
+document.getElementById('id_clave_elect').addEventListener('blur', function() {
+    var claveElectInput = this;
+    var claveElectValue = claveElectInput.value.trim();
+    var claveElectRegex = /^[A-Z0-9]{18}$/;
+
+    if (claveElectRegex.test(claveElectValue)) {
+        // Clave de Elector válida
+        claveElectInput.classList.remove('invalid');
+    } else {
+        // Clave de Elector no válida, muestra SweetAlert
+        claveElectInput.classList.add('invalid');
+        Swal.fire({
+            icon: 'error',
+            title: 'Formato de Clave de Elector Inválido',
+            text: 'Por favor, ingrese una Clave de Elector válida con 18 caracteres alfanuméricos.',
+            confirmButtonColor: '#ff69b4',
+        });
+
+        // Borra el texto del campo
+        claveElectInput.value = '';
+    }
+});
+
+
+document.getElementById('id_curp').addEventListener('blur', function() {
+    var curpInput = this;
+    var curpValue = curpInput.value.trim().toUpperCase();
+
+    // Verificar que la CURP tenga 18 caracteres
+    if (curpValue.length !== 18) {
+        curpInput.classList.add('invalid');
+        Swal.fire({
+            icon: 'error',
+            title: 'Formato de CURP Inválido',
+            text: 'La CURP debe tener exactamente 18 caracteres.',
+            confirmButtonColor: '#ff69b4',
+        });
+
+        // Borra el texto del campo
+        curpInput.value = '';
+        return;
+    }
+
+    // Verificar la estructura de la CURP
+    var curpRegex = /^[A-Z]{4}[0-9]{6}[HM]{1}[A-Z]{5}[0-9A-Z]{2}$/;
+
+    if (!curpRegex.test(curpValue)) {
+        curpInput.classList.add('invalid');
+        Swal.fire({
+            icon: 'error',
+            title: 'Formato de CURP Inválido',
+            text: 'La CURP no cumple con el formato esperado.',
+            confirmButtonColor: '#ff69b4',
+        });
+
+        // Borra el texto del campo
+        curpInput.value = '';
+        return;
+    }
+
+    // CURP válida
+    curpInput.classList.remove('invalid');
+});
+
+</script>
+
+
+
+
+<script>
+
+
+
+
+  const listarcoaliciones=async(id)=>{
+  
+  try {
+ 
+  const response =await fetch(`/getcoalicioens/${id}`)
+  const data = await response.json();
+  console.log(data);
+ 
+   if (data.message=="Success"){
+ 
+     let opciones = '';
+     data.coali.forEach((Procesopartidos)=>{
+ 
+       opciones += `<option value="${Procesopartidos.idprocesopartido}">${Procesopartidos.coliacion}</option>`;
+     });
+     id_idprocesopartido.innerHTML = opciones;
+   }else{
+     alert("Distritos no encontrados");
+   }
+ 
+ 
+  } catch (error) {
+   console.log(error);
+  }
+ }
+
+  
+ const listarMunicipios=async(id)=>{
+  
+  try {
+ 
+  const response =await fetch(`/getmunicipios/${id}`)
+  const data = await response.json();
+  console.log(data);
+ 
+   if (data.message=="Success"){
+ 
+     let opciones = '';
+     data.municipios.forEach((Municipios)=>{
+ 
+       opciones += `<option value="${Municipios.idmunicipio}">${Municipios.nombre_mpo}</option>`;
+     });
+     id_idmunicipio.innerHTML = opciones;
+   }else{
+     alert("Distritos no encontrados");
+   }
+ 
+ 
+  } catch (error) {
+   console.log(error);
+  }
+ }
+
+
+  
+  const idestado= document.getElementById("id_idestado").value;
+  console.log("Valor seleccionado:", idestado);
+  console.log("{{ anio|safe }}");
+  //listarMunicipios(idestado);
+  //listarcoaliciones(idestado);
+  var propietario = document.getElementById("id_id_propietario");
+
+
+  // Descomenta la línea siguiente si no estás utilizando jQuery
+  //const selectElement = document.getElementById("id_idestado");
+
+  // Desactivar el evento onchange
+  //selectElement.onchange = function() {
+   //return false; };
+
+  document.getElementById("id_anos_cons").disabled = true;
+  document.getElementById("id_grup_vulne").disabled = true;
+  document.getElementById("id_idestado").readonly = true;
+
+  id_reeleccion.addEventListener("change", (event) => {
+  const opcionSeleccionada = event.target.value;
+
+  if (opcionSeleccionada === "S") {
+    id_anos_cons.disabled = false;
+  } else {
+    id_anos_cons.disabled = true;
+  }
+});
+
+document.addEventListener("DOMContentLoaded", function() {
+  // Obtén el elemento propietario por su ID
+  const propietario = document.getElementById("id_id_propietario");
+
+  // Verifica si el elemento propietario existe
+  if (propietario) {
+    // Agrega un event listener para el evento change
+    propietario.addEventListener("change", (event) => {
+      // Obtiene el valor seleccionado
+      const opcionSeleccionada = event.target.value;
+   
+
+      // Almacena las variables en JavaScript
+      const anio = "{{ anio|safe }}";
+      const nombreeleccion = "{{ nombreeleccion|safe }}";
+      const nombrecargo = "{{ nombrecargo|safe }}";
+      const tipo = "S";
+      const id = opcionSeleccionada;
+      const tutilo = "Suplente";
+
+      // Imprime todos los valores en la consola antes de redirigir
+      console.log("Año:", anio);
+      console.log("Elección:", nombreeleccion);
+      console.log("Cargo:", nombrecargo);
+      console.log("Tipo:", tipo);
+      console.log("ID:", id);
+      console.log("Título:", tutilo);
+
+      // Construye la URL utilizando template literals y los valores almacenados
+      const url = `/regicandagregar/Suplente/${anio}/${nombreeleccion}/${nombrecargo}/${tipo}/${id}/${tutilo}`;
+
+      // Redirige a la URL construida
+      window.location.href = url;
+    });
+  }
+});
+
+
+id_grup_vul.addEventListener("change", (event) => {
+  const opcionSeleccionada = event.target.value;
+
+  if (opcionSeleccionada === "S") {
+    id_grup_vulne.disabled = false;
+  } else {
+    id_grup_vulne.disabled = true;
+  }
+});
+
+
+
+</script>
+
+<script>
+  // Espera a que el documento esté completamente cargado
+  document.addEventListener("DOMContentLoaded", function() {
+    // Obtén el elemento de select por su ID
+    var selectEleccion = document.getElementById("id_idestado");
+    var selectCoalicion = document.getElementById("id_idprocesopartido");
+    
+    // Establece el atributo readonly en true para hacer el campo de solo vista
+    if (selectEleccion) {
+      // Deshabilita la edición directa del campo
+      selectEleccion.addEventListener("mousedown", function(event) {
+        event.preventDefault();
+        this.blur();
+      });
+
+
+      selectEleccion.addEventListener("keydown", function(event) {
+        event.preventDefault();
+      });
+
+
+    }
+  });
+</script>
+
+
+
+
+</body>
+
+{% endblock %}
+

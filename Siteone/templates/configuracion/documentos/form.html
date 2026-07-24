@@ -1,0 +1,156 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Catálogo de Documentos</title>
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
+    <style>
+        body {
+            background-color: #ffffff; /* Color de fondo para resaltar el formulario */
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            margin: 0;
+        }
+
+     /* Agrega estas reglas para la clase "btn-fila" */
+     .btn-fila {
+    width: 300px;
+    height: 65px;
+    background-color: #ff69b4e5;
+    margin: 0 15px;
+    border-radius: 10px;
+    color: black; /* Cambiado de rgb(0, 0, 0) a black */
+    transition: all 0.5s ease;
+}
+
+.btn-fila:hover {
+    transform: scale(1.1);
+    box-shadow: 0 0 10px #ff69b4e5;
+}
+
+
+
+
+        .form-container {
+            max-width: 400px;
+            width: 100%;
+            padding: 20px;
+            background-color: #000000; /* Fondo del formulario */
+            border-radius: 10px;
+            box-shadow: 0 0 20px rgba(0, 0, 0, 0.2); /* Sombra más pronunciada */
+        }
+
+        .form-label {
+            color: #ff69b4e5; /* Color predominante para las etiquetas */
+            font-weight: bold;
+        }
+
+        .form-control {
+            border: 2px solid #ff69b4e5; /* Borde del campo de entrada */
+            border-radius: 5px;
+        }
+
+        h1.text-center {
+        margin-top: 0;
+        position: absolute;
+        top: 5%;
+        left: 50%;
+        transform: translate(-50%, -50%);}
+        .btn-agregar {
+    background-color: #fc7dbd;
+    color: #000000;
+    padding: 20px 30px;
+    border: none;
+    border-radius: 10px;
+    display: block;
+    margin: 20px auto; /* Centra los botones */
+    text-decoration: none;
+    font-size: 16px;
+    cursor: pointer;
+    transition: background-color 0.3s ease, color 0.3s ease;
+}
+
+.btn-agregar:hover {
+    background-color: #FF66B2;
+}
+
+#botones-fila {
+    position: fixed;
+    bottom: 5%;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 100%;
+    text-align: center;
+}
+
+
+
+
+    </style>
+</head>
+<body>
+
+<h1 class="text-center mb-4" style="color: #ff69b4e5;">Catálogo de Documentos</h1>
+
+<form enctype="multipart/form-data" method="post">
+    {% csrf_token %}
+    {% for campo in formulario %}
+    <div class="mb-3">
+        <label for="" class="form-label">{{ campo.label }}</label>
+        
+        {% if campo.field.widget.input_type == 'file'  and campo.value %}
+       
+        <br>
+        <img src="{{MEDIA_URL}}/images/{{campo.value}} " width="100" alt="" srcset="">
+
+        {% endif  %}
+
+
+        <input
+            type="{{ campo.field.widget.input_type }}"
+            class="form-control"
+            name="{{ campo.name }}"
+            aria-describedby="helpId"
+            placeholder="{{ campo.label }}"
+            value="{{ campo.value | default:'' }}"
+        />
+    </div>
+    <div class="col-12 help-text text-danger">{{ campo.errors }}</div>
+    {% endfor %}
+
+
+
+    <div id="botones-fila">
+        <input
+            name=""
+            id=""
+            class="btn btn-fila"
+            type="submit"
+            value="Guardar Datos"
+        />
+        <button class="btn btn-fila">CANCELAR</button>
+        <a
+            name=""
+            id=""
+            class="btn btn-fila"
+            href="{% url 'documentos' %}"
+            role="button"
+            >Cerrar</a
+        >
+        
+
+
+
+    </div>
+    
+</form>
+
+<script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.11.6/dist/umd/popper.min.js"></script>
+<script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
+
+</body>
+</html>

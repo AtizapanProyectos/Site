@@ -1,0 +1,1007 @@
+
+
+{% extends "base.html" %} 
+
+{% block titulo %} Resumen Paquetes Electorales {% endblock %}
+
+{% block encabezado %}<center> <h1 class="text-center mb-4" style="color: #515151e5;">Resumen de Paquetes Electorales</h1> </center>{% endblock %}
+
+
+
+{% block combos %}
+
+<div class="combos-container">
+
+
+<label for="combobox2">Año</label>
+
+<select name="combobox2" id="cboaño" class="combobox combobox-año">
+{% for año in años %}
+
+<option value="{{año}}">{{año}}</option>
+
+{% endfor %}
+
+</select>
+
+
+<!-- Combobox 1 -->
+
+<label for="combobox1">Entidad Federativa</label>
+
+<select name="combobox1" id="cboestado" class="combobox combobox-entidad">
+{% for dis in entidad_federativa %}
+
+<option value="{{ dis }}">{{ dis }}</option>
+
+{% endfor %}
+
+</select>
+
+
+<!-- Combobox 3 -->
+
+<label for="combobox3">Elección</label>
+
+<select name="com<select name="combobox3" id="cboeleccion" class="combobox combobox-eleccion">
+  bobox3" id="combobox3" class="combobox">
+
+{% for dis in eleccion %}
+
+<option value="{{ dis }}">{{ dis }}</option>
+
+{% endfor %}
+
+</select>
+
+<label for="combobox4">Cargo</label>
+<select name="combobox4" id="cbocargo" class="combobox combobox-cargo"></select>
+
+
+<label for="combobox5" style="display: none;">Municipio</label>
+<select name="combobox5" id="cbomuni" class="combobox combobox-cargo" style="display: none;"></select>
+
+
+<label for="combobox6" style="display: none;">Distrito</label>
+<select name="combobox6" id="cbodis" class="combobox combobox-cargo"style="display: none;"></select>
+
+
+</div>
+
+{% endblock %}
+
+
+
+{% block contenido %}
+
+
+
+
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.1/css/all.min.css">
+
+
+{% if messages %}
+  <div class="messages-container">
+    <ul class="messages">
+      {% for message in messages %}
+        <li{% if message.tags %} class="{{ message.tags }}"{% endif %}>
+          <!-- Agregamos un ícono de alerta -->
+          <span class="icon">
+            {% if message.tags == 'success' %}
+              <i class="fas fa-check-circle"></i>
+            {% elif message.tags == 'error' %}
+              <i class="fas fa-exclamation-circle"></i>
+            {% endif %}
+          </span>
+          <div class="message-text">
+            {{ message }}
+            <!-- Agregamos el botón de cerrar -->
+            <a href="{% url 'distritos' %}" class="close-btn" onclick="cerrarMensaje(this)">X</a>
+          </div>
+        </li>
+      {% endfor %}
+    </ul>
+  </div>
+{% endif %}
+
+
+
+
+<script>
+  function cerrarMensaje(btn) {
+    // Obtén el elemento padre li del botón
+    var mensajeLi = btn.parentNode;
+
+    // Oculta el mensaje
+    mensajeLi.style.display = 'none';
+  }
+</script>
+
+
+
+{% load static %}
+
+<style>
+
+
+  /* Estilo para el combobox del Año */
+  .combobox-año {
+  padding: 10px;
+  font-size: 21px;
+  border: 2px solid #000000;
+  border-radius: 5px;
+  margin: 45px;
+  width: 120px;
+  top: 30%;
+  background-color: #ffffffe5;
+  margin-inline-start: 10px;/* Estilos específicos para el combobox de Año */
+}
+
+/* Estilo para el combobox de la Entidad Federativa */
+.combobox-entidad {
+  padding: 10px;
+  font-size: 21px;
+  border: 2px solid #000000;
+  border-radius: 5px;
+  margin: 10px;
+  width: 190px;
+  top: 30%;
+  background-color: #ffffffe5;
+  margin-inline-start: 5px; /* Estilos específicos para el combobox de Entidad Federativa */
+}
+
+/* Estilo para el combobox de la Elección */
+.combobox-eleccion {
+  padding: 10px;
+  font-size: 21px;
+  border: 2px solid #000000;
+  border-radius: 5px;
+  margin: 10px;
+  width: 210px;
+  top: 70%;
+  background-color: #ffffffe5;
+  margin-inline-start: 2px;  /* Estilos específicos para el combobox de Elección */
+}
+
+/* Estilo para el combobox del Cargo */
+.combobox-cargo {
+  padding: 10px;
+  font-size: 21px;
+  border: 2px solid #000000;
+  border-radius: 5px;
+  margin: 10px;
+  width: 200px;
+  top: 30%;
+  background-color: #ffffffe5;
+  margin-inline-start: 2px; /* Estilos específicos para el combobox de Cargo */
+}
+
+/* Estilo para el combobox del Distrito */
+.combobox-distrito {
+  padding: 10px;
+  font-size: 21px;
+  border: 2px solid #000000;
+  border-radius: 5px;
+  margin: 10px;
+  top: 30%;
+  width: 220px;
+  background-color: #ffffffe5;
+  margin-inline-start: 2px; /* Estilos específicos para el combobox de Distrito */
+}
+
+
+
+  .table-container-horizontal {
+    overflow-x: auto;
+    white-space: nowrap;
+  }
+
+  .combos-container {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    margin-bottom: 20px;
+  }
+
+  .messages-container {
+    position: relative;
+    z-index: 9999;
+    width: 100%;
+    padding: 10px;
+    box-sizing: border-box;
+  }
+
+  .messages {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+  }
+
+  .messages li {
+    display: flex;
+    align-items: center;
+    padding: 10px;
+    margin-bottom: 10px;
+    border: 1px solid #ccc;
+    border-radius: 5px;
+  }
+
+  .messages li.success {
+    background-color: #d4edda;
+    border-color: #c3e6cb;
+    color: #155724;
+  }
+
+  .messages li.error {
+    background-color: #f8d7da;
+    border-color: #f5c6cb;
+    color: #721c24;
+  }
+
+  .icon {
+    margin-right: 10px;
+  }
+
+  .message-text {
+    flex-grow: 1;
+  }
+
+  .close-btn {
+    margin-left: 10px;
+    text-decoration: none;
+    color: #000;
+  }
+
+  h1 {
+    margin-top: 10px;
+  }
+
+  .combobox {
+    padding: 8px;
+    font-size: 19px;
+    border: 2px solid #000000;
+    border-radius: 5px;
+    margin: 5px;
+    width: 90%;
+    max-width: 300px;
+    background-color: #ffffffe5;
+  }
+
+  label {
+    display: block;
+    margin: 10px 0 5px 0;
+  }
+
+  .table-container {
+    width: 100%;
+    overflow-y: auto;
+    max-height: 300px;
+  }
+
+  .table-responsive {
+    display: block;
+    max-width: 367px;
+    overflow-x: auto;
+    white-space: nowrap;
+  }
+
+  .text-center {
+    text-align: center;
+    color: #686565;
+  }
+
+  .custom-table {
+    font-family: sans-serif;
+    border-collapse: collapse;
+    width: 100%;
+    max-width: none;
+  }
+
+  .custom-table th{
+
+padding: 8px;
+text-align: left;
+border: 1px solid #ddd;
+color: rgba(87, 87, 87, 0.898);
+}
+.custom-table td 
+{
+padding: 8px;
+text-align: left;
+border: 1px solid #ddd;
+
+color: #000000e5;
+}
+
+  .custom-table th {
+    background-color: #ff69b4e5;
+    font-weight: bold;
+  }
+
+  .custom-table tbody tr:nth-child(even) {
+    background-color: #f2f2f2;
+  }
+
+  .custom-table td a {
+    color: #000;
+  }
+
+  .btn-info,
+  .btn-delate {
+    background-color: transparent;
+    border: none;
+  }
+
+  #botones-fila {
+    display: flex;
+    justify-content: center;
+    margin-top: 10px;
+  }
+
+  #botones-fila button {
+    margin: 0 5px;
+  }
+
+  #dato1,
+  #dato2,
+  #dato3 {
+    color: #515151e5;
+    display: none;
+    text-align: center;
+    margin: 1px auto 10px auto;
+    font-size: 18px;
+    font-weight: bold;
+  }
+
+  .sticky-top {
+    position: sticky;
+    top: 0;
+    background-color: #ff69b4e5;
+    z-index: 1;
+  }
+
+  #botones-fila.botones-fijos {
+  position: fixed;
+  bottom: -20px; /* Ajusta este valor según tu preferencia */
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 9999;
+}
+
+
+  /* Desktop styles */
+  @media (min-width: 768px) {
+    .combos-container {
+      display: flex;
+      flex-direction: row;
+      justify-content: center;
+      margin-bottom: 0;
+    }
+
+    .combobox {
+      width: auto;
+      margin: 10px;
+    }
+
+    .messages-container {
+      position: fixed;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      z-index: 9999;
+      width: 30%;
+      padding: 20px;
+      box-sizing: border-box;
+    }
+
+    .messages li {
+      padding: 10px;
+      margin-bottom: 10px;
+      border: 1px solid #ccc;
+      border-radius: 5px;
+    }
+
+    .close-btn {
+      margin-left: 300px;
+      text-decoration: none;
+      color: #000;
+    }
+
+    .custom-table th,
+    .custom-table td {
+      padding: 15px;
+    }
+
+    .custom-table th {
+      background-color: #ff69b4e5;
+      font-weight: bold;
+    }
+
+    .main-container {
+      width: 76%;
+      margin: 0 auto;
+      overflow-x: auto;
+      position: fixed;
+      top: 28%;
+      left: 50%;
+      transform: translateX(-50%);
+    }
+
+    #dato1,
+    #dato2,
+    #dato3 {
+      font-size: 28px;
+    }
+
+
+    .table-responsive {
+  
+    overflow-x: auto;
+    white-space: nowrap;
+    max-width: 1867px;
+    display: block;
+  }
+  }
+
+</style>
+
+
+
+
+<div class="main-container">
+
+  <div id="datos">
+    <div id="dato1">dato 1</div>
+  </div>
+
+  <div class="table-container mx-auto">
+    <div class="table-responsive">
+      <table id="tabla-casillas" class="table table-hover table-bordered table-striped shadow-sm custom-table">
+  
+      <thead>
+        <tr>
+          <th>Sección</th>
+          <th>Paquete</th>
+          <th>Dirección de la Casilla</th>
+          <th>Estatus</th>
+          <th>Con firma</th>
+          <th>Cinta de Seguridad</th>
+          <th>Muestras de Alteración</th>
+          <th>Bolsa por Fuera del Paquete</th>
+          <th>Bolsa PREP</th>
+          <th>Imagen del Paquete</th>
+          <th>Imagen del Acta</th>
+        </tr>
+      </thead>
+
+      <tbody>
+
+        {% for distrito in distritos_mostrar  %}
+        <tr>
+          <td>{{ distrito.0 }}</td>
+          <td>{{ distrito.1 }}</td>
+          <td class="text-center">
+            <a name="" id="" class="btn btn-info" href="{% url 'distritos_editar'  distrito.0%}" role="button">Armar</a>
+          </td>
+        </tr>
+
+        {% endfor %}
+
+      </tbody>
+    </table>
+  </div>
+</div>
+
+
+</div>
+
+
+<div id="botones-fila" class="botones-fijos">
+  <button type="button" id="btnconsultar">Consultar</button>
+  <button type="button" id="cerrar-button">Cerrar</button>
+  
+</div>  
+
+<script>
+
+
+  console.log("Ejecutando JS");
+  
+
+
+  cbomuni.addEventListener("change", (event) => {
+
+var tablaCasillas = document.getElementById("tabla-casillas");
+tablaCasillas.getElementsByTagName('tbody')[0].innerHTML = '';
+document.getElementById('dato1').innerText = '';
+
+
+});
+
+cbodis.addEventListener("change", (event) => {
+
+var tablaCasillas = document.getElementById("tabla-casillas");
+tablaCasillas.getElementsByTagName('tbody')[0].innerHTML = '';
+document.getElementById('dato1').innerText = '';
+
+});
+
+
+
+cboeleccion.addEventListener("change", (event) => {
+  console.log(event);
+  console.log(event.currentTarget);
+  console.log(event.currentTarget.value);
+  var tablaCasillas = document.getElementById("tabla-casillas");
+tablaCasillas.getElementsByTagName('tbody')[0].innerHTML = '';
+listarCargos(event.currentTarget.value);
+
+});
+
+  
+  
+  const listarCargos=async(idproceso)=>{
+      try {
+        const response = await fetch(`/cargos/${idproceso}`);
+    const data = await response.json();
+    console.log(data);
+    
+     if (data.message=="Success"){
+    
+       let opciones = '';
+       data.cargos.forEach((Tipocargo)=>{
+    
+        opciones += `<option value="${Tipocargo.idtipo_cargo}">${Tipocargo.descrip_tcargo}</option>`;
+    
+       });
+       cbocargo.innerHTML = opciones;
+     }else{
+       alert("elecciones no encontradas");
+     }
+    
+    
+    } catch (error) {
+     console.log(error);
+    }
+    }
+    
+  
+    
+    const listarElecciones = async () => {
+    try {
+      const response = await fetch(`/elecciones/`);
+      const data = await response.json();
+      console.log(data);
+  
+      if (data.message === "Success") {
+        let opciones = '';
+        data.elecciones.forEach((Procesos) => {
+          opciones += `<option value="${Procesos.idproceso}" data-idproceso="${Procesos.idproceso}">${Procesos.descrip}</option>`;
+        });
+        cboeleccion.innerHTML = opciones;
+      } else {
+        alert("elecciones no encontradas");
+      }
+    } catch (error) {
+      console.log(error);
+    }
+  }
+
+
+
+  const listarCasillasEnTabla = async (cbocargoValue, eleccion,  id, key) => {
+  try {
+    const response = await fetch(`/Paquxetes/Entrega/casilla/get/recoleccion/all/${eleccion}/${cbocargoValue}/${id}/${key}`);
+    const data = await response.json();
+
+    if (data.message === "Success") {
+      let filas = '';
+
+
+      const dato1 = data.paquetes[0][38];
+      const dato2 = data.paquetes[0][39];
+      const dato3 = data.paquetes[0][40];
+      
+      document.getElementById('dato1').innerText = `Entregados: ${dato1}\u00A0\u00A0\u00A0\u00A0\u00A0\u00A0    Faltantes: ${dato2}\u00A0\u00A0\u00A0\u00A0\u00A0\u00A0Total: ${dato3}`;
+
+      data.paquetes.forEach((Paquetes) => {
+    const convertirDato = (dato) => {
+        if (dato === 'S') return 'Si';
+        else if (dato === 'N') return 'No';
+        else return ' ';
+    };
+
+    filas += `<tr>
+    <td class="folioC">${Paquetes[0]}</td>
+    <td class="direccion">${Paquetes[1]}</td>
+    <td class="direccion">${Paquetes[12]}</td>
+    <td class="estatus">${Paquetes[7]}</td>
+    <td class="estatus">${convertirDato(Paquetes[22])}</td>
+    <td class="estatus">${convertirDato(Paquetes[23])}</td>
+    <td class="estatus">${convertirDato(Paquetes[24])}</td>
+    <td class="estatus">${convertirDato(Paquetes[25])}</td>
+    <td class="estatus">${convertirDato(Paquetes[26])}</td>
+    <td class="estatus">${Paquetes[29] && Paquetes[29] ? `<a href="${window.location.origin}{% get_media_prefix %}${Paquetes[29]}" target="_blank"><img src="${window.location.origin}{% get_media_prefix %}${Paquetes[29]}" height="100"></a>` : ''}</td>
+    <td class="estatus">${Paquetes[30] && Paquetes[30] ? `<a href="${window.location.origin}{% get_media_prefix %}${Paquetes[30]}" target="_blank"><img src="${window.location.origin}{% get_media_prefix %}${Paquetes[30]}" height="100"></a>` : ''}</td>
+</tr>`;
+
+});
+
+
+
+      document.getElementById("tabla-casillas").getElementsByTagName('tbody')[0].innerHTML = filas;
+
+      const botonesEditar = document.querySelectorAll('.editar');
+
+      botonesEditar.forEach((boton) => {
+    boton.addEventListener('click', () => {
+        const fila = boton.closest('tr');
+        const folioC = fila.querySelector('.folioC').innerText;
+        const estado = fila.querySelector('.estatus').innerText;
+        const añoSeleccionado = document.getElementById("cboaño").value;
+        const cboeleccionSelectedOption = cboeleccion.options[cboeleccion.selectedIndex].text;
+        const cbocargoSelectedOption = cbocargo.options[cbocargo.selectedIndex].text;
+
+        if (estado === 'ENTREGADO') {
+            console.log("Visualizar paquete: " + folioC);
+           const url = `/Paquetes/entrega/casilla/Visualizar/${cboeleccionSelectedOption}/${cbocargoSelectedOption}/${folioC}/${añoSeleccionado}`;
+           window.location.href = url;
+
+        } else {
+            console.log("Armar Paquete: " + folioC);
+           const url = `/Paquetes/Entregar/casilla/recoleccion/${cboeleccionSelectedOption}/${cbocargoSelectedOption}/${folioC}/${añoSeleccionado}`;
+           window.location.href = url;
+
+        }
+
+        // Aquí puedes hacer más acciones según el estado del paquete
+    });
+});
+
+
+
+      const botonesEliminar = document.querySelectorAll('.reporte');
+
+      botonesEliminar.forEach((boton) => {
+        boton.addEventListener('click', () => {
+          const folioC = boton.closest('tr').querySelector('.folioC').innerText;
+          console.log("FolioC reporte: " + folioC);
+          const fila = boton.closest('tr');
+          const estado = fila.querySelector('.estatus').innerText;
+          const añoSeleccionado = document.getElementById("cboaño").value;
+          const cboeleccionSelectedOption = cboeleccion.options[cboeleccion.selectedIndex].text;
+          const cbocargoSelectedOption = cbocargo.options[cbocargo.selectedIndex].text;
+
+
+          const url = `/generar_pdf/Armado/Paquetes/entrega/cae/${añoSeleccionado}/${cboeleccionSelectedOption}/${cbocargoSelectedOption}/${folioC}`;
+           window.location.href = url;
+        });
+      });
+
+    } else {
+      document.getElementById('dato1').innerText = ` `;
+      Swal.fire({
+    icon: 'warning',
+    title: 'No Existen Registros',
+    text: 'Para la Selección'
+  });
+    }
+
+  } catch (error) {
+    console.log(error);
+  }
+}
+
+  const listarEstados = async () => {
+      try {
+          const response = await fetch(`/estados/`)
+          const data = await response.json();
+          console.log(data);
+  
+          if (data.message == "Success") {
+  
+              let opciones = '';
+              data.estados.forEach((Estados) => {
+                  opciones += `<option value="${Estados.idestado}">${Estados.nombre_edo}</option>`;
+              });
+              cboestado.innerHTML = opciones;
+  
+          } else {
+              alert("elecciones no encontradas");
+          }
+  
+      } catch (error) {
+          console.log(error);
+      }
+  }
+  
+  
+  
+   const listarDistritos=async(idestado)=>{
+    
+    try {
+   
+    const response =await fetch(`getdistritos/${idestado}`)
+    const data = await response.json();
+    console.log(data);
+   
+     if (data.message=="Success"){
+   
+       let opciones = '';
+       data.distritos.forEach((Distritos)=>{
+   
+         opciones += `<option value="${Distritos.iddistrito}">${Distritos.nombredistrito}</option>`;
+       });
+       cbodistrito.innerHTML = opciones;
+     }else{
+       alert("Distritos no encontrados");
+     }
+   
+   
+    } catch (error) {
+     console.log(error);
+    }
+   }
+  
+  
+  const listarEleccionesPorAño = async (anio) => {
+    try {
+      const response = await fetch(`eleccionesfilter/${anio}`);
+      const data = await response.json();
+      console.log(data);
+  
+      // Limpiar el contenido actual del cboeleccion
+      cboeleccion.innerHTML = '';
+      cbocargo.innerHTML = '';
+  
+      if (data.message === "Success") {
+        let opciones = '';
+        data.elecciones.forEach((Procesos) => {
+             opciones += `<option value="${Procesos.idproceso}" data-idproceso="${Procesos.idproceso}">${Procesos.descrip}</option>`; 
+            });
+        cboeleccion.innerHTML = opciones;
+      } else {
+        alert("Elecciones no encontradas");
+      }
+    } catch (error) {
+      console.log(error);
+    }
+  }
+  
+  const listarNumerodeElecciones=async(idtipo_cargo, idproceso)=>{
+    var tipo=null;
+    try {
+   
+    const response =await fetch(`/NumeroEleccion/${idproceso}/${idtipo_cargo}`)
+    const data = await response.json();
+    console.log(data);
+   
+     if (data.message=="Success"){
+   
+       let opciones = '';
+
+
+       data.results.forEach((Distritos)=>{
+        tipo=Distritos.idtipoc;
+
+        if (Distritos.idtipoc === 'AY') {
+        // Código a ejecutar si Distritos.idtipoc es igual a 'AY'
+
+          // Ocultar el label y select para "Municipio"
+          document.querySelector('label[for="combobox5"]').style.display = 'block';
+          document.getElementById('cbomuni').style.display = 'block';
+
+          document.querySelector('label[for="combobox6"]').style.display = 'none';
+          document.getElementById('cbodis').style.display = 'none';
+          opciones += `<option value="${Distritos.idMunicipio}">${Distritos.nombre}</option>`;
+
+        } else if (Distritos.idtipoc==='CO'){
+        // Código a ejecutar si Distritos.idtipoc no es igual a 'AY'
+      
+          // Ocultar el label y select para "Distrito"
+          document.querySelector('label[for="combobox6"]').style.display = 'block';
+          document.getElementById('cbodis').style.display = 'block';
+          document.querySelector('label[for="combobox5"]').style.display = 'none';
+          document.getElementById('cbomuni').style.display = 'none';
+          opciones += `<option value="${Distritos.idDistrito}">${Distritos.nombre}</option>`;
+
+
+        } else {
+          document.querySelector('label[for="combobox5"]').style.display = 'block';
+          document.getElementById('cbomuni').style.display = 'block';
+          document.querySelector('label[for="combobox6"]').style.display = 'none';
+          document.getElementById('cbodis').style.display = 'none';
+        }
+
+          // Limpiar el contenido actual del select de "Municipio"
+
+   
+
+       });
+       console.log("esoooo: "+tipo)
+ 
+
+
+       if (tipo === 'AY') {
+    // Código a ejecutar si Distritos.idtipoc es igual a 'AY'
+    console.log('El valor de idtipoc es AY');
+    cbomuni.innerHTML = opciones;
+} else if (tipo==='CO') {
+    // Código a ejecutar si Distritos.idtipoc no es igual a 'AY'
+    console.log('El valor de idtipoc no es AY');
+    cbodis.innerHTML = opciones;
+}
+
+  
+
+       
+
+       
+     }else{
+       alert("Distritos no encontrados");
+     }
+   
+   
+    } catch (error) {
+     console.log(error);
+    }
+
+
+   }
+
+
+
+
+    const cargainicial =async()=>{
+    
+    await listarEstados();
+    await listarEstados();
+  await listarElecciones();
+  await listarCargos(cboeleccion.value);
+   
+  cbocargo.addEventListener("change", (event) => {
+    var tablaCasillas = document.getElementById("tabla-casillas");
+tablaCasillas.getElementsByTagName('tbody')[0].innerHTML = '';
+document.getElementById('dato1').innerText = '';
+
+console.log(cbocargo.value);
+listarNumerodeElecciones(cbocargo.value, cboeleccion.value);
+
+});
+
+  
+  btnconsultar.addEventListener("click", (event) => {
+      // Muestra en la consola los valores seleccionados de los combos
+      console.log("Valor seleccionado de cbocargo: ", cbocargo.value);
+      // Obtiene el objeto seleccionado del combo cboeleccion
+      const cboeleccionSelectedOption = cboeleccion.options[cboeleccion.selectedIndex];
+      console.log("Objeto seleccionado de cboeleccion: ", cboeleccionSelectedOption.text);
+
+      document.getElementById('dato1').style.display = 'block';
+
+
+      cbocargo.addEventListener("change", (event) => {
+  console.log(event);
+  console.log(event.currentTarget);
+  console.log(event.currentTarget.value);
+  var tablaCasillas = document.getElementById("tabla-casillas");
+tablaCasillas.getElementsByTagName('tbody')[0].innerHTML = '';
+
+});
+
+
+cboaño.addEventListener("change", (event) => {
+  console.log(event);
+  console.log(event.currentTarget);
+  console.log(event.currentTarget.value);
+  var tablaCasillas = document.getElementById("tabla-casillas");
+tablaCasillas.getElementsByTagName('tbody')[0].innerHTML = '';
+document.getElementById('dato1').innerText = '';
+listarEleccionesPorAño(event.currentTarget.value);
+
+});
+
+
+
+const idmuni = cbomuni.options[cbomuni.selectedIndex]?.value || '';
+const iddistrito = cbodis.options[cbodis.selectedIndex]?.value || '';
+const idestado = cboestado.options[cboestado.selectedIndex]?.value || '';
+        let valorparafiltro=null;
+        let key =null;
+
+if (idmuni) {
+   
+    valorparafiltro = idmuni;
+    key = 'muni';
+} else if (iddistrito) {
+
+    valorparafiltro = iddistrito;
+    key = 'dis';
+} else if (idestado) {
+  
+    valorparafiltro = idestado;
+    key = 'muni';
+} else {
+    console.log("No se seleccionó ningún valor.");
+}
+
+
+
+
+      listarCasillasEnTabla(cbocargo.value, cboeleccionSelectedOption.text, valorparafiltro, key);
+  
+  });
+    
+    }
+    
+    
+    window.addEventListener("load", async () => {
+    await cargainicial(); 
+    listarNumerodeElecciones(cbocargo.value, cboeleccion.value);
+
+
+
+
+    });
+    
+    
+        var consultarAgregarButton = document.getElementById('cerrar-button');
+    
+    // Agrega un evento de clic al botónd
+    consultarAgregarButton.addEventListener('click', function() {
+        // Redirige a la URL específica utilizando JavaScript
+        window.location.href = "{% url 'inicio' %}";
+    });
+    
+  
+  
+  
+  </script>
+
+
+
+
+<script>
+
+    // Obtén el elemento del botón
+    var consultarAgregarButton = document.getElementById('cerrar-button');
+
+// Agrega un evento de clic al botón
+consultarAgregarButton.addEventListener('click', function() {
+    // Redirige a la URL específica utilizando JavaScript
+    window.location.href = "{% url 'inicio' %}";
+});
+
+</script>
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@10"></script>
+<script>
+
+
+
+
+
+
+
+
+
+
+  function confirmarEliminar(idDistrito) {
+      Swal.fire({
+          title: '¿Estás seguro de eliminar este registro?',
+          text: '¡No podrás revertir esto!',
+          icon: 'warning',
+          showCancelButton: true,
+          confirmButtonColor: '#3085d6',
+          cancelButtonColor: '#d33',
+          confirmButtonText: 'Sí, eliminarlo',
+          cancelButtonText: 'Cancelar'
+      }).then((result) => {
+          if (result.isConfirmed) {
+              // Realizar la solicitud de eliminación
+              window.location.href = "{% url 'distritos_eliminar' 0 %}".replace('0', idDistrito);
+          }
+      });
+  }
+  </script>
+
+{% endblock %}

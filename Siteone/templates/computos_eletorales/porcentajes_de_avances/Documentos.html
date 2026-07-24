@@ -1,0 +1,312 @@
+{% extends "base.html" %} 
+
+{% block titulo %} Documentos de los Representantes {% endblock %}
+
+{% block encabezado %}
+<center> 
+  
+  
+
+    <h2 class="text-center mb-4" style="color: #000000e5;">{{nombreeleccion}}</h2>
+    <h2 class="text-center mb-4" style="color: #000000e5;">Documentos del Representante</h2> 
+    <h2 class="text-center mb-4" style="color: #000000e5;">{{nombre_completo}}</h2>
+
+
+</center>{% endblock %}
+
+{% block contenido %}
+
+{% load static %}
+
+<style>
+
+.messages-container {
+  position: fixed;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  z-index: 9999;
+  width: 30%;
+  padding: 20px;
+  box-sizing: border-box;
+}
+
+
+  .messages {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+  }
+
+  .messages li {
+    display: flex;
+    align-items: center;
+    padding: 10px;
+    margin-bottom: 10px;
+    border: 1px solid #ccc;
+    border-radius: 5px;
+  }
+
+  .messages li.success {
+    background-color: #d4edda;
+    border-color: #c3e6cb;
+    color: #155724;
+  }
+
+  .messages li.error {
+    background-color: #f8d7da;
+    border-color: #f5c6cb;
+    color: #721c24;
+  }
+
+  .icon {
+    margin-right: 10px;
+  }
+
+  .message-text {
+    flex-grow: 1;
+  }
+
+  .close-btn {
+    margin-left: 300px;
+    text-decoration: none;
+    color: #000;
+  }
+
+
+
+
+
+h1{
+    margin-top: -30px; /* Ajusta el valor según tus necesidades del TITULO */
+  }
+/* Estilo para el combobox del Año */
+.combobox-año {
+  padding: 10px;
+  font-size: 16px;
+  border: 2px solid #000000;
+  border-radius: 5px;
+  margin: 30px;
+  width: 150px;
+  background-color: #ffffffe5;
+  margin-left: 2px; /* Ajusta el valor del margen izquierdo según tus necesidades */
+}
+
+
+/* Estilo para el combobox de la Entidad Federativa */
+.combobox-entidad {
+  padding: 10px;
+  font-size: 16px;
+  border: 2px solid #000000;
+  border-radius: 5px;
+  margin: 30px;
+  width: 300px;
+  background-color: #ffffffe5; /* Puedes cambiar el color según tus preferencias */
+  margin-inline-start: 2px;
+}
+
+/* Estilo para el combobox de la Elección */
+.combobox-eleccion {
+  padding: 10px;
+  font-size: 16px;
+  border: 2px solid #000000;
+  border-radius: 5px;
+  margin: 30px;
+  width: 300px;
+  background-color: #ffffffe5; /* Puedes cambiar el color según tus preferencias */
+  margin-inline-start: 2px;
+}
+
+/* Estilo para el combobox del Cargo */
+.combobox-cargo {
+  padding: 10px;
+  font-size: 16px;
+  border: 2px solid #000000;
+  border-radius: 5px;
+  margin: 10px;
+  width: 200px;
+  top: 30%;
+  background-color: #ffffffe5;
+  margin-inline-start: 2px; /* Estilos específicos para el combobox de Cargo */
+}
+
+  /* Estilo para las etiquetas de los combobox */
+  label {
+    display:contents;
+    margin: 10px 0 5px 0;
+  }
+
+
+  /* Contenedor de la tabla */
+  .table-container {
+    width: 100%;
+    overflow-y: auto;
+    max-height: 600px; /* Ajusta la altura máxima según tus necesidades */
+  }
+
+  /* Tabla responsiva */
+  .table-responsive {
+    display: block;
+    overflow-x: auto;
+    white-space: nowrap;
+  }
+
+  .text-center {
+    text-align: center;
+    color: #686565;
+  }
+
+  /* Estilo general de la tabla */
+  .custom-table {
+    font-family: sans-serif;
+    border-collapse: collapse;
+    width: 100%;
+    max-width: none;
+  }
+
+  .custom-table th,
+  .custom-table td {
+    padding: 15px;
+    text-align: left;
+    border: 2px solid #ddd;
+  }
+
+  .custom-table th {
+    background-color: #ff69b4e5;
+    font-weight: bold;
+  }
+
+
+
+  /* Estilo de los botones */
+  .custom-table td a {
+    color: #000;
+  }
+
+  .btn-info,
+  .btn-delate {
+    background-color: transparent;
+    border: none;
+  }
+
+  .table-container {
+    margin-top: -10px; /* Ajusta el valor según tus necesidades */
+  }
+
+
+  .main-container {
+    width: 70%;
+    margin: 0 auto; /* Elimina el margen superior */
+    overflow-x: auto;
+    position: fixed; /* Agrega posición fija */
+    top: 25%; /* Coloca el contenedor en la parte superior */
+    left: 50%; /* Ajusta la posición horizontal según tus necesidades */
+    transform: translateX(-50%); /* Centra el contenedor horizontalmente */
+}
+
+</style>
+
+<div class="main-container">
+  <div class="table-container mx-auto">
+    <div class="table-responsive">
+      <br>
+      <br>
+      <br>
+      <table id="tabla-candidatos" class="table table-hover table-bordered table-striped shadow-sm custom-table">
+        <thead>
+          <tr>
+            <th>Nombre del Documento</th>
+            <th>Estatus de Entrega</th>
+            <th>Acciones</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for doc in documentos_mostrar %}
+    <tr>
+        <td>{{ doc.3 }}</td>
+        <td>{{ doc.5 }}</td>
+        <td class="text-center">
+            <button class="btn btn-info" onclick="manejarDocumento('{{ doc.0 }}', '{{ doc.2 }}', '{{ doc.1 }}')">
+                {% if doc.6 == 'Capturado' %}
+                    Editar
+                {% else %}
+                    Agregar
+                {% endif %}
+            </button>
+            |
+            <button class="btn btn-info" onclick="visualizarDocumento('{{ doc.0 }}', '{{ doc.2 }}')">
+              Visualizar
+          </button>
+        </td>
+    </tr>
+{% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>
+
+<div id="botones-fila">
+  <button type="button" id="cerrar-button">Cerrar</button>
+</div>
+<script>
+  // Obtén el token CSRF del cookie
+  const csrftoken = document.cookie.match(/csrftoken=([^ ;]*)/)[1];
+
+  function manejarDocumento(idCandidato, nombreDocumento, estatus) {
+    const input = document.createElement('input');
+    input.type = 'file';
+    input.accept = '.pdf';
+
+    input.addEventListener('change', function (event) {
+        const file = event.target.files[0];
+
+        if (file) {
+            const formData = new FormData();
+            formData.append('archivo', file);
+            formData.append('idCandidato', idCandidato);
+            formData.append('nombreDocumento', nombreDocumento);
+
+            fetch("{% url 'documentos_representantes_subir' %}", {
+                method: 'POST',
+                body: formData,
+                headers: {
+                    'X-CSRFToken': csrftoken
+                }
+            })
+            .then(response => response.json())
+            .then(data => {
+                console.log('Archivo enviado correctamente:', data);
+                // Puedes agregar aquí lógica adicional si es necesario
+                window.location.reload();
+            })
+            .catch(error => {
+                console.error('Error al enviar el archivo:', error);
+            });
+        } else {
+            console.log('Ningún archivo seleccionado');
+        }
+    });
+
+    input.click();
+}
+
+
+function visualizarDocumento(idCandidato, nombreDocumento) {
+    // Abre el documento en una nueva pestaña o ventana
+    window.open("{% url 'visualizar_documento_representantes' %}?idCandidato=" + idCandidato + "&nombreDocumento=" + nombreDocumento, '_blank');
+}
+
+document.getElementById('cerrar-button').addEventListener('click', function() {
+  // Redirige a la URL 'Registro de Candidatura Ayuntamiento'
+  window.location.href = "{% url 'Comp_Agregar_Candidatos_Agregar' %}";
+});
+
+
+
+</script>
+
+
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@10"></script>
+
+{% endblock %}
