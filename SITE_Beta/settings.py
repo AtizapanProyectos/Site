@@ -111,3 +111,10 @@ ID_USUARIO='0'
 
 # Aumentar el tamaño máximo permitido para la carga de datos a 25MB
 DATA_UPLOAD_MAX_MEMORY_SIZE = 200 * 1024 * 1024  # Tamaño en bytes (200MB)
+
+
+
+
+CSRF_TRUSTED_ORIGINS = [
+    'https://site-production-d80a.up.railway.app',
+]
