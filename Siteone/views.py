@@ -16584,62 +16584,50 @@ def convertAndSave64(imagen_base64):
 @csrf_exempt
 def check_password(request):
     if request.method == 'POST':
-        data = json.loads(request.body)
-        username = data.get('username')
-        password = data.get('password')
-
         try:
+            data = json.loads(request.body)
+            username = data.get('username')
+            password = data.get('password')
+
+            # 1. Buscar al usuario de manera segura sin lanzar Http404 HTML
+            try:
+                usuario_obj = Inicio.objects.get(usuario=username)
+            except Inicio.DoesNotExist:
+                return JsonResponse({
+                    "data": {"idUsuario": None, "usuario": None, "timeCoordenadas": None},
+                    "ok": False,
+                    "code": 3,
+                    "msg": "Usuario o Contraseña Incorrectos",
+                    "token": ""
+                })
+
+            # 2. Verificar si la sesión ya está activa
+            if usuario_obj.activo:
+                return JsonResponse({
+                    "ok": False,
+                    "code": 4,
+                    "msg": "Usuario en uso, por favor cierre sesión en su otro dispositivo.",
+                    "token": ""
+                })
+
+            # 3. Llamar al procedimiento almacenado
             with connection.cursor() as cursor:
                 cursor.callproc('check_user_password', [username, password])
                 result = cursor.fetchone()
 
-            if result:
-                # 1. En lugar de exigir activo=False, solo buscamos por el usuario
-                try:
-                    Usuario = Inicio.objects.get(usuario=username)
-                except Inicio.DoesNotExist:
-                    return JsonResponse({
-                        "ok": False,
-                        "code": 3,
-                        "msg": "Usuario no encontrado",
-                        "token": ""
-                    })
-
-                # 2. Si quieres bloquear sesiones dobles, pon una validación clara:
-                if Usuario.activo:
-                    return JsonResponse({
-                        "ok": False,
-                        "code": 4,
-                        "msg": "Usuario en uso, por favor cierre sesión en su otro dispositivo.",
-                        "token": ""
-                    })
-
-                # 3. Verificar contraseña
-                if verify_password(Usuario.passencript, password):
-                    # Opcional: Marcar usuario como activo al iniciar sesión
-                    Usuario.activo = True
-                    Usuario.save()
-
-                    return JsonResponse({
-                        "data": {
-                            "idUsuario": result[4],
-                            "usuario": f"{result[1]} {result[2]} {result[3]}",
-                            "timeCoordenadas": result[7],
-                            "requiereFotosPaquete": True if result[6] else False,
-                        },
-                        "ok": True,
-                        "code": 1,
-                        "msg": "Conexión Exitosa y Autenticación",
-                        "token": ""
-                    })
-                else:
-                    return JsonResponse({
-                        "data": {"idUsuario": None, "usuario": None, "timeCoordenadas": None},
-                        "ok": False,
-                        "code": 3,
-                        "msg": "Usuario o Contraseña Incorrectos",
-                        "token": ""
-                    })
+            if result and verify_password(usuario_obj.passencript, password):
+                return JsonResponse({
+                    "data": {
+                        "idUsuario": result[4],
+                        "usuario": f"{result[1]} {result[2]} {result[3]}",
+                        "timeCoordenadas": result[7] if result[7] is not None else 0,
+                        "requiereFotosPaquete": True if result[6] else False,
+                    },
+                    "ok": True,
+                    "code": 1,
+                    "msg": "Conexión Exitosa y Autenticación",
+                    "token": ""
+                })
             else:
                 return JsonResponse({
                     "data": {"idUsuario": None, "usuario": None, "timeCoordenadas": None},
@@ -16654,7 +16642,7 @@ def check_password(request):
             return JsonResponse({
                 "ok": False,
                 "code": 500,
-                "msg": f"Error interno del servidor: {str(e)}",
+                "msg": f"Error en el servidor: {str(e)}",
                 "token": ""
             })
 
