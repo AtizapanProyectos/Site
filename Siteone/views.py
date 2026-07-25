@@ -16589,18 +16589,37 @@ def check_password(request):
         password = data.get('password')
 
         try:
-            # Llamada al procedimiento almacenado para obtener los datos del usuario
             with connection.cursor() as cursor:
                 cursor.callproc('check_user_password', [username, password])
                 result = cursor.fetchone()
 
             if result:
-                # Si se obtiene un resultado del procedimiento, verificar la contraseña manualmente
-                Usuario = get_object_or_404(Inicio, usuario=username, activo=False)
+                # 1. En lugar de exigir activo=False, solo buscamos por el usuario
+                try:
+                    Usuario = Inicio.objects.get(usuario=username)
+                except Inicio.DoesNotExist:
+                    return JsonResponse({
+                        "ok": False,
+                        "code": 3,
+                        "msg": "Usuario no encontrado",
+                        "token": ""
+                    })
 
-                
+                # 2. Si quieres bloquear sesiones dobles, pon una validación clara:
+                if Usuario.activo:
+                    return JsonResponse({
+                        "ok": False,
+                        "code": 4,
+                        "msg": "Usuario en uso, por favor cierre sesión en su otro dispositivo.",
+                        "token": ""
+                    })
+
+                # 3. Verificar contraseña
                 if verify_password(Usuario.passencript, password):
-                    # Si la contraseña es correcta, devolver los datos
+                    # Opcional: Marcar usuario como activo al iniciar sesión
+                    Usuario.activo = True
+                    Usuario.save()
+
                     return JsonResponse({
                         "data": {
                             "idUsuario": result[4],
@@ -16611,41 +16630,31 @@ def check_password(request):
                         "ok": True,
                         "code": 1,
                         "msg": "Conexión Exitosa y Autenticación",
-                        "token": ""  # Agrega la lógica de generación de token aquí
+                        "token": ""
                     })
                 else:
-                    # Si la contraseña no coincide, devolver error
                     return JsonResponse({
-                        "data": {
-                            "idUsuario": None,
-                            "usuario": None,
-                            "timeCoordenadas": None
-                        },
+                        "data": {"idUsuario": None, "usuario": None, "timeCoordenadas": None},
                         "ok": False,
                         "code": 3,
                         "msg": "Usuario o Contraseña Incorrectos",
-                        "token": ""  # Agrega la lógica de generación de token aquí
+                        "token": ""
                     })
             else:
-                # Si no se obtiene resultado del procedimiento, devolver error
                 return JsonResponse({
-                    "data": {
-                        "idUsuario": None,
-                        "usuario": None,
-                        "timeCoordenadas": None
-                    },
+                    "data": {"idUsuario": None, "usuario": None, "timeCoordenadas": None},
                     "ok": False,
                     "code": 3,
                     "msg": "Usuario o Contraseña Incorrectos",
-                    "token": ""  # Agrega la lógica de generación de token aquí
+                    "token": ""
                 })
 
         except Exception as e:
-            print(e)
+            print("Error en check_password:", str(e))
             return JsonResponse({
                 "ok": False,
-                "code": 4,
-                "msg": "Usuario en uso , por favor cierre sesión en su otro dispositivo.",
+                "code": 500,
+                "msg": f"Error interno del servidor: {str(e)}",
                 "token": ""
             })
 
