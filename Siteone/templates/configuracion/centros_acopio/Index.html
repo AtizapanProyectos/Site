@@ -473,22 +473,21 @@ const listarCasillasEnTabla = async (cboestado) => {
 
         if (data.message === "Success") {
             let filas = '';
-            data.centros.forEach((Centros) => {
-                filas += `<tr>
-                    
-                    <td class="direccion">${Centros.Nombre_ca !== null ? Centros.Nombre_ca : ''}</td>
-                    <td class="text-center">
-                        <a name="" id="" class="btn btn-info ubicar-paquete" data-latitud="${Centros.Latitud_ca}" data-longitud="${Centros.Longitud_ca}" target="_blank" role="button">
-                            <img src="{% static 'path_to_location_icon.png' %}" alt="Ubicar" height="65" width="65">
-                        </a>
-                    </td>
-                    <td class="acciones text-center">
-                        <a name="" class="btn btn-info editar" data-folioc="${Centros.Clave_ca}" role="button">Editar</a>
-                        |
-                        <a name="" class="btn btn-delete eliminar" data-folioc="${Centros.Clave_ca}" role="button">Eliminar</a>
-                    </td>
-                </tr>`;
-            });
+data.centros.forEach((Centros) => {
+    filas += `<tr>
+        <td class="direccion">${Centros.nombre_ca !== null ? Centros.nombre_ca : ''}</td>
+        <td class="text-center">
+            <a class="btn btn-info ubicar-paquete" data-latitud="${Centros.latitud_ca}" data-longitud="${Centros.longitud_ca}" target="_blank" role="button">
+                Ubicar
+            </a>
+        </td>
+        <td class="acciones text-center">
+            <a class="btn btn-info editar" data-folioc="${Centros.clave_ca}" role="button">Editar</a>
+            |
+            <a class="btn btn-delete eliminar" data-folioc="${Centros.clave_ca}" role="button">Eliminar</a>
+        </td>
+    </tr>`;
+});
 
 
 

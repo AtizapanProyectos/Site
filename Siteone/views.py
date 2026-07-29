@@ -3432,15 +3432,30 @@ def centros_acopio(request):
   })
 
 def centros_acopio_consulta(request, idestado):
-        # Filtrar los centros de acopio usando el ORM
-    centros_de_acopio = list(CentrosDeAcopio.objects.filter(Idestado=idestado).values())
+    try:
+        # Usamos idEstado con E mayúscula como está en la base de datos
+        centros_qs = CentrosDeAcopio.objects.filter(idEstado=idestado).values(
+            'clave_ca', 
+            'nombre_ca', 
+            'direccion_ca', 
+            'latitud_ca', 
+            'longitud_ca', 
+            'anio'
+        )
+        centros_de_acopio = list(centros_qs)
         
-    if len(centros_de_acopio) > 0:
-        data = {'message': "Success", 'centros': centros_de_acopio}
-    else:
-        data = {'message': "Not found"}
+        if len(centros_de_acopio) > 0:
+            data = {'message': "Success", 'centros': centros_de_acopio}
+        else:
+            data = {'message': "Not found", 'centros': []}
 
-    return JsonResponse(data)
+        # DjangoJSONEncoder evita errores con valores NULL o tipos de datos especiales
+        data_json = json.dumps(data, cls=DjangoJSONEncoder)
+        return HttpResponse(data_json, content_type='application/json')
+
+    except Exception as e:
+        print(f"Error en centros_acopio_consulta: {e}")
+        return JsonResponse({'message': 'Error', 'error': str(e)}, status=500)
 
 
 def distritos(request):
