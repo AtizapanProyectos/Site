@@ -110,20 +110,34 @@ class CasillasForm(forms.ModelForm):
     tipo = forms.ChoiceField(
         choices=Tipo_Casilla.choices, 
         label="Tipo de Casilla",
+        widget=forms.Select(attrs={'class': 'form-control'})
     )
-    idmunicipio = forms.ModelChoiceField(
-        queryset=Municipios.objects.all(),
-        label="Municipio",
-    )    
     iddistrito = forms.ModelChoiceField(
         queryset=Distritos.objects.all(),
         label="Distrito",
+        widget=forms.Select(attrs={'class': 'form-control'})
     )   
+    idmunicipio = forms.ModelChoiceField(
+        queryset=Municipios.objects.all(),
+        label="Municipio",
+        widget=forms.Select(attrs={'class': 'form-control'})
+    )    
 
     class Meta:
         model = Casillas
         fields = ['iddistrito', 'idmunicipio', 'folioc', 'tipo', 'direccion', 'latitud_cas', 'longitud_cas']
-
+        labels = {
+            'folioc': 'Sección / Folio',
+            'direccion': 'Dirección',
+            'latitud_cas': 'Latitud',
+            'longitud_cas': 'Longitud',
+        }
+        widgets = {
+            'folioc': forms.TextInput(attrs={'class': 'form-control'}),
+            'direccion': forms.TextInput(attrs={'class': 'form-control'}),
+            'latitud_cas': forms.TextInput(attrs={'class': 'form-control'}),
+            'longitud_cas': forms.TextInput(attrs={'class': 'form-control'}),
+        }
 
     def __init__(self, *args, **kwargs):
         readonly_mode = kwargs.pop('readonly_mode', False)
@@ -135,7 +149,21 @@ class CasillasForm(forms.ModelForm):
             self.fields['iddistrito'].queryset = Distritos.objects.filter(idestado=estado_id)
             self.fields['idmunicipio'].queryset = Municipios.objects.filter(idestado=estado_id)
 
-        # Si readonly_mode es True, establece todos los campos como de solo lectura
+        # Si viene información POST, mantener opciones válidas
+        if self.data and self.data.get('iddistrito'):
+            try:
+                d_id = int(self.data.get('iddistrito'))
+                self.fields['iddistrito'].queryset = Distritos.objects.filter(pk=d_id)
+            except (ValueError, TypeError):
+                pass
+
+        if self.data and self.data.get('idmunicipio'):
+            try:
+                m_id = int(self.data.get('idmunicipio'))
+                self.fields['idmunicipio'].queryset = Municipios.objects.filter(pk=m_id)
+            except (ValueError, TypeError):
+                pass
+
         if readonly_mode:
             for field_name, field in self.fields.items():
                 field.widget.attrs['readonly'] = True

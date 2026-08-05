@@ -3196,13 +3196,50 @@ def casillas_editar(request,id, eleccion, iddistrito, anio):
     context['logo'] = logos.logo # Agregar 'años' al diccionario de contexto
 
 
-    casilla = get_object_or_404(Casillas, folioc=id)
-    formulario = CasillasForm(request.POST or None, request.FILES or None, instance=casilla)
-    if formulario.is_valid() and request.POST:
-        formulario.save()
-        return redirect('casillas')
-    return render(request, 'configuracion/casillas/editar.html', {'formulario': formulario, 'cargo': casilla, 'nombreedo':estado.nombre_edo, 'eleccion':eleccion, 'anio':anio, **context})
+    casilla = Casillas.objects.filter(
+        folioc=id,
+        idproceso=proceso,
+        idestado=estado_id,
+        iddistrito=iddistrito
+    ).first()
 
+    # Si no la encuentra con iddistrito, intentamos buscarla por folioc, proceso y estado
+    if not casilla:
+        casilla = get_object_or_404(Casillas, folioc=id, idproceso=proceso, idestado=estado_id)
+
+    if request.method == 'POST':
+        formulario = CasillasForm(
+            request.POST, 
+            request.FILES or None, 
+            instance=casilla, 
+            estado_id=estado_id
+        )
+        if formulario.is_valid():
+            instancia = formulario.save(commit=False)
+            
+            distrito = formulario.cleaned_data.get('iddistrito')
+            municipio = formulario.cleaned_data.get('idmunicipio')
+
+            if distrito:
+                instancia.iddistrito = distrito
+            if municipio:
+                instancia.idmunicipio = municipio
+
+            instancia.save()
+            return redirect('casillas')
+        else:
+            print("Errores al editar casilla:", formulario.errors)
+    else:
+        formulario = CasillasForm(instance=casilla, estado_id=estado_id)
+
+    return render(request, 'configuracion/casillas/editar.html', {
+        'formulario': formulario, 
+        'cargo': casilla, 
+        'nombreedo': estado.nombre_edo, 
+        'eleccion': eleccion, 
+        'anio': anio, 
+        **context
+    })
 
 
 
@@ -4803,31 +4840,38 @@ def casillas_agregar(request, eleccion, iddistrito, anio, idestado):
     context['logo'] = logos.logo # Agregar 'años' al diccionario de contexto
     estado_id = request.session['ID_ESTADO']
     proceso = get_object_or_404(Procesos, descrip=eleccion, idestado=estado_id)
-
     estado = get_object_or_404(Estados, idestado=estado_id)
-    # Filtra el conjunto de datos para idproceso en el formulario
-    formulario = CasillasForm(initial={'idestado': estado_id, 'idproceso': proceso,  'iddistrito': iddistrito }, estado_id=estado_id)
 
     if request.method == 'POST':
-        formulario = CasillasForm(request.POST)
+        formulario = CasillasForm(request.POST, request.FILES or None, estado_id=estado_id)
         if formulario.is_valid():
-            
             municipio = formulario.cleaned_data['idmunicipio']  
             distrito = formulario.cleaned_data['iddistrito']
 
             casilla = formulario.save(commit=False)
-            casilla.idestado_id = estado.idestado
-            casilla.idmunicipio_id = municipio.idmunicipio
-            casilla.iddistrito_id = distrito.iddistrito
-            casilla.idproceso_id = proceso.idproceso
-            
+            casilla.idestado = estado
+            casilla.idmunicipio = municipio
+            casilla.iddistrito = distrito
+            casilla.idproceso = proceso
+            casilla.anio = anio
             casilla.save()
             
             return redirect('casillas')
+        else:
+            print("Errores en agregar casilla:", formulario.errors)
+    else:
+        formulario = CasillasForm(
+            initial={'idestado': estado_id, 'idproceso': proceso, 'iddistrito': iddistrito}, 
+            estado_id=estado_id
+        )
 
-    return render(request, 'configuracion/casillas/crear.html', {'formulario': formulario, 'nombreedo':estado.nombre_edo, 'eleccion':eleccion,  'anio':anio, **context})
-
-
+    return render(request, 'configuracion/casillas/crear.html', {
+        'formulario': formulario, 
+        'nombreedo': estado.nombre_edo, 
+        'eleccion': eleccion,  
+        'anio': anio, 
+        **context
+    })
 
 
 
