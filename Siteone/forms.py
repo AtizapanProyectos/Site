@@ -45,15 +45,58 @@ class CentrosdeAcopioForm(forms.ModelForm):
     idDistrito = forms.ModelChoiceField(
         queryset=Distritos.objects.all(),
         label="Distrito",
-    )   
+        required=False,
+        widget=forms.Select(attrs={'class': 'form-control'})
+    )
 
     idMunicipio = forms.ModelChoiceField(
         queryset=Municipios.objects.all(),
         label="Municipio",
-    )   
+        required=False,
+        widget=forms.Select(attrs={'class': 'form-control'})
+    )
+
     class Meta:
         model = CentrosDeAcopio
-        fields = [ 'Clave_ca', 'Nombre_ca', 'Direccion_ca', 'idDistrito', 'idMunicipio','Latitud_ca', 'Longitud_ca']
+        fields = [
+            'Clave_ca',
+            'Nombre_ca',
+            'Direccion_ca',  # <--- CORREGIDO: 'c' en lugar de 'n'
+            'idDistrito',
+            'idMunicipio',
+            'Latitud_ca',
+            'Longitud_ca'
+        ]
+        widgets = {
+            'Clave_ca': forms.TextInput(attrs={'class': 'form-control'}),
+            'Nombre_ca': forms.TextInput(attrs={'class': 'form-control'}),
+            'Direccion_ca': forms.TextInput(attrs={'class': 'form-control'}),  # <--- CORREGIDO
+            'Latitud_ca': forms.TextInput(attrs={'class': 'form-control'}),
+            'Longitud_ca': forms.TextInput(attrs={'class': 'form-control'}),
+        }
+
+    def __init__(self, *args, **kwargs):
+        estado_id = kwargs.pop('estado_id', None)
+        super().__init__(*args, **kwargs)
+
+        if estado_id:
+            self.fields['idDistrito'].queryset = Distritos.objects.filter(idestado=estado_id)
+            self.fields['idMunicipio'].queryset = Municipios.objects.filter(idestado=estado_id)
+
+        if self.data:
+            if self.data.get('idDistrito'):
+                try:
+                    d_id = int(self.data.get('idDistrito'))
+                    self.fields['idDistrito'].queryset = Distritos.objects.filter(pk=d_id)
+                except (ValueError, TypeError):
+                    pass
+            if self.data.get('idMunicipio'):
+                try:
+                    m_id = int(self.data.get('idMunicipio'))
+                    self.fields['idMunicipio'].queryset = Municipios.objects.filter(pk=m_id)
+                except (ValueError, TypeError):
+                    pass
+
 
 class CargosEntregaForm(forms.ModelForm): 
     

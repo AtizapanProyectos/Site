@@ -3206,12 +3206,8 @@ def casillas_editar(request,id, eleccion, iddistrito, anio):
 
 
 
-def centros_acopio_editar(request,id, anio):
-
-
+def centros_acopio_editar(request, id, anio):
     estado_id = request.session['ID_ESTADO']
-
-
     estado = get_object_or_404(Estados, idestado=estado_id)
 
     print(request.session['ID_USUARIO'])
@@ -3303,12 +3299,33 @@ def centros_acopio_editar(request,id, anio):
 
 
     centro = get_object_or_404(CentrosDeAcopio, Clave_ca=id)
-    formulario = CentrosdeAcopioForm(request.POST or None, request.FILES or None, instance=centro)
-    if formulario.is_valid() and request.POST:
-        formulario.save()
-        return redirect('centros_ca')
-    return render(request, 'configuracion/centros_acopio/editar.html', {'formulario': formulario, 'nombreedo':estado.nombre_edo,  'anio':anio, **context})
 
+    if request.method == 'POST':
+        formulario = CentrosdeAcopioForm(
+            request.POST, 
+            request.FILES or None, 
+            instance=centro,
+            estado_id=estado_id
+        )
+        if formulario.is_valid():
+            instancia = formulario.save(commit=False)
+            
+            # Asignamos explícitamente a las propiedades del modelo (con Mayúsculas)
+            instancia.idDistrito = formulario.cleaned_data.get('idDistrito')
+            instancia.idMunicipio = formulario.cleaned_data.get('idMunicipio')
+
+            instancia.save()
+            return redirect('centros_ca')
+        else:
+            print("Errores al editar:", formulario.errors)
+    else:
+        formulario = CentrosdeAcopioForm(instance=centro, estado_id=estado_id)
+
+    return render(
+        request, 
+        'configuracion/centros_acopio/editar.html', 
+        {'formulario': formulario, 'nombreedo': estado.nombre_edo, 'anio': anio, **context}
+    )
 
 
 
@@ -3433,30 +3450,48 @@ def centros_acopio(request):
 
 def centros_acopio_consulta(request, idestado):
     try:
-        # Usamos idEstado con E mayúscula como está en la base de datos
-        centros_qs = CentrosDeAcopio.objects.filter(idEstado=idestado).values(
-            'clave_ca', 
-            'nombre_ca', 
-            'direccion_ca', 
-            'latitud_ca', 
-            'longitud_ca', 
-            'anio'
-        )
-        centros_de_acopio = list(centros_qs)
-        
-        if len(centros_de_acopio) > 0:
-            data = {'message': "Success", 'centros': centros_de_acopio}
-        else:
-            data = {'message': "Not found", 'centros': []}
+        # Verificar qué id llega
+        print("idestado recibido:", idestado)
 
-        # DjangoJSONEncoder evita errores con valores NULL o tipos de datos especiales
-        data_json = json.dumps(data, cls=DjangoJSONEncoder)
-        return HttpResponse(data_json, content_type='application/json')
+        # Consultar los centros de acopio del estado
+        centros_qs = CentrosDeAcopio.objects.filter(
+            Idestado_id=idestado
+        ).values(
+            'Clave_ca',
+            'Nombre_ca',
+            'Direccion_ca',
+            'Latitud_ca',
+            'Longitud_ca',
+            'Anio'
+        )
+
+        # Ver cuántos registros encontró
+        print("Total encontrados:", centros_qs.count())
+
+        centros_de_acopio = list(centros_qs)
+
+        if centros_de_acopio:
+            data = {
+                'message': 'Success',
+                'centros': centros_de_acopio
+            }
+        else:
+            data = {
+                'message': 'Not found',
+                'centros': []
+            }
+
+        return JsonResponse(data)
 
     except Exception as e:
         print(f"Error en centros_acopio_consulta: {e}")
-        return JsonResponse({'message': 'Error', 'error': str(e)}, status=500)
-
+        return JsonResponse(
+            {
+                'message': 'Error',
+                'error': str(e)
+            },
+            status=500
+        )
 
 def distritos(request):
 
@@ -4889,26 +4924,29 @@ def Centros_acopio_agregar(request, anio, idestado):
   
     estado = get_object_or_404(Estados, idestado=estado_id)
     # Filtra el conjunto de datos para idproceso en el formulario
-    formulario = CentrosdeAcopioForm(initial={'idestado': estado_id,})
+    formulario = CentrosdeAcopioForm(
+    estado_id=estado_id
+)
 
     if request.method == 'POST':
-        formulario = CentrosdeAcopioForm(request.POST)
+        formulario = CentrosdeAcopioForm(request.POST, request.FILES or None, estado_id=estado_id)
         if formulario.is_valid():
-
-            municipio = formulario.cleaned_data['idmunicipio']  
-            distrito = formulario.cleaned_data['iddistrito']
-
-         
             casilla = formulario.save(commit=False)
-            casilla.Idestado_id = estado.idestado
-            casilla.idmunicipio_id = municipio.idmunicipio
-            casilla.iddistrito_id = distrito.iddistrito
+            casilla.Idestado = estado
+            casilla.Anio = anio
+            casilla.idMunicipio = formulario.cleaned_data.get('idMunicipio')
+            casilla.idDistrito = formulario.cleaned_data.get('idDistrito')
             casilla.save()
-            
             return redirect('centros_ca')
+    else:
+        # AQUÍ: Pasamos estado_id en la petición GET para filtrar distritos/municipios iniciales
+        formulario = CentrosdeAcopioForm(estado_id=estado_id)
 
-    return render(request, 'configuracion/centros_acopio/crear.html', {'formulario': formulario, 'nombreedo':estado.nombre_edo, 'anio':anio, **context})
-
+    return render(
+        request, 
+        'configuracion/centros_acopio/crear.html', 
+        {'formulario': formulario, 'nombreedo': estado.nombre_edo, 'anio': anio, **context}
+    )
 
 
 

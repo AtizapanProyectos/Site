@@ -27,7 +27,7 @@
     border-radius: 20px;
     box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
     margin: auto;
-    margin-top: 20px; /* Ajusta este valor según sea necesario */
+    margin-top: 20px;
   }
 
   .form-label {
@@ -46,7 +46,6 @@
     margin-bottom: 20px;
   }
 
- 
   #botones-fila {
     display: flex;
     justify-content: center;
@@ -74,11 +73,11 @@
       margin-top: 10px;
     }
 
-  .form-label {
-    color: #000000e5;
-    font-weight: bold;
-    font-size: 14px;
-  }
+    .form-label {
+      color: #000000e5;
+      font-weight: bold;
+      font-size: 14px;
+    }
 
     .form-control {
       font-size: 14px;
@@ -91,14 +90,12 @@
     }
 
     #botones-fila.botones-fijos {
-  position: absolute;
-  bottom: -275px; /* Ajusta este valor según tu preferencia */
-  left: 50%;
-  transform: translateX(-50%);
-  z-index: 9999;
-}
-
-    
+      position: absolute;
+      bottom: -275px;
+      left: 50%;
+      transform: translateX(-50%);
+      z-index: 9999;
+    }
   }
 </style>
 
@@ -107,22 +104,14 @@
     {% csrf_token %}
     {% for campo in formulario %}
       <div class="mb-3">
-        <label for="{{ campo.id }}" class="form-label">{{ campo.label }}</label>
+        <label for="{{ campo.id_for_label }}" class="form-label">{{ campo.label }}</label>
 
         {% if campo.field.widget.input_type == 'file' and campo.value %}
           <br>
           <img src="{{MEDIA_URL}}/images/{{campo.value}}" width="100" alt="">
         {% endif %}
 
-        <input
-          type="{{ campo.field.widget.input_type }}"
-          class="form-control"
-          name="{{ campo.name }}"
-          id="{{ campo.id }}"
-          aria-describedby="helpId"
-          placeholder="{{ campo.label }}"
-          value="{{ campo.value | default:'' }}"
-        />
+        {{ campo }}
       </div>
       <div class="col-12 help-text text-danger">{{ campo.errors }}</div>
     {% endfor %}
@@ -135,9 +124,44 @@
   </form>
 
   <script>
+    // Redirección de botones Cancelar y Cerrar
     document.getElementById('cerrar-button').addEventListener('click', function() {
       window.location.href = "{% url 'centros_ca' %}";
     });
+
+    document.getElementById('cer').addEventListener('click', function() {
+      window.location.href = "{% url 'centros_ca' %}";
+    });
+
+    // Función AJAX para traer municipios filtrados por distrito
+    const listarMunicipios = async (idDistrito) => {
+      try {
+        const response = await fetch(`/filtrarmunicipiospordistrito/${idDistrito}`);
+        const data = await response.json();
+
+        if (data.message === "Success") {
+          let opciones = '<option value="">------------</option>';
+          data.municipios.forEach((mpo) => {
+            opciones += `<option value="${mpo.idmunicipio}">${mpo.nombre_mpo}</option>`;
+          });
+          document.getElementById('id_idMunicipio').innerHTML = opciones;
+        }
+      } catch (error) {
+        console.log("Error al filtrar municipios:", error);
+      }
+    }
+
+    // Escuchar cambios en el selector de Distrito
+    const distSelect = document.getElementById('id_idDistrito');
+    if (distSelect) {
+      distSelect.addEventListener("change", (event) => {
+        if (event.target.value) {
+          listarMunicipios(event.target.value);
+        } else {
+          document.getElementById('id_idMunicipio').innerHTML = '<option value="">------------</option>';
+        }
+      });
+    }
   </script>
 
   <script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"></script>

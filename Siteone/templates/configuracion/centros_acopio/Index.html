@@ -473,22 +473,31 @@ const listarCasillasEnTabla = async (cboestado) => {
 
         if (data.message === "Success") {
             let filas = '';
-data.centros.forEach((Centros) => {
+data.centros.forEach((Centro) => {
     filas += `<tr>
-        <td class="direccion">${Centros.nombre_ca !== null ? Centros.nombre_ca : ''}</td>
+        <td class="direccion">${Centro.Nombre_ca ?? ''}</td>
         <td class="text-center">
-            <a class="btn btn-info ubicar-paquete" data-latitud="${Centros.latitud_ca}" data-longitud="${Centros.longitud_ca}" target="_blank" role="button">
+            <a class="btn btn-info ubicar-paquete"
+               data-latitud="${Centro.Latitud_ca}"
+               data-longitud="${Centro.Longitud_ca}">
                 Ubicar
             </a>
         </td>
         <td class="acciones text-center">
-            <a class="btn btn-info editar" data-folioc="${Centros.clave_ca}" role="button">Editar</a>
+            <a class="btn btn-info editar"
+               data-folioc="${Centro.Clave_ca}">
+                Editar
+            </a>
             |
-            <a class="btn btn-delete eliminar" data-folioc="${Centros.clave_ca}" role="button">Eliminar</a>
+            <a class="btn btn-delete eliminar"
+               data-folioc="${Centro.Clave_ca}">
+                Eliminar
+            </a>
         </td>
     </tr>`;
 });
-
+console.log(data.centros);
+console.log(data.centros[0]);
 
 
 

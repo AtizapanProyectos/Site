@@ -99,29 +99,18 @@
     {% csrf_token %}
     {% for campo in formulario %}
     <div class="mb-3">
-        <label for="" class="form-label">{{ campo.label }}</label>
+        <label for="{{ campo.id_for_label }}" class="form-label">{{ campo.label }}</label>
         
-        {% if campo.field.widget.input_type == 'file'  and campo.value %}
-       
-        <br>
-        <img src="{{MEDIA_URL}}/images/{{campo.value}} " width="100" alt="" srcset="">
+        {% if campo.field.widget.input_type == 'file' and campo.value %}
+            <br>
+            <img src="{{MEDIA_URL}}/images/{{campo.value}}" width="100" alt="">
+        {% endif %}
 
-        {% endif  %}
-
-
-        <input
-            type="{{ campo.field.widget.input_type }}"
-            class="form-control"
-            name="{{ campo.name }}"
-            aria-describedby="helpId"
-            placeholder="{{ campo.label }}"
-            value="{{ campo.value | default:'' }}"
-        />
+        {# Dejamos que Django pinte el control adecuado (Select, Input, File, etc.) #}
+        {{ campo }}
     </div>
     <div class="col-12 help-text text-danger">{{ campo.errors }}</div>
     {% endfor %}
-
-
 
     <div id="botones-fila">
         <input
@@ -131,7 +120,7 @@
             type="submit"
             value="Guardar Datos"
         />
-        <button class="btn btn-fila">Cancelar</button>
+        <button type="button" class="btn btn-fila">Cancelar</button>
         <a
             name=""
             id=""
@@ -140,10 +129,7 @@
             role="button"
             >Cerrar</a
         >
-        
-
     </div>
-    
 </form>
 
 <script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"></script>
