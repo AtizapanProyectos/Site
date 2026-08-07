@@ -12,14 +12,12 @@
   <h1 class="text-center mb-4" style="color: #3a3a3ae5;">Sección: {{seccion}}</h1>
   <h1 class="text-center mb-4" style="color: #3a3a3ae5;">{{valor}}</h1>
   <h1 class="text-center mb-4" style="color: #3a3a3ae5;">Número de Paquete: {{paqueteno}}</h1>
-
 </center>
 {% endblock %}
 
 {% block contenido %}
 
 <style>
-
 .form-control,
   input,
   select {
@@ -50,8 +48,7 @@
 
   #botones-fila {
     position: relative;
-
-    margin-top: 30px; /* Ajusta este valor según tu preferencia */
+    margin-top: 30px;
     text-align: center;
   }
 
@@ -60,15 +57,15 @@
   display: flex;
   justify-content: center;
   flex-wrap: wrap;
-  gap: 10px; /* Espacio entre los botones */
-  margin-top: 30px; /* Ajusta este valor según tu preferencia */
+  gap: 10px;
+  margin-top: 30px;
 }
 
 /* Estilo para los botones individuales */
 #botones-fila .btn {
   flex: 1;
-  min-width: 100px; /* Ajusta el ancho mínimo de los botones */
-  padding: 10px 20px; /* Espacio interno de los botones */
+  min-width: 100px;
+  padding: 10px 20px;
 }
 
 /* Estilos específicos para pantallas pequeñas */
@@ -79,10 +76,9 @@
   }
 
   #botones-fila .btn {
-    width: 80%; /* Ancho de los botones en pantallas pequeñas */
+    width: 80%;
   }
 }
-
 
   #id_cantidad_boletas {
     background-color: #bcbcbc;
@@ -116,92 +112,31 @@
     </div>
     <div id="botones-fila">
       <button name="" style="color: black" id="" class="btn btn-fila" type="submit">Guardar Datos</button>
-      <button class="btn btn-fila" style="color: black ">Cancelar</button>
-      <button class="btn btn-fila" style="color: black" id="cerrar-button">Cerrar</button>
+      <button type="button" class="btn btn-fila" style="color: black" id="cancelar-button">Cancelar</button>
+      <button type="button" class="btn btn-fila" style="color: black" id="cerrar-button">Cerrar</button>
     </div>
   </form>
-
-  <script>
-    var consultarAgregarButton = document.getElementById('cerrar-button');
-    consultarAgregarButton.addEventListener('click', function() {
-      window.location.href = "{% url 'Entrega_Paquetes_CAE' %}";
-    });
-  </script>
 
   <script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.11.6/dist/umd/popper.min.js"></script>
   <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/sweetalert2@10"></script>
 
-<script>
-
-document.addEventListener('DOMContentLoaded', function() {
-    const folioInicioInput = document.getElementById('id_folio_inicio');
-    const folioFinInput = document.getElementById('id_folio_fin');
-    const cantidadBoletasInput = document.getElementById('id_cantidad_boletas');
-    // Establecer el campo de cantidad de boletas como de solo lectura
-    cantidadBoletasInput.setAttribute('readonly', 'readonly');
-    folioInicioInput.addEventListener('blur', calcularCantidadBoletas);
-    folioFinInput.addEventListener('blur', calcularCantidadBoletas);
-
-    function calcularCantidadBoletas() {
-        const folioInicio = parseInt(folioInicioInput.value) || 0;
-        const folioFin = parseInt(folioFinInput.value) || 0;
-
-        const cantidadBoletas = folioFin - folioInicio;
-
-        if (!isNaN(cantidadBoletas) && cantidadBoletas >= 0) {
-            cantidadBoletasInput.value = cantidadBoletas;
-
-            // Verificar si la cantidad de boletas es mayor que 750
-            if (cantidadBoletas > 750) {
-                // Mostrar una alerta indicando que no se puede
-                Swal.fire({
-                    title: 'Alerta de boletas',
-                    text: 'La cantidad de boletas no puede ser mayor que 750',
-                    icon: 'warning'
-                });
-            }
-        } else {
-            cantidadBoletasInput.value = '';
-            Swal.fire({
-                    title: 'Error',
-                    text: 'El folio Fin no puede ser menor que el folio de inicio',
-                    icon: 'error'
-                });
-        }
-
-        console.log("Folio de inicio:", folioInicio);
-        console.log("Folio de fin:", folioFin);
-        console.log("Cantidad de boletas:", cantidadBoletas);
-    }
-});
-
-
-
-
-  // Espera a que el documento esté completamente cargado
-  document.addEventListener("DOMContentLoaded", function() {
-    // Obtén el elemento de select por su ID
-    var selectEleccion = document.getElementById("id_idcargo_recibe");
-    
-    // Establece el atributo readonly en true para hacer el campo de solo vista
-    if (selectEleccion) {
-      // Deshabilita la edición directa del campo
-      selectEleccion.addEventListener("mousedown", function(event) {
-        event.preventDefault();
-        this.blur();
-      });
-
-      selectEleccion.addEventListener("keydown", function(event) {
-        event.preventDefault();
+  <script>
+    var cerrarBtn = document.getElementById('cerrar-button');
+    if (cerrarBtn) {
+      cerrarBtn.addEventListener('click', function() {
+        window.location.href = "{% url 'Entrega_Paquetes_CAE' %}";
       });
     }
-  });
 
-
-</script>
-
+    var cancelarBtn = document.getElementById('cancelar-button');
+    if (cancelarBtn) {
+      cancelarBtn.addEventListener('click', function() {
+        window.location.href = "{% url 'Entrega_Paquetes_CAE' %}";
+      });
+    }
+  </script>
 </body>
 
 {% endblock %}

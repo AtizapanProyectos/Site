@@ -507,38 +507,35 @@ color: #000000e5;
 
   console.log("Ejecutando JS");
   
-  btnagregar.addEventListener("click", (event) =>{
-
-
+btnagregar.addEventListener("click", (event) => {
     const cboeleccionSelectedOption = cboeleccion.options[cboeleccion.selectedIndex].text;
-        const cbocargoSelectedOption = cbocargo.options[cbocargo.selectedIndex].text;
+    const cbocargoSelectedOption = cbocargo.options[cbocargo.selectedIndex].text;
 
-        const idmuni = cbomuni.options[cbomuni.selectedIndex]?.text || '';
-        const iddistrito = cbodis.options[cbodis.selectedIndex]?.text || '';
-        const idestado = cboestado.options[cboestado.selectedIndex]?.text || '';
-        let valorparaurl=null;
-        let ide=null
+    // Solo tomamos el valor si el combo está visible
+    const muniVisible = document.getElementById('cbomuni').style.display !== 'none';
+    const disVisible = document.getElementById('cbodis').style.display !== 'none';
 
-if (idmuni) {
-    console.log("Municipio seleccionado:", idmuni);
-    valorparaurl = idmuni;
-    ide=cbomuni.value;
-} else if (iddistrito) {
-    console.log("Distrito seleccionado:", iddistrito);
-    valorparaurl = iddistrito;
-    ide=cbodis.value;
-} else if (idestado) {
-    console.log("Estado seleccionado:", idestado);
-    valorparaurl = idestado;
-    ide=cbomuni.value
-} else {
-    console.log("No se seleccionó ningún valor.");
-}
+    const idmuni = muniVisible ? (cbomuni.options[cbomuni.selectedIndex]?.text || '') : '';
+    const iddistrito = disVisible ? (cbodis.options[cbodis.selectedIndex]?.text || '') : '';
+    const idestado = cboestado.options[cboestado.selectedIndex]?.text || '';
+
+    let valorparaurl = null;
+    let ide = null;
+
+    if (idmuni) {
+        valorparaurl = idmuni;
+        ide = cbomuni.value;
+    } else if (iddistrito) {
+        valorparaurl = iddistrito;
+        ide = cbodis.value;
+    } else if (idestado) {
+        valorparaurl = idestado;
+        ide = cboestado.value; // Corregido: antes tenía cbomuni.value
+    }
 
     const url = `/Paquetes/Armar/${cboeleccionSelectedOption}/${cbocargoSelectedOption}/${cboaño.value}/${valorparaurl}/${ide}`;
-           window.location.href = url;
-
-  });
+    window.location.href = url;
+});
 
   
 
@@ -815,27 +812,21 @@ if (idmuni) {
   }
 
 
-
-  const listarNumerodeElecciones=async(idtipo_cargo, idproceso)=>{
-    var tipo=null;
-    try {
-   
-    const response =await fetch(`/NumeroEleccion/${idproceso}/${idtipo_cargo}`)
+const listarNumerodeElecciones = async (idtipo_cargo, idproceso) => {
+  var tipo = null;
+  try {
+    const response = await fetch(`/NumeroEleccion/${idproceso}/${idtipo_cargo}`);
     const data = await response.json();
     console.log(data);
-   
-     if (data.message=="Success"){
-   
-       let opciones = '';
 
+    if (data.message == "Success") {
+      let opciones = '';
 
-       data.results.forEach((Distritos)=>{
-        tipo=Distritos.idtipoc;
+      data.results.forEach((Distritos) => {
+        tipo = Distritos.idtipoc;
 
         if (Distritos.idtipoc === 'AY') {
-        // Código a ejecutar si Distritos.idtipoc es igual a 'AY'
-
-          // Ocultar el label y select para "Municipio"
+          // Muestra Municipio para Ayuntamiento
           document.querySelector('label[for="combobox5"]').style.display = 'block';
           document.getElementById('cbomuni').style.display = 'block';
 
@@ -843,59 +834,44 @@ if (idmuni) {
           document.getElementById('cbodis').style.display = 'none';
           opciones += `<option value="${Distritos.idMunicipio}">${Distritos.nombre}</option>`;
 
-        } else if (Distritos.idtipoc==='CO'){
-        // Código a ejecutar si Distritos.idtipoc no es igual a 'AY'
-      
-          // Ocultar el label y select para "Distrito"
+        } else if (Distritos.idtipoc === 'CO') {
+          // Muestra Distrito para Congreso / Mayoría Relativa
           document.querySelector('label[for="combobox6"]').style.display = 'block';
           document.getElementById('cbodis').style.display = 'block';
+
           document.querySelector('label[for="combobox5"]').style.display = 'none';
           document.getElementById('cbomuni').style.display = 'none';
           opciones += `<option value="${Distritos.idDistrito}">${Distritos.nombre}</option>`;
 
-
         } else {
-          document.querySelector('label[for="combobox5"]').style.display = 'block';
-          document.getElementById('cbomuni').style.display = 'block';
+          // Para Gubernatura o cualquier cargo estatal, OCULTA Municipio y Distrito
+          document.querySelector('label[for="combobox5"]').style.display = 'none';
+          document.getElementById('cbomuni').style.display = 'none';
+
           document.querySelector('label[for="combobox6"]').style.display = 'none';
           document.getElementById('cbodis').style.display = 'none';
         }
+      });
 
-          // Limpiar el contenido actual del select de "Municipio"
+      // Asigna opciones según corresponda
+      if (tipo === 'AY') {
+        cbomuni.innerHTML = opciones;
+      } else if (tipo === 'CO') {
+        cbodis.innerHTML = opciones;
+      } else {
+        cbomuni.innerHTML = '';
+        cbodis.innerHTML = '';
+      }
 
-   
-
-       });
-       console.log("esoooo: "+tipo)
- 
-
-
-       if (tipo === 'AY') {
-    // Código a ejecutar si Distritos.idtipoc es igual a 'AY'
-    console.log('El valor de idtipoc es AY');
-    cbomuni.innerHTML = opciones;
-} else if (tipo==='CO') {
-    // Código a ejecutar si Distritos.idtipoc no es igual a 'AY'
-    console.log('El valor de idtipoc no es AY');
-    cbodis.innerHTML = opciones;
-}
-
-  
-
-       
-
-       
-     }else{
-       alert("Distritos no encontrados");
-     }
-   
-   
-    } catch (error) {
-     console.log(error);
+    } else {
+      alert("Distritos o Municipios no encontrados");
     }
 
+  } catch (error) {
+    console.log(error);
+  }
+}
 
-   }
 
   
     const cargainicial =async()=>{

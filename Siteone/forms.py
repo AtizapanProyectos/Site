@@ -1114,38 +1114,63 @@ class Armado_paquetes(forms.ModelForm):
     folioc = forms.ModelChoiceField(
         queryset=Casillas.objects.all(),
         label="Pertenece a la Casilla: ",
+        widget=forms.Select(attrs={'class': 'form-control'})
     )
     clave_ca = forms.ModelChoiceField(
         queryset=CentrosDeAcopio.objects.all(),
         label="Se entregará en el centro de acopio: ",
+        widget=forms.Select(attrs={'class': 'form-control'})
     )
 
     idcargoople = forms.ModelChoiceField(
         queryset=CatCargosOple.objects.all(),
         label="Responsable Armado",
+        widget=forms.Select(attrs={'class': 'form-control'})
     )
     actas_entregadas = forms.ChoiceField(
         choices=yes_no_option.choices, 
         label="¿Se Integraron las Actas?",
+        widget=forms.Select(attrs={'class': 'form-control'})
     )
     listasnominales_entrega = forms.ChoiceField(
         choices=yes_no_option.choices, 
         label="¿Se Integraron las Listas Nominales?",
+        widget=forms.Select(attrs={'class': 'form-control'})
     )
 
     def __init__(self, *args, **kwargs):
         ide = kwargs.pop('ide', None)
+        estado_id = kwargs.pop('estado_id', None)
         super(Armado_paquetes, self).__init__(*args, **kwargs)
         
+        # 1. Filtro para Casillas
         if ide:
-            self.fields['folioc'].queryset = Casillas.objects.filter(
-                Q(idmunicipio=ide) | Q(iddistrito=ide)
+            qs_casillas = Casillas.objects.filter(
+                Q(idmunicipio=ide) | Q(iddistrito=ide) | Q(idestado=ide)
             )
-            self.fields['clave_ca'].queryset = CentrosDeAcopio.objects.filter(
-                Q(idMunicipio=ide) | Q(idDistrito=ide)
+            if qs_casillas.exists():
+                self.fields['folioc'].queryset = qs_casillas
+            elif estado_id:
+                self.fields['folioc'].queryset = Casillas.objects.filter(idestado=estado_id)
+        elif estado_id:
+            self.fields['folioc'].queryset = Casillas.objects.filter(idestado=estado_id)
+
+        # 2. Filtro para Centros de Acopio
+        if ide:
+            qs_ca = CentrosDeAcopio.objects.filter(
+                Q(idMunicipio=ide) | Q(idDistrito=ide) | Q(Idestado=ide)
             )
+            # Si encuentra centros específicos para esa demarcación los muestra;
+            # si no, muestra todos los centros de acopio del Estado.
+            if qs_ca.exists():
+                self.fields['clave_ca'].queryset = qs_ca
+            elif estado_id:
+                self.fields['clave_ca'].queryset = CentrosDeAcopio.objects.filter(Idestado=estado_id)
+            else:
+                self.fields['clave_ca'].queryset = CentrosDeAcopio.objects.all()
+        elif estado_id:
+            self.fields['clave_ca'].queryset = CentrosDeAcopio.objects.filter(Idestado=estado_id)
         else:
-            self.fields['folioc'].queryset = Casillas.objects.all()
             self.fields['clave_ca'].queryset = CentrosDeAcopio.objects.all()
 
     class Meta:
@@ -1155,6 +1180,12 @@ class Armado_paquetes(forms.ModelForm):
             'actas_entregadas', 'listasnominales_entrega',
             'idcargoople', 'nombre_cargo', 'folioc', 'clave_ca'
         ]
+        widgets = {
+            'folio_inicio': forms.TextInput(attrs={'class': 'form-control'}),
+            'folio_fin': forms.TextInput(attrs={'class': 'form-control'}),
+            'cantidad_boletas': forms.TextInput(attrs={'class': 'form-control'}),
+            'nombre_cargo': forms.TextInput(attrs={'class': 'form-control'}),
+        }
 
 class paquetes_Entrega_Cae (forms.ModelForm):
     idcargo_entrega=forms.ModelChoiceField(

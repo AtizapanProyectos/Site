@@ -11217,18 +11217,23 @@ def generar_pdf(request, anio, nombreeleccion, nombrecargo, idcand):
 def get_paquetes_armados(request, eleccion, cargo, id, key):
     print(str(id))
     print(key)
-    # Obtener el estado actual desde settings
+    # Obtener el estado actual desde la sesión
     id_estado = request.session['ID_ESTADO']
     proceso = get_object_or_404(Procesos, descrip=eleccion, idestado=id_estado)
 
-    with connection.cursor() as cursor:
-        cursor.execute("CALL obtener_num_elec(%s, %s, %s, %s )", [proceso.idproceso, cargo, id, key])
-        paquetes = cursor.fetchall()
+    try:
+        with connection.cursor() as cursor:
+            cursor.execute("CALL obtener_num_elec(%s, %s, %s, %s)", [proceso.idproceso, cargo, id, key])
+            paquetes = cursor.fetchall()
 
-    if len(paquetes) > 0:
-        data = {'message': "Success", 'paquetes': paquetes}
-    else:
-        data = {'message': "Not found"}
+        if len(paquetes) > 0:
+            data = {'message': "Success", 'paquetes': paquetes}
+        else:
+            data = {'message': "Not found", 'paquetes': []}
+
+    except Exception as e:
+        print("Aviso: No se encontraron registros en el Stored Procedure:", e)
+        data = {'message': "Not found", 'paquetes': []}
 
     return JsonResponse(data)
 
@@ -12083,33 +12088,36 @@ def agregar_paquetes_armados(request , eleccion, cargo, anio, valor, ide):
     ).first()
     print(num_elect)
     try:
-            if request.method == 'POST':
-                formulario = Armado_paquetes(request.POST)
-                if formulario.is_valid():
-                    cargoople_id = formulario.cleaned_data['idcargoople']
-                    folioc = formulario.cleaned_data['folioc']
-                    clave_ca= formulario.cleaned_data['clave_ca'] 
+        if request.method == 'POST':
+            formulario = Armado_paquetes(request.POST, request.FILES or None, ide=ide, estado_id=estado_id)
+            if formulario.is_valid():
+                cargoople_id = formulario.cleaned_data['idcargoople']
+                folioc = formulario.cleaned_data['folioc']
+                clave_ca = formulario.cleaned_data['clave_ca'] 
 
-                    print(cargoople_id)
-                    print(folioc.folioc)
-                    print(clave_ca.Clave_ca)
-                    cargoople = get_object_or_404(CatCargosOple,nombre_cargo=cargoople_id)
-                    casilla = get_object_or_404(Casillas, folioc=folioc.folioc)
-                    centro_acopio=get_object_or_404(CentrosDeAcopio, Clave_ca=clave_ca.Clave_ca)
-                    Paquete = formulario.save(commit=False)
+                print(cargoople_id)
+                print(folioc.folioc)
+                print(clave_ca.Clave_ca)
 
-                    Paquete.num_elec=num_elect
-                    Paquete.folioc =casilla
-                    Paquete.idProceso=eleccion
-                    Paquete.clave_ca =centro_acopio
-                    Paquete.fecha_entrega = fecha_hora_actual_python
-                    Paquete.hora_entrega = hora_actual
-                    Paquete.idcargoople = cargoople
-                    Paquete.estatus = "C"
-                    Paquete.save()
+                cargoople = get_object_or_404(CatCargosOple, nombre_cargo=cargoople_id)
+                casilla = get_object_or_404(Casillas, folioc=folioc.folioc)
+                centro_acopio = get_object_or_404(CentrosDeAcopio, Clave_ca=clave_ca.Clave_ca)
+
+                Paquete = formulario.save(commit=False)
+
+                Paquete.num_elec = num_elect
+                Paquete.folioc = casilla
+                Paquete.idProceso = eleccion
+                Paquete.clave_ca = centro_acopio
+                Paquete.fecha_entrega = fecha_hora_actual_python
+                Paquete.hora_entrega = hora_actual
+                Paquete.idcargoople = cargoople
+                Paquete.estatus = "C"
+                Paquete.save()
 
                 return redirect('Armado_Paquetes')
-                
+        else:
+            formulario = Armado_paquetes(ide=ide, estado_id=estado_id)
 
     except IntegrityError as e:
         print(f"Error de integridad al guardar el formulario S: {e}")
@@ -12118,10 +12126,19 @@ def agregar_paquetes_armados(request , eleccion, cargo, anio, valor, ide):
     except Exception as e:
         print(f"Error general al guardar el formulario S: {e}")
 
-
-
-    return render(request, 'paquetes/armado_paquetes/crear.html', {'formulario': formulario, 'anio': anio, 'nombreeleccion': eleccion, 'valor':valor,'nombrecargo': cargo,   'nombreedo':estado.nombre_edo,**context})
-
+    return render(
+        request, 
+        'paquetes/armado_paquetes/crear.html', 
+        {
+            'formulario': formulario, 
+            'anio': anio, 
+            'nombreeleccion': eleccion, 
+            'valor': valor,
+            'nombrecargo': cargo,   
+            'nombreedo': estado.nombre_edo,
+            **context
+        }
+    )
 
 
 
@@ -13101,23 +13118,25 @@ def verificar_estatus_paquete(request, id):
 
 
 
-def agregar_paquetes_entregados_cae(request , eleccion, cargo, folioc, anio,valor, ide ):
-    foliocs = int(folioc);
+def agregar_paquetes_entregados_cae(request, eleccion=None, cargo=None, folioc=None, anio=None, valor=None, ide=None, **kwargs):
+
+    # Captura el ID del paquete desde la URL (3033)
+    paquete_id = ide or kwargs.get('ide')
     estado_id = request.session['ID_ESTADO']
+
     fecha_hora_actual_python = timezone.now()
     fecha_hora_actual_utc = timezone.now()
-    # Convierte la fecha y hora actual a la zona horaria local
     fecha_hora_actual_local = timezone.localtime(fecha_hora_actual_utc)
-    casilla = get_object_or_404(Casillas, folioc=folioc)
-    # Obtiene solo la hora actual en formato HH:MM:SS
     hora_actual = fecha_hora_actual_local.strftime("%H:%M:%S")
-    print(request.session['ID_USUARIO'])
+
+    print("Usuario ID:", request.session['ID_USUARIO'])
     Usuario = Inicio.objects.get(id_usuario=request.session['ID_USUARIO'])
     Pantallas = UsuariosPantallas.objects.get(id_usuario=request.session['ID_USUARIO'])
 
     context = {}
+
     if Usuario.per_regiscandidatura is not None:
-     context['regiscandidatura'] = Usuario.per_regiscandidatura
+        context['regiscandidatura'] = Usuario.per_regiscandidatura
     if Pantallas.revision_ople is not None:
         context['revision_ople'] = Pantallas.revision_ople
     if Pantallas.registro_de_gubernatura is not None:
@@ -13177,159 +13196,7 @@ def agregar_paquetes_entregados_cae(request , eleccion, cargo, folioc, anio,valo
     if Pantallas.centros_de_acopio is not None:
         context['centros_de_acopio'] = Pantallas.centros_de_acopio
     if Pantallas.usuarios is not None:
-      context['usuarios'] = Pantallas.usuarios
-    if Pantallas.tipo_eleccion is not None:
-        context['tipo_eleccion'] = Pantallas.tipo_eleccion
-    if Pantallas.partidos_coaliciones is not None:
-        context['partidos_coaliciones'] = Pantallas.partidos_coaliciones
-    if Pantallas.eleccion_documentos is not None:
-        context['eleccion_documentos'] = Pantallas.eleccion_documentos
-    if Usuario.per_paquetes is not None:
-        context['paquetes'] = Usuario.per_paquetes
-    if Usuario.per_reprecomputos is not None:
-        context['reprecomputos'] = Usuario.per_reprecomputos
-    if Usuario.per_computoselectorales is not None:
-        context['computoselectorales'] = Usuario.per_computoselectorales
-    if Usuario.per_observadores is not None:
-        context['observadores'] = Usuario.per_observadores
-    if Usuario.per_configuracion is not None:
-        context['configuracion'] = Usuario.per_configuracion  
-    logos = get_object_or_404(Oples, idestado=Usuario.idestado.idestado)
-    context['logo'] = logos.logo # Agregar 'años' al diccionario de contexto
-    # Puedes imprimir la hora actual en la consola si lo deseas
-    print("Hora actual:", hora_actual)
-    idpartido = request.session['ID_PARTIDO']
-    partido = Partidos.objects.get(idpartido=idpartido)
-    nombre_partido = partido.desc_partido
-    estado = get_object_or_404(Estados, idestado=estado_id)
-    cargo = get_object_or_404(Tipocargo, descrip_tcargo=cargo)
-    eleccion = get_object_or_404(Procesos, descrip=eleccion, idestado=estado_id)
-    paquete1 = get_object_or_404(PaquetesFase1, idPaquete=ide)
-    print(ide)
-
-    formulario = paquetes_Entrega_Cae(request.POST or None, request.FILES or None, initial={'idcargo_recibe': 'CAE'}, id_estado=estado_id)
-    try:
-            if request.method == 'POST':
-                formulario = paquetes_Entrega_Cae(request.POST)
-                if formulario.is_valid():
-                    cargoople_id1 = formulario.cleaned_data['idcargo_entrega']
-                    print(cargoople_id1)
-                    cargoople1 = get_object_or_404(CatCargosOple,nombre_cargo=cargoople_id1)
-                    cargoople_id2 = formulario.cleaned_data['idcargo_recibe']
-                    print(cargoople_id2)
-                    cargoople2 = get_object_or_404(CatCargosOple,nombre_cargo=cargoople_id2)
-                    cae = formulario.cleaned_data['id_usuario']
-                    print(cae)
-                    caeasignado = get_object_or_404(Inicio, id_usuario = cae.id_usuario)
-               
-                    Paquete = formulario.save(commit=False)
-
-                    Paquete.num_elec=paquete1.num_elec
-                    Paquete.idProceso=paquete1.idProceso
-                    Paquete.clave_ca=paquete1.clave_ca
-                    Paquete.id_usuario = caeasignado
-                    Paquete.folioc = casilla
-                    Paquete.idpaquete = ide
-         
-                    Paquete.fecha_entrega = fecha_hora_actual_python
-                    Paquete.hora_entrga = hora_actual
-                    Paquete.idcargo_entrega = cargoople1
-                    Paquete.idcargo_recibe = cargoople2
-                    Paquete.estatus = "C"
-                    
-                    Paquete.save()
-
-                return redirect('Entrega_Paquetes_CAE')
-                
-
-    except IntegrityError as e:
-        print(f"Error de integridad al guardar el formulario S: {e}")
-    except ValidationError as e:
-        print(f"Error de validación al guardar el formularioc S: {e}")
-    except Exception as e:
-        print(f"Error general al guardar el formulario S: {e}")
-
-    return render(request, 'paquetes/entrega_CAE/crear.html', {'formulario': formulario, 'paqueteno': ide, 'valor':valor, 'anio': anio, 'nombreeleccion': eleccion, 'nombrecargo': cargo,  'seccion': folioc, 'nombreedo':estado.nombre_edo, **context})
-
-
-
-def entrega_paquetes_cae_vizualizar(request, eleccion, cargo, folioc, anio, valor, ide):
- 
-    estado_id = request.session['ID_ESTADO']
-    fecha_hora_actual_python = timezone.now()
-    fecha_hora_actual_utc = timezone.now()
-        # Convierte la fecha y hora actual a la zona horaria local
-    fecha_hora_actual_local = timezone.localtime(fecha_hora_actual_utc)
-    casilla = get_object_or_404(Casillas, folioc=folioc)
-    # Obtiene solo la hora actual en formato HH:MM:SS
-    hora_actual = fecha_hora_actual_local.strftime("%H:%M:%S")
-    print(request.session['ID_USUARIO'])
-    Usuario = Inicio.objects.get(id_usuario=request.session['ID_USUARIO'])
-    Pantallas = UsuariosPantallas.objects.get(id_usuario=request.session['ID_USUARIO'])
-
-    context = {}
-    if Usuario.per_regiscandidatura is not None:
-     context['regiscandidatura'] = Usuario.per_regiscandidatura
-    if Pantallas.revision_ople is not None:
-        context['revision_ople'] = Pantallas.revision_ople
-    if Pantallas.registro_de_gubernatura is not None:
-        context['registro_de_gubernatura'] = Pantallas.registro_de_gubernatura
-    if Pantallas.registro_de_ayuntamiento is not None:
-        context['registro_de_ayuntamiento'] = Pantallas.registro_de_ayuntamiento
-    if Pantallas.diputaciones_de_mayoria is not None:
-        context['diputaciones_de_mayoria'] = Pantallas.diputaciones_de_mayoria
-    if Pantallas.diputaciones_de_rp is not None:
-        context['diputaciones_de_rp'] = Pantallas.diputaciones_de_rp
-    if Pantallas.armado_de_documentacion is not None:
-        context['armado_de_documentacion'] = Pantallas.armado_de_documentacion
-    if Pantallas.entrega_a_los_caes is not None:
-        context['entrega_a_los_caes'] = Pantallas.entrega_a_los_caes
-    if Pantallas.caes_entrega_a_los_presidentes is not None:
-        context['caes_entrega_a_los_presidentes'] = Pantallas.caes_entrega_a_los_presidentes
-    if Pantallas.entrega_de_paquetes_en_ca is not None:
-        context['entrega_de_paquetes_en_ca'] = Pantallas.entrega_de_paquetes_en_ca
-    if Pantallas.resumen_de_paquetes is not None:
-        context['resumen_de_paquetes'] = Pantallas.resumen_de_paquetes
-    if Pantallas.traslado_de_paquetes is not None:
-        context['traslado_de_paquetes'] = Pantallas.traslado_de_paquetes
-    if Pantallas.registro_de_representantes is not None:
-        context['registro_de_representantes'] = Pantallas.registro_de_representantes
-    if Pantallas.representantes_ople is not None:
-        context['representantes_ople'] = Pantallas.representantes_ople
-    if Pantallas.registro_de_observadores is not None:
-        context['registro_de_observadores'] = Pantallas.registro_de_observadores
-    if Pantallas.agregar_candidatos is not None:
-        context['agregar_candidatos'] = Pantallas.agregar_candidatos
-    if Pantallas.computo_de_votos is not None:
-        context['computo_de_votos'] = Pantallas.computo_de_votos
-    if Pantallas.porcentajes_de_avances is not None:
-        context['porcentajes_de_avances'] = Pantallas.porcentajes_de_avances
-    if Pantallas.resumen_de_actas is not None:
-        context['resumen_de_actas'] = Pantallas.resumen_de_actas
-    if Pantallas.votos_por_partido is not None:
-        context['votos_por_partido'] = Pantallas.votos_por_partido
-    if Pantallas.principios is not None:
-        context['principios'] = Pantallas.principios
-    if Pantallas.acciones_afirmativas is not None:
-        context['acciones_afirmativas'] = Pantallas.acciones_afirmativas
-    if Pantallas.documentos is not None:
-        context['documentos'] = Pantallas.documentos
-    if Pantallas.entidades_federativas is not None:
-        context['entidades_federativas'] = Pantallas.entidades_federativas
-    if Pantallas.distritos is not None:
-        context['distritos'] = Pantallas.distritos
-    if Pantallas.municipios is not None:
-        context['municipios'] = Pantallas.municipios
-    if Pantallas.cargos_entrega is not None:
-        context['cargos_entrega'] = Pantallas.cargos_entrega
-    if Pantallas.partidos is not None:
-        context['partidos'] = Pantallas.partidos
-    if Pantallas.casillas is not None:
-        context['casillas'] = Pantallas.casillas
-    if Pantallas.centros_de_acopio is not None:
-        context['centros_de_acopio'] = Pantallas.centros_de_acopio
-    if Pantallas.usuarios is not None:
-      context['usuarios'] = Pantallas.usuarios
+        context['usuarios'] = Pantallas.usuarios
     if Pantallas.tipo_eleccion is not None:
         context['tipo_eleccion'] = Pantallas.tipo_eleccion
     if Pantallas.partidos_coaliciones is not None:
@@ -13346,241 +13213,380 @@ def entrega_paquetes_cae_vizualizar(request, eleccion, cargo, folioc, anio, valo
         context['observadores'] = Usuario.per_observadores
     if Usuario.per_configuracion is not None:
         context['configuracion'] = Usuario.per_configuracion    
-    logos = get_object_or_404(Oples, idestado=Usuario.idestado.idestado)
-    context['logo'] = logos.logo # Agregar 'años' al diccionario de contexto
 
-    # Puedes imprimir la hora actual en la consola si lo deseas
-    print("Hora actual:", hora_actual)
+    logos = get_object_or_404(Oples, idestado=Usuario.idestado.idestado)
+    context['logo'] = logos.logo
+
+    proceso = get_object_or_404(Procesos, descrip=eleccion, idestado=estado_id)
+    cargo_obj = get_object_or_404(Tipocargo, descrip_tcargo=cargo)
+    estado = get_object_or_404(Estados, idestado=estado_id)
+
+    # Búsqueda de Casilla
+    casilla = Casillas.objects.filter(folioc=folioc, idestado=estado_id).first()
+    if not casilla:
+        casilla = Casillas.objects.filter(folioc=folioc).first()
+    if not casilla:
+        casilla = Casillas.objects.filter(idestado=estado_id).first()
+
+    if request.method == 'POST':
+        formulario = paquetes_Entrega_Cae(request.POST, request.FILES or None, id_estado=estado_id)
+        if formulario.is_valid():
+            try:
+                entrega = formulario.save(commit=False)
+                
+                # ASIGNACIÓN DE CAMPOS SEGÚN EL ESQUEMA DE TU BD
+                val_int = int(paquete_id) if paquete_id else None
+                
+                # ID del paquete
+                if hasattr(entrega, 'idPaquete'):
+                    entrega.idPaquete = val_int
+                if hasattr(entrega, 'idpaquete'):
+                    entrega.idpaquete = val_int
+
+                # Casilla
+                if casilla:
+                    entrega.folioc = casilla
+                    
+                entrega.idProceso = proceso
+                entrega.fecha_entrega = fecha_hora_actual_python
+                
+                # Nombre exacto de la columna en MySQL Workbench: hora_entrga
+                if hasattr(entrega, 'hora_entrga'):
+                    entrega.hora_entrga = hora_actual
+                if hasattr(entrega, 'hora_entrega'):
+                    entrega.hora_entrega = hora_actual
+
+                # Estatus exacto como en la BD ('C')
+                if hasattr(entrega, 'estatus'):
+                    entrega.estatus = "C"
+                    
+                entrega.save()
+
+                return redirect('Entrega_Paquetes_CAE')
+            except IntegrityError as e:
+                print(f"Error de integridad al guardar la entrega CAE: {e}")
+            except ValidationError as e:
+                print(f"Error de validación al guardar la entrega CAE: {e}")
+            except Exception as e:
+                print(f"Error general al guardar la entrega CAE: {e}")
+    else:
+        formulario = paquetes_Entrega_Cae(id_estado=estado_id)
+
+    return render(
+        request, 
+        'paquetes/entrega_cae/crear.html', 
+        {
+            'formulario': formulario, 
+            'anio': anio, 
+            'nombreeleccion': eleccion, 
+            'nombrecargo': cargo,   
+            'seccion': folioc,
+            'valor': valor,
+            'paqueteno': paquete_id,
+            'nombreedo': estado.nombre_edo,
+            **context
+        }
+    )
+
+
+
+def entrega_paquetes_cae_vizualizar(request, eleccion, cargo, folioc, anio, valor, ide):
+ 
+    estado_id = request.session['ID_ESTADO']
+    fecha_hora_actual_python = timezone.now()
+    fecha_hora_actual_utc = timezone.now()
+    fecha_hora_actual_local = timezone.localtime(fecha_hora_actual_utc)
+    hora_actual = fecha_hora_actual_local.strftime("%H:%M:%S")
+
+    # Búsqueda tolerante de Casilla sin Http404 estricto
+    casilla = Casillas.objects.filter(folioc=folioc, idestado=estado_id).first()
+    if not casilla:
+        casilla = Casillas.objects.filter(folioc=folioc).first()
+    if not casilla:
+        casilla = Casillas.objects.filter(idestado=estado_id).first()
+
+    Usuario = Inicio.objects.get(id_usuario=request.session['ID_USUARIO'])
+    Pantallas = UsuariosPantallas.objects.get(id_usuario=request.session['ID_USUARIO'])
+
+    context = {}
+    if Usuario.per_regiscandidatura is not None:
+        context['regiscandidatura'] = Usuario.per_regiscandidatura
+    if Pantallas.revision_ople is not None:
+        context['revision_ople'] = Pantallas.revision_ople
+    if Pantallas.registro_de_gubernatura is not None:
+        context['registro_de_gubernatura'] = Pantallas.registro_de_gubernatura
+    if Pantallas.registro_de_ayuntamiento is not None:
+        context['registro_de_ayuntamiento'] = Pantallas.registro_de_ayuntamiento
+    if Pantallas.diputaciones_de_mayoria is not None:
+        context['diputaciones_de_mayoria'] = Pantallas.diputaciones_de_mayoria
+    if Pantallas.diputaciones_de_rp is not None:
+        context['diputaciones_de_rp'] = Pantallas.diputaciones_de_rp
+    if Pantallas.armado_de_documentacion is not None:
+        context['armado_de_documentacion'] = Pantallas.armado_de_documentacion
+    if Pantallas.entrega_a_los_caes is not None:
+        context['entrega_a_los_caes'] = Pantallas.entrega_a_los_caes
+    if Pantallas.caes_entrega_a_los_presidentes is not None:
+        context['caes_entrega_a_los_presidentes'] = Pantallas.caes_entrega_a_los_presidentes
+    if Pantallas.entrega_de_paquetes_en_ca is not None:
+        context['entrega_de_paquetes_en_ca'] = Pantallas.entrega_de_paquetes_en_ca
+    if Pantallas.resumen_de_paquetes is not None:
+        context['resumen_de_paquetes'] = Pantallas.resumen_de_paquetes
+    if Pantallas.traslado_de_paquetes is not None:
+        context['traslado_de_paquetes'] = Pantallas.traslado_de_paquetes
+    if Pantallas.registro_de_representantes is not None:
+        context['registro_de_representantes'] = Pantallas.registro_de_representantes
+    if Pantallas.representantes_ople is not None:
+        context['representantes_ople'] = Pantallas.representantes_ople
+    if Pantallas.registro_de_observadores is not None:
+        context['registro_de_observadores'] = Pantallas.registro_de_observadores
+    if Pantallas.agregar_candidatos is not None:
+        context['agregar_candidatos'] = Pantallas.agregar_candidatos
+    if Pantallas.computo_de_votos is not None:
+        context['computo_de_votos'] = Pantallas.computo_de_votos
+    if Pantallas.porcentajes_de_avances is not None:
+        context['porcentajes_de_avances'] = Pantallas.porcentajes_de_avances
+    if Pantallas.resumen_de_actas is not None:
+        context['resumen_de_actas'] = Pantallas.resumen_de_actas
+    if Pantallas.votos_por_partido is not None:
+        context['votos_por_partido'] = Pantallas.votos_por_partido
+    if Pantallas.principios is not None:
+        context['principios'] = Pantallas.principios
+    if Pantallas.acciones_afirmativas is not None:
+        context['acciones_afirmativas'] = Pantallas.acciones_afirmativas
+    if Pantallas.documentos is not None:
+        context['documentos'] = Pantallas.documentos
+    if Pantallas.entidades_federativas is not None:
+        context['entidades_federativas'] = Pantallas.entidades_federativas
+    if Pantallas.distritos is not None:
+        context['distritos'] = Pantallas.distritos
+    if Pantallas.municipios is not None:
+        context['municipios'] = Pantallas.municipios
+    if Pantallas.cargos_entrega is not None:
+        context['cargos_entrega'] = Pantallas.cargos_entrega
+    if Pantallas.partidos is not None:
+        context['partidos'] = Pantallas.partidos
+    if Pantallas.casillas is not None:
+        context['casillas'] = Pantallas.casillas
+    if Pantallas.centros_de_acopio is not None:
+        context['centros_de_acopio'] = Pantallas.centros_de_acopio
+    if Pantallas.usuarios is not None:
+        context['usuarios'] = Pantallas.usuarios
+    if Pantallas.tipo_eleccion is not None:
+        context['tipo_eleccion'] = Pantallas.tipo_eleccion
+    if Pantallas.partidos_coaliciones is not None:
+        context['partidos_coaliciones'] = Pantallas.partidos_coaliciones
+    if Pantallas.eleccion_documentos is not None:
+        context['eleccion_documentos'] = Pantallas.eleccion_documentos
+    if Usuario.per_paquetes is not None:
+        context['paquetes'] = Usuario.per_paquetes
+    if Usuario.per_reprecomputos is not None:
+        context['reprecomputos'] = Usuario.per_reprecomputos
+    if Usuario.per_computoselectorales is not None:
+        context['computoselectorales'] = Usuario.per_computoselectorales
+    if Usuario.per_observadores is not None:
+        context['observadores'] = Usuario.per_observadores
+    if Usuario.per_configuracion is not None:
+        context['configuracion'] = Usuario.per_configuracion    
+
+    logos = get_object_or_404(Oples, idestado=Usuario.idestado.idestado)
+    context['logo'] = logos.logo
+
     idpartido = request.session['ID_PARTIDO']
     partido = Partidos.objects.get(idpartido=idpartido)
-    nombre_partido = partido.desc_partido
 
-    cargo = get_object_or_404(Tipocargo, descrip_tcargo=cargo)
-    eleccion = get_object_or_404(Procesos, descrip=eleccion, idestado=estado_id)
+    cargo_obj = get_object_or_404(Tipocargo, descrip_tcargo=cargo)
+    eleccion_obj = get_object_or_404(Procesos, descrip=eleccion, idestado=estado_id)
     estado = get_object_or_404(Estados, idestado=estado_id)
-    Paquetes = get_object_or_404(PaquetesFase2, idpaquete=ide);
-    formulario = paquetes_Entrega_Cae(request.POST or None, instance=Paquetes)
 
-    #paqueteid = get_object_or_404(PaquetesFase1.objects.filter(folioc=folioc).order_by('-idPaquete'))
+    # Búsqueda segura del paquete en PaquetesFase2
+    Paquetes = PaquetesFase2.objects.filter(idpaquete=ide).first()
+    if not Paquetes:
+        Paquetes = PaquetesFase2.objects.filter(idPaquete=ide).first()
+    if not Paquetes:
+        Paquetes = get_object_or_404(PaquetesFase2, folioc=casilla)
 
+    formulario = paquetes_Entrega_Cae(request.POST or None, instance=Paquetes, id_estado=estado_id)
 
-
-    if formulario.is_valid() and request.POST:
+    if request.method == 'POST' and formulario.is_valid():
         formulario.save()
         return redirect('Entrega_Paquetes_CAE')
 
-    return render(request, 'paquetes/entrega_CAE/editar.html', {'formulario': formulario, 'paqueteno': ide, 'valor':valor,'anio': anio, 'nombreeleccion': eleccion, 'nombrecargo': cargo,  'seccion': folioc, 'nombreedo':estado.nombre_edo, **context})
-
+    return render(
+        request, 
+        'paquetes/entrega_CAE/editar.html', 
+        {
+            'formulario': formulario, 
+            'paqueteno': ide, 
+            'valor': valor,
+            'anio': anio, 
+            'nombreeleccion': eleccion, 
+            'nombrecargo': cargo,  
+            'seccion': folioc, 
+            'nombreedo': estado.nombre_edo, 
+            **context
+        }
+    )
 
 
 def generar_pd_Entregado_Paquetes_cae(request, anio, nombreeleccion, nombrecargo, idcand, ide):
-   try: 
-    # Crear un nuevo documento PDF con tamaño de ticket de supermercado (80mm x 150mm)
-    ancho_mm = 80
-    alto_mm = 150
+    try: 
+        ancho_mm = 80
+        alto_mm = 150
 
-    # Convertir milímetros a pulgadas
-    ancho_pulgadas = ancho_mm / 25.4
-    alto_pulgadas = alto_mm / 25.4
+        ancho_pulgadas = ancho_mm / 25.4
+        alto_pulgadas = alto_mm / 25.4
 
-    # Convertir pulgadas a puntos
-    ancho_puntos = ancho_pulgadas * 72
-    alto_puntos = alto_pulgadas * 72
+        ancho_puntos = ancho_pulgadas * 72
+        alto_puntos = alto_pulgadas * 72
 
-    pdf = FPDF(format=(ancho_puntos, alto_puntos))
+        pdf = FPDF(format=(ancho_puntos, alto_puntos))
+        pdf.set_auto_page_break(auto=True, margin=2)
+        pdf.set_margins(left=10, top=10, right=10)
+        pdf.add_page()
 
+        id_estado = request.session['ID_ESTADO']
+        id_partido = request.session['ID_PARTIDO']
+        ople = get_object_or_404(Oples, idestado=id_estado)
+        estado = get_object_or_404(Estados, idestado=id_estado)
+        partido = get_object_or_404(Partidos, idpartido=id_partido)
 
-    # Establecer márgenes de página
-    pdf.set_auto_page_break(auto=True, margin=2)  # Auto salto de página con un margen de 2mm
-    pdf.set_margins(left=10, top=10, right=10)     # Márgenes izquierdo y derecho de 10mm, superior de 10mm
+        # Búsqueda tolerante de casilla
+        casilla = Casillas.objects.filter(folioc=idcand, idestado=id_estado).first()
+        if not casilla:
+            casilla = Casillas.objects.filter(folioc=idcand).first()
+        if not casilla:
+            casilla = Casillas.objects.filter(idestado=id_estado).first()
 
-    # Agregar una página en blanco
-    pdf.add_page()
+        proceso = get_object_or_404(Procesos, descrip=nombreeleccion, idestado=id_estado)
+        cargo = get_object_or_404(Tipocargo, descrip_tcargo=nombrecargo)
 
-    # Obtener datos del estado, partido y candidato
-    id_estado = request.session['ID_ESTADO']
-    id_partido = request.session['ID_PARTIDO']
-    ople = get_object_or_404(Oples, idestado=id_estado)
-    estado = get_object_or_404(Estados, idestado=id_estado)
-    partido = get_object_or_404(Partidos, idpartido=id_partido)
-    casilla = get_object_or_404(Casillas, folioc=idcand)
-    proceso = get_object_or_404(Procesos, descrip=nombreeleccion, idestado=id_estado)
-    cargo = get_object_or_404(Tipocargo, descrip_tcargo=nombrecargo)
-    eleccion = get_object_or_404(
-         Procesoscargo,
-         Q(idDistrito=casilla.iddistrito.iddistrito) | Q(idMunicipio=casilla.idmunicipio.idmunicipio),
-         idproceso=proceso.idproceso,
-         idestado=id_estado,
-         idtipo_cargo=cargo.idtipo_cargo
-            )   
-    print(idcand)
-    PaquetesFaseuno = get_object_or_404(PaquetesFase2, idpaquete=ide)
+        eleccion = Procesoscargo.objects.filter(
+            Q(idDistrito=casilla.iddistrito.iddistrito) | Q(idMunicipio=casilla.idmunicipio.idmunicipio),
+            idproceso=proceso.idproceso,
+            idestado=id_estado,
+            idtipo_cargo=cargo.idtipo_cargo
+        ).first()
 
+        # Búsqueda de registros de paquetes
+        PaquetesFaseuno = PaquetesFase2.objects.filter(idpaquete=ide).first()
+        if not PaquetesFaseuno:
+            PaquetesFaseuno = PaquetesFase2.objects.filter(idPaquete=ide).first()
+        if not PaquetesFaseuno:
+            PaquetesFaseuno = get_object_or_404(PaquetesFase2, folioc=casilla)
 
-    paqueteno = get_object_or_404(PaquetesFase1.objects.filter(idPaquete=ide).order_by('-idPaquete'))
-    paquetedos =get_object_or_404(PaquetesFase2.objects.filter(idpaquete=ide))
-    # Establecer el tamaño y tipo de fuente
-    pdf.set_font('Arial', '', 14)
-    
-    # Obtener la fecha y hora actual en la zona horaria local
-    # Obtener la fecha actual en español
-    fecha_actual = datetime.now().strftime('%d/%m/%Y')
-    fecha_entrega_formatted = PaquetesFaseuno.fecha_entrega.strftime('%d/%m/%Y')
+        paqueteno = PaquetesFase1.objects.filter(idPaquete=ide).first()
+        if not paqueteno:
+            paqueteno = PaquetesFase1.objects.filter(idpaquete=ide).first()
 
-    # Agregar el logo en la esquina superior izquierda
-    pdf.image(ople.logo.path, x=92, y=8, w=45)
-    pdf.ln(50)
-    
-    # Agregar título y detalles
-    pdf.cell(0, 10, ople.nombre_completo, 0, 1, 'C')
-    pdf.cell(0, 7, "Reporte de Entrega a los CAES", 0, 1, 'C')  # Aumentar espacio entre líneas
-    pdf.cell(0, 7, "Número de Paquete: "+ str(paqueteno.idPaquete), 0, 1, 'C')
-    pdf.cell(0, 7, estado.nombre_edo, 0, 1, 'C')
-    pdf.cell(0, 7, nombreeleccion, 0, 1, 'C')
-    pdf.cell(0, 7, nombrecargo, 0, 1,'C' )
-    pdf.cell(0, 7, "Distrito: "+str(casilla.iddistrito),0, 1,'C')
-    pdf.cell(0, 7, "Municipio: "+str(casilla.idmunicipio),0, 1,'C')
-    pdf.ln(5)
-    pdf.ln(10)
-    pdf.cell(0, 7, "Fecha de Impresión: " + fecha_actual, 0, 1, )
-    pdf.ln(5)
-    pdf.cell(0, 7, "Sección: " + idcand, 0, 1, )
+        pdf.set_font('Arial', '', 14)
+        
+        fecha_actual = datetime.now().strftime('%d/%m/%Y')
+        fecha_entrega_formatted = PaquetesFaseuno.fecha_entrega.strftime('%d/%m/%Y') if PaquetesFaseuno and PaquetesFaseuno.fecha_entrega else fecha_actual
 
-    pdf.cell(0, 7, "Fecha de entrega: " + fecha_entrega_formatted, 0, 1, )
-    pdf.cell(0, 7, "Hora de entrega: " + str(PaquetesFaseuno.hora_entrga), 0, 1, )
-    pdf.cell(0, 7, "Entregó el Paquete: " + str(PaquetesFaseuno.nombre_cargo_entrega), 0, 1, )
-    pdf.cell(0, 7, "Cargo: " + str(PaquetesFaseuno.idcargo_entrega), 0, 1, )
-    pdf.cell(0, 7, "Recibió el Paquete: " + str(PaquetesFaseuno.id_usuario), 0, 1, )
-    pdf.cell(0, 7, "Cargo: " + str(PaquetesFaseuno.idcargo_recibe), 0, 1, )
+        hora_mostrar = getattr(PaquetesFaseuno, 'hora_entrga', getattr(PaquetesFaseuno, 'hora_entrega', ''))
 
-        # Calcular la cantidad de espacio en blanco necesaria entre la tabla y el título del código QR
-    space_needed = 10  # Puedes ajustar este valor según sea necesario
+        # COMPROBACIÓN SEGURA DE EXISTENCIA DEL LOGO
+        if ople.logo and hasattr(ople.logo, 'path') and os.path.exists(ople.logo.path):
+            pdf.image(ople.logo.path, x=92, y=8, w=45)
+            pdf.ln(50)
+        else:
+            pdf.ln(10)
 
-        # Agregar espacio en blanco debajo de la tabla para separarla del título del código QR
-    pdf.ln(space_needed)
+        pdf.cell(0, 10, ople.nombre_completo, 0, 1, 'C')
+        pdf.cell(0, 7, "Reporte de Entrega a los CAES", 0, 1, 'C')
+        pdf.cell(0, 7, "Número de Paquete: " + str(ide), 0, 1, 'C')
+        pdf.cell(0, 7, estado.nombre_edo, 0, 1, 'C')
+        pdf.cell(0, 7, nombreeleccion, 0, 1, 'C')
+        pdf.cell(0, 7, nombrecargo, 0, 1, 'C')
+        pdf.cell(0, 7, "Distrito: " + str(casilla.iddistrito), 0, 1, 'C')
+        pdf.cell(0, 7, "Municipio: " + str(casilla.idmunicipio), 0, 1, 'C')
+        pdf.ln(5)
+        pdf.ln(10)
+        pdf.cell(0, 7, "Fecha de Impresión: " + fecha_actual, 0, 1)
+        pdf.ln(5)
+        pdf.cell(0, 7, "Sección: " + str(idcand), 0, 1)
 
-        # Agregar título del código QR
-    pdf.set_xy(2, 235)  # Ajustar según sea necesario
-    pdf.set_font('Arial', 'B', 12)
-    pdf.cell(0, 10, "QR Paquete:                                                                           QR Reporte:", 0, 1, 'C')
+        pdf.cell(0, 7, "Fecha de entrega: " + fecha_entrega_formatted, 0, 1)
+        pdf.cell(0, 7, "Hora de entrega: " + str(hora_mostrar), 0, 1)
+        pdf.cell(0, 7, "Entregó el Paquete: " + str(getattr(PaquetesFaseuno, 'nombre_cargo_entrega', '')), 0, 1)
+        pdf.cell(0, 7, "Cargo: " + str(getattr(PaquetesFaseuno, 'idcargo_entrega', '')), 0, 1)
+        pdf.cell(0, 7, "Recibió el Paquete: " + str(getattr(PaquetesFaseuno, 'id_usuario', '')), 0, 1)
+        pdf.cell(0, 7, "Cargo: " + str(getattr(PaquetesFaseuno, 'idcargo_recibe', '')), 0, 1)
 
-        # Agregar espacio en blanco antes del código QR
-    pdf.ln(5)
+        space_needed = 10
+        pdf.ln(space_needed)
 
-        # Obtener la posición Y después de agregar el título y el espacio en blanco
-    pdf_y_qr_start = pdf.get_y()
+        pdf.set_xy(2, 235)
+        pdf.set_font('Arial', 'B', 12)
+        pdf.cell(0, 10, "QR Paquete:                                                                           QR Reporte:", 0, 1, 'C')
 
-        # Generar el primer código QR con datos estáticos para probar
-    qr_data_dynamic = (
-            str(anio)+"|"+ str(id_estado)+"|"+ str(proceso.idproceso)+"|"+str(cargo.idtipo_cargo)+"|"+str(cargo.idtipoc.idtipoc)+"|"+str(eleccion.num_elec)+"|"+str(casilla.folioc)+"|"+str(paquetedos.id_usuario.id_usuario)+"|"+str(paqueteno.idPaquete)
+        pdf.ln(5)
+        pdf_y_qr_start = pdf.get_y()
+
+        num_elec_val = eleccion.num_elec if eleccion else ""
+        id_user_val = PaquetesFaseuno.id_usuario.id_usuario if PaquetesFaseuno and PaquetesFaseuno.id_usuario else ""
+
+        qr_data_dynamic = (
+            str(anio) + "|" + str(id_estado) + "|" + str(proceso.idproceso) + "|" + str(cargo.idtipo_cargo) + "|" + str(cargo.idtipoc.idtipoc) + "|" + str(num_elec_val) + "|" + str(casilla.folioc) + "|" + str(id_user_val) + "|" + str(ide)
         )
 
-        # Crear el primer código QR con los datos dinámicos
-    qr_dynamic = qrcode.make(qr_data_dynamic)
-    qr_stream_dynamic = BytesIO()
-    qr_dynamic.save(qr_stream_dynamic, 'PNG')
-        
-        # Establecer la posición para agregar el primer código QR en el PDF
-    pdf_x = 30
-    pdf_y = pdf_y_qr_start + 5
+        qr_dynamic = qrcode.make(qr_data_dynamic)
+        qr_stream_dynamic = BytesIO()
+        qr_dynamic.save(qr_stream_dynamic, 'PNG')
+            
+        pdf_x = 30
+        pdf_y = pdf_y_qr_start + 5
 
-        # Crear un archivo temporal para almacenar el primer código QR
-    with tempfile.NamedTemporaryFile(delete=False, suffix='.png') as tmpfile:
-            # Guardar el contenido de qr_stream_dynamic en el archivo temporal
+        with tempfile.NamedTemporaryFile(delete=False, suffix='.png') as tmpfile:
             tmpfile.write(qr_stream_dynamic.getvalue())
-            # Obtener la ruta del archivo temporal
             tmp_filename = tmpfile.name
 
-        # Agregar el primer código QR al PDF desde el archivo temporal
-    pdf.image(tmp_filename, x=pdf_x, y=pdf_y, w=50)
+        pdf.image(tmp_filename, x=pdf_x, y=pdf_y, w=50)
+        os.unlink(tmp_filename)
 
-        # Eliminar el archivo temporal después de usarlo
-    os.unlink(tmp_filename)
+        pdf.ln(5)
 
-    # Calcular la cantidad de espacio en blanco necesaria entre la tabla y el código QR
-    space_needed = 5  # Puedes ajustar este valor según sea necesario
+        qr_data_full = (
+            ople.nombre_completo + "\n"
+            + "Reporte de Entrega a los CAES\n"
+            + "Año: " + str(anio) + "\n"
+            + estado.nombre_edo + "\n"
+            + "Elección: " + nombreeleccion + "\n"
+            + "Cargo: " + nombrecargo + "\n"
+            + "Municipio: " + str(casilla.idmunicipio) + "\n\n\n"
+            + "Sección: " + str(idcand) + "\n"
+            + "Fecha Actual: " + fecha_actual + "\n\n"
+            + "Fecha de entrega: " + fecha_entrega_formatted + "\n"
+            + "Hora de entrega: " + str(hora_mostrar) + "\n"
+            + "Entregó el Paquete: " + str(getattr(PaquetesFaseuno, 'nombre_cargo_entrega', '')) + "\n"
+            + "Cargo: " + str(getattr(PaquetesFaseuno, 'idcargo_entrega', '')) + "\n"
+            + "Recibió el Paquete: " + str(getattr(PaquetesFaseuno, 'id_usuario', '')) + "\n"
+            + "Cargo: " + str(getattr(PaquetesFaseuno, 'idcargo_recibe', ''))
+        )
 
-    # Agregar espacio en blanco debajo de la tabla para separarla del código QR
-    pdf.ln(space_needed)
+        qr_full = qrcode.make(qr_data_full)
+        qr_stream_full = BytesIO()
+        qr_full.save(qr_stream_full, 'PNG')
 
-    # Obtener la posición Y después de agregar el espacio en blanco
-    pdf_y_qr_start = pdf.get_y()
+        pdf_y_qr_full_start = pdf.get_y() 
 
-    # Generar el código QR con datos estáticos para probar
-    qr_data_dynamic = (ople.nombre_completo
-                   + "\n"
-                   +"Reporte de Entrega a los CAES"
-                   + "\n"
-                   +"Año: " + str(anio)
-                   + "\n"
-                   + estado.nombre_edo
-                   + "\n"
-                   +"Elección: "+ nombreeleccion
-                   + "\n"
-                   + "Cargo: "+nombrecargo
-                   + "\n"
-                   + "Municipio: "+str(casilla.idmunicipio)
-                   + "\n"
-                   + "\n"
-                   + "\n"
-                   + "Sección: " + idcand
-                   + "\n"
-                   + "Fecha Actual: " + fecha_actual
-                   + "\n"
-                   + "\n"
-                   + "Fecha de entrega: " + fecha_entrega_formatted
-                   + "\n"
-                   + "Hora de entrega: " + str(PaquetesFaseuno.hora_entrga)
-                   + "\n"
-                   + "Entregó el Paquete: " + str(PaquetesFaseuno.nombre_cargo_entrega)
-                   + "\n"
-                   + "Cargo: " + str(PaquetesFaseuno.idcargo_entrega)
-                   + "\n"
-                   + "Recibió el Paquete: " + str(PaquetesFaseuno.id_usuario)
-                   + "\n"
-                   + "Cargo: " + str(PaquetesFaseuno.idcargo_recibe)
-                   )
+        with tempfile.NamedTemporaryFile(delete=False, suffix='.png') as tmpfile:
+            tmpfile.write(qr_stream_full.getvalue())
+            tmp_filename = tmpfile.name
 
+        pdf.image(tmp_filename, x=141, y=pdf_y_qr_full_start, w=50)
+        os.unlink(tmp_filename)
 
-    # Crear el código QR con los datos dinámicos
-    qr_dynamic = qrcode.make(qr_data_dynamic)
-    qr_stream_dynamic = BytesIO()
-    qr_dynamic.save(qr_stream_dynamic, 'PNG')
-    
-    # Establecer la posición para agregar el código QR en el PDF
+        pdf_data = pdf.output(dest='S').encode('latin1')
+        response = HttpResponse(pdf_data, content_type='application/pdf')
+        response['Content-Disposition'] = 'attachment; filename="Reporte_Entrega_Paquete_al_cae.pdf"'
+        return response
 
-    pdf_y_qr_full_start = pdf.get_y() 
-
-    # Crear un archivo temporal para almacenar el código QR
-    with tempfile.NamedTemporaryFile(delete=False, suffix='.png') as tmpfile:
-        # Guardar el contenido de qr_stream_static en el archivo temporal
-        tmpfile.write(qr_stream_dynamic.getvalue())
-        # Obtener la ruta del archivo temporal
-        tmp_filename = tmpfile.name
-
-    # Agregar el código QR al PDF desde el archivo temporal
-    pdf.image(tmp_filename, x=141, y=pdf_y_qr_full_start, w=50)
-
-    # Eliminar el archivo temporal después de usarlo
-    os.unlink(tmp_filename)
-
-    # Guardar el PDF en un objeto de bytes
-    pdf_data = pdf.output(dest='S').encode('latin1')
-    # Devolver el PDF como respuesta
-    response = HttpResponse(pdf_data, content_type='application/pdf')
-    response['Content-Disposition'] = 'attachment; filename="Reporte_Entrega_Paquete_al_cae.pdf"'
-    return response
-   except Exception as e:
- # Capturar el traceback completo del error
+    except Exception as e:
         error_traceback = traceback.format_exc()
-
-        # Mostrar el error y el traceback en la consola
         print(f"Ocurrió un error: {e}")
         print(f"Traceback completo:\n{error_traceback}")
-
-        # Puedes regresar una respuesta de error o manejarlo según lo necesites
         return HttpResponse(f"Error al generar el PDF: {e}", status=500)
-
 
 
 def Paquetes_entrega_Casilla (request):
