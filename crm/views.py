@@ -4,6 +4,7 @@ from django.shortcuts import render, get_object_or_404
 from django.http import JsonResponse
 from django.views.decorators.csrf import csrf_exempt
 from django.views.decorators.http import require_POST, require_GET
+from django.utils import timezone
 from .models import CrmContacto, CrmColaWhatsapp
 
 
@@ -90,6 +91,7 @@ def dashboard(request):
     return render(request, 'crm/dashboard.html', context)
 
 
+@csrf_exempt
 @require_POST
 def api_encolar_mensajes(request):
     """Encola mensajes en crm_cola_whatsapp reemplazando variables dinámicas."""
@@ -141,7 +143,6 @@ def api_encolar_mensajes(request):
             msg = msg.replace('{fecha}', fecha_val)
             msg = msg.replace('{hora}', hora_val)
 
-            # Instanciar registro
             nuevo = CrmColaWhatsapp(
                 telefono=telefono_val,
                 nombre_contacto=nombre_completo_val or nombre_val,
@@ -201,6 +202,7 @@ def api_estado_cola(request):
     })
 
 
+@csrf_exempt
 @require_POST
 def api_agregar_contacto(request):
     """Agrega un nuevo contacto a crm_contactos en 'servicios'."""
@@ -250,6 +252,7 @@ def api_agregar_contacto(request):
         return JsonResponse({'ok': False, 'error': f'Error al guardar contacto: {str(e)}'}, status=500)
 
 
+@csrf_exempt
 @require_POST
 def api_cancelar_mensaje(request, mensaje_id):
     """Cancela/elimina un mensaje en cola si está pendiente."""
@@ -265,6 +268,7 @@ def api_cancelar_mensaje(request, mensaje_id):
         return JsonResponse({'ok': False, 'error': str(e)}, status=500)
 
 
+@csrf_exempt
 @require_POST
 def api_reintentar_mensaje(request, mensaje_id):
     """Reintenta un mensaje que falló poniéndolo en pendiente e intentos=0."""
@@ -276,5 +280,61 @@ def api_reintentar_mensaje(request, mensaje_id):
         mensaje.save()
         stats = get_cola_stats()
         return JsonResponse({'ok': True, 'stats': stats, 'mensaje': 'Mensaje restablecido a pendiente para reintento.'})
+    except Exception as e:
+        return JsonResponse({'ok': False, 'error': str(e)}, status=500)
+
+
+# =====================================================================
+# Endpoints para el Bot de WhatsApp Nocturno (bot_nocturno.py)
+# =====================================================================
+
+@csrf_exempt
+@require_GET
+def bot_pendientes(request):
+    """Devuelve los mensajes pendientes para procesar por el bot nocturno."""
+    try:
+        pendientes = CrmColaWhatsapp.objects.filter(estado='pendiente').order_by('id')[:100]
+        lista = []
+        for m in pendientes:
+            lista.append({
+                'id': m.id,
+                'telefono': m.telefono,
+                'nombre_contacto': m.nombre_contacto or 'Contacto',
+                'mensaje': m.mensaje,
+                'fecha_programada': m.fecha_programada.strftime('%Y-%m-%d') if m.fecha_programada else '',
+            })
+        return JsonResponse({'ok': True, 'mensajes': lista, 'total': len(lista)})
+    except Exception as e:
+        return JsonResponse({'ok': False, 'error': str(e), 'mensajes': []}, status=500)
+
+
+@csrf_exempt
+@require_POST
+def bot_actualizar(request):
+    """El bot reporta el estado (procesando, enviado, error) de un mensaje."""
+    try:
+        try:
+            data = json.loads(request.body.decode('utf-8'))
+        except Exception:
+            data = request.POST
+
+        msg_id = data.get('id')
+        nuevo_estado = data.get('estado')
+        error_msg = data.get('error', '')
+
+        if not msg_id or not nuevo_estado:
+            return JsonResponse({'ok': False, 'error': 'ID y estado son requeridos.'}, status=400)
+
+        mensaje = get_object_or_404(CrmColaWhatsapp, id=msg_id)
+        mensaje.estado = nuevo_estado
+        if error_msg:
+            mensaje.error_detalle = error_msg
+            mensaje.intentos = (mensaje.intentos or 0) + 1
+        
+        if nuevo_estado == 'enviado':
+            mensaje.enviado_en = timezone.now()
+
+        mensaje.save()
+        return JsonResponse({'ok': True, 'mensaje': f'Estado de ID {msg_id} actualizado a {nuevo_estado}.'})
     except Exception as e:
         return JsonResponse({'ok': False, 'error': str(e)}, status=500)
