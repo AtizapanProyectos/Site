@@ -17,7 +17,8 @@ INSTALLED_APPS = [
     'django.contrib.messages',
     'django.contrib.staticfiles',
     'whitenoise.runserver_nostatic',
-    'Siteone'
+    'Siteone',
+    'crm',
 ]
 
 MIDDLEWARE = [
@@ -56,6 +57,16 @@ DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.mysql',
         'NAME': 'dbsite',
+        'USER': 'root',
+        'PASSWORD': 'NvrCnOqoXLUsiPHyvbwfRirXIBjVVijP',
+        'HOST': 'centerbeam.proxy.rlwy.net',
+        'PORT': '32108',
+        'CONN_MAX_AGE': 45,
+        'CONN_HEALTH_CHECKS': True,
+    },
+    'servicios': {
+        'ENGINE': 'django.db.backends.mysql',
+        'NAME': 'Servicios',
         'USER': 'root',
         'PASSWORD': 'NvrCnOqoXLUsiPHyvbwfRirXIBjVVijP',
         'HOST': 'centerbeam.proxy.rlwy.net',

@@ -1,0 +1,1787 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>CRM WhatsApp | Centro de Envíos</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+  
+  <style>
+    :root {
+      --bg-main: #0B0F19;
+      --bg-card: rgba(18, 26, 43, 0.75);
+      --bg-card-hover: rgba(28, 40, 65, 0.85);
+      --bg-input: #0e1626;
+      --border-subtle: rgba(255, 255, 255, 0.08);
+      --border-focus: #25D366;
+      --text-primary: #F3F4F6;
+      --text-secondary: #9CA3AF;
+      --text-muted: #6B7280;
+      
+      --wa-green: #25D366;
+      --wa-dark-green: #075E54;
+      --wa-teal: #128C7E;
+      --wa-chat-bubble: #005c4b;
+      --wa-chat-bg: #0b141a;
+      
+      --accent-blue: #3B82F6;
+      --accent-yellow: #F59E0B;
+      --accent-red: #EF4444;
+      --accent-purple: #8B5CF6;
+      
+      --radius-sm: 8px;
+      --radius-md: 14px;
+      --radius-lg: 20px;
+      --shadow-card: 0 10px 30px -10px rgba(0, 0, 0, 0.5);
+      --shadow-glow: 0 0 25px rgba(37, 211, 102, 0.2);
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      font-family: 'Plus Jakarta Sans', sans-serif;
+    }
+
+    body {
+      background-color: var(--bg-main);
+      color: var(--text-primary);
+      min-height: 100vh;
+      overflow-x: hidden;
+      background-image: 
+        radial-gradient(at 0% 0%, rgba(37, 211, 102, 0.08) 0px, transparent 50%),
+        radial-gradient(at 100% 100%, rgba(59, 130, 246, 0.08) 0px, transparent 50%),
+        radial-gradient(at 50% 50%, rgba(18, 140, 126, 0.04) 0px, transparent 70%);
+      background-attachment: fixed;
+    }
+
+    /* Layout principal */
+    .app-container {
+      max-width: 1440px;
+      margin: 0 auto;
+      padding: 24px 28px 60px 28px;
+    }
+
+    /* Header y Banner */
+    header {
+      margin-bottom: 24px;
+    }
+
+    .top-bar {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 20px;
+      flex-wrap: wrap;
+      gap: 16px;
+    }
+
+    .brand {
+      display: flex;
+      align-items: center;
+      gap: 14px;
+    }
+
+    .brand-logo {
+      width: 46px;
+      height: 46px;
+      background: linear-gradient(135deg, #25D366, #128C7E);
+      border-radius: 14px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      box-shadow: 0 4px 20px rgba(37, 211, 102, 0.35);
+    }
+
+    .brand-logo svg {
+      width: 26px;
+      height: 26px;
+      fill: #fff;
+    }
+
+    .brand-text h1 {
+      font-size: 22px;
+      font-weight: 800;
+      letter-spacing: -0.5px;
+      background: linear-gradient(180deg, #FFFFFF 0%, #D1D5DB 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+    }
+
+    .brand-text p {
+      font-size: 13px;
+      color: var(--text-secondary);
+    }
+
+    .header-actions {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .btn-secondary {
+      background: rgba(255, 255, 255, 0.06);
+      border: 1px solid var(--border-subtle);
+      color: var(--text-primary);
+      padding: 9px 16px;
+      border-radius: var(--radius-sm);
+      font-size: 13px;
+      font-weight: 600;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      transition: all 0.2s ease;
+    }
+
+    .btn-secondary:hover {
+      background: rgba(255, 255, 255, 0.12);
+      border-color: rgba(255, 255, 255, 0.2);
+    }
+
+    /* Banner Dinámico de Estado */
+    .status-banner {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 14px 20px;
+      border-radius: var(--radius-md);
+      backdrop-filter: blur(12px);
+      margin-bottom: 24px;
+      border: 1px solid;
+      transition: all 0.3s ease;
+      box-shadow: var(--shadow-card);
+    }
+
+    .status-banner.banner-pendiente {
+      background: rgba(245, 158, 11, 0.12);
+      border-color: rgba(245, 158, 11, 0.3);
+      color: #FCD34D;
+    }
+
+    .status-banner.banner-procesando {
+      background: rgba(59, 130, 246, 0.12);
+      border-color: rgba(59, 130, 246, 0.3);
+      color: #93C5FD;
+    }
+
+    .status-banner.banner-exito {
+      background: rgba(37, 211, 102, 0.12);
+      border-color: rgba(37, 211, 102, 0.3);
+      color: #86EFAC;
+    }
+
+    .status-banner.banner-error {
+      background: rgba(239, 68, 68, 0.12);
+      border-color: rgba(239, 68, 68, 0.3);
+      color: #FCA5A5;
+    }
+
+    .banner-content {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      font-weight: 600;
+      font-size: 14.5px;
+    }
+
+    .banner-dot {
+      width: 10px;
+      height: 10px;
+      border-radius: 50%;
+      animation: pulse-dot 2s infinite ease-in-out;
+    }
+
+    .banner-pendiente .banner-dot { background-color: var(--accent-yellow); box-shadow: 0 0 10px var(--accent-yellow); }
+    .banner-procesando .banner-dot { background-color: var(--accent-blue); box-shadow: 0 0 10px var(--accent-blue); }
+    .banner-exito .banner-dot { background-color: var(--wa-green); box-shadow: 0 0 10px var(--wa-green); }
+    .banner-error .banner-dot { background-color: var(--accent-red); box-shadow: 0 0 10px var(--accent-red); }
+
+    @keyframes pulse-dot {
+      0%, 100% { transform: scale(1); opacity: 1; }
+      50% { transform: scale(1.3); opacity: 0.6; }
+    }
+
+    .banner-meta {
+      font-size: 12px;
+      opacity: 0.85;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    /* Tarjetas de Métricas */
+    .kpi-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+      gap: 16px;
+      margin-bottom: 28px;
+    }
+
+    .kpi-card {
+      background: var(--bg-card);
+      border: 1px solid var(--border-subtle);
+      border-radius: var(--radius-md);
+      padding: 18px 20px;
+      backdrop-filter: blur(16px);
+      box-shadow: var(--shadow-card);
+      transition: transform 0.2s ease, border-color 0.2s ease;
+    }
+
+    .kpi-card:hover {
+      transform: translateY(-2px);
+      border-color: rgba(255, 255, 255, 0.15);
+    }
+
+    .kpi-title {
+      font-size: 12.5px;
+      color: var(--text-secondary);
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 8px;
+    }
+
+    .kpi-value {
+      font-size: 28px;
+      font-weight: 800;
+      letter-spacing: -0.5px;
+    }
+
+    .kpi-card.pendientes .kpi-value { color: var(--accent-yellow); }
+    .kpi-card.procesando .kpi-value { color: var(--accent-blue); }
+    .kpi-card.enviados .kpi-value { color: var(--wa-green); }
+    .kpi-card.errores .kpi-value { color: var(--accent-red); }
+
+    /* Grid principal: Segmentación + Redacción + Vista Previa */
+    .main-workspace {
+      display: grid;
+      grid-template-columns: 340px 1fr 340px;
+      gap: 22px;
+      margin-bottom: 36px;
+    }
+
+    @media (max-width: 1240px) {
+      .main-workspace {
+        grid-template-columns: 320px 1fr;
+      }
+      .preview-col {
+        grid-column: span 2;
+      }
+    }
+
+    @media (max-width: 900px) {
+      .main-workspace {
+        grid-template-columns: 1fr;
+      }
+      .preview-col {
+        grid-column: span 1;
+      }
+    }
+
+    .card-panel {
+      background: var(--bg-card);
+      border: 1px solid var(--border-subtle);
+      border-radius: var(--radius-lg);
+      padding: 22px;
+      backdrop-filter: blur(16px);
+      box-shadow: var(--shadow-card);
+      display: flex;
+      flex-direction: column;
+    }
+
+    .panel-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 16px;
+      padding-bottom: 12px;
+      border-bottom: 1px solid var(--border-subtle);
+    }
+
+    .panel-header h2 {
+      font-size: 16px;
+      font-weight: 700;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .badge-counter {
+      background: rgba(255, 255, 255, 0.1);
+      color: #fff;
+      font-size: 11px;
+      font-weight: 700;
+      padding: 2px 8px;
+      border-radius: 20px;
+    }
+
+    /* Columna 1: Contactos y Rubros */
+    .rubros-tabs {
+      display: flex;
+      gap: 6px;
+      overflow-x: auto;
+      padding-bottom: 8px;
+      margin-bottom: 14px;
+    }
+
+    .rubros-tabs::-webkit-scrollbar {
+      height: 4px;
+    }
+    .rubros-tabs::-webkit-scrollbar-thumb {
+      background: rgba(255, 255, 255, 0.15);
+      border-radius: 4px;
+    }
+
+    .rubro-chip {
+      background: rgba(255, 255, 255, 0.05);
+      border: 1px solid var(--border-subtle);
+      color: var(--text-secondary);
+      padding: 6px 12px;
+      border-radius: 20px;
+      font-size: 12px;
+      font-weight: 600;
+      cursor: pointer;
+      white-space: nowrap;
+      transition: all 0.2s;
+    }
+
+    .rubro-chip:hover {
+      background: rgba(255, 255, 255, 0.1);
+      color: #fff;
+    }
+
+    .rubro-chip.active {
+      background: var(--wa-teal);
+      border-color: var(--wa-green);
+      color: #fff;
+      box-shadow: 0 2px 10px rgba(18, 140, 126, 0.4);
+    }
+
+    .search-box {
+      position: relative;
+      margin-bottom: 12px;
+    }
+
+    .search-box input {
+      width: 100%;
+      background: var(--bg-input);
+      border: 1px solid var(--border-subtle);
+      border-radius: var(--radius-sm);
+      padding: 9px 12px 9px 34px;
+      font-size: 13px;
+      color: var(--text-primary);
+      outline: none;
+      transition: border-color 0.2s;
+    }
+
+    .search-box input:focus {
+      border-color: var(--wa-green);
+    }
+
+    .search-box svg {
+      position: absolute;
+      left: 10px;
+      top: 10px;
+      width: 15px;
+      height: 15px;
+      fill: var(--text-muted);
+    }
+
+    .selection-controls {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 12px;
+      font-size: 12px;
+      color: var(--text-secondary);
+    }
+
+    .btn-link {
+      background: none;
+      border: none;
+      color: var(--wa-green);
+      font-size: 12px;
+      font-weight: 600;
+      cursor: pointer;
+      padding: 2px 4px;
+    }
+
+    .btn-link:hover {
+      text-decoration: underline;
+    }
+
+    .contacts-list {
+      max-height: 480px;
+      overflow-y: auto;
+      padding-right: 4px;
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+    }
+
+    .contacts-list::-webkit-scrollbar {
+      width: 5px;
+    }
+    .contacts-list::-webkit-scrollbar-thumb {
+      background: rgba(255, 255, 255, 0.15);
+      border-radius: 4px;
+    }
+
+    .contact-item {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      padding: 10px 12px;
+      background: rgba(255, 255, 255, 0.02);
+      border: 1px solid transparent;
+      border-radius: var(--radius-sm);
+      cursor: pointer;
+      transition: all 0.15s ease;
+    }
+
+    .contact-item:hover {
+      background: rgba(255, 255, 255, 0.06);
+      border-color: rgba(255, 255, 255, 0.08);
+    }
+
+    .contact-item.selected {
+      background: rgba(37, 211, 102, 0.08);
+      border-color: rgba(37, 211, 102, 0.3);
+    }
+
+    .contact-checkbox {
+      accent-color: var(--wa-green);
+      width: 16px;
+      height: 16px;
+      cursor: pointer;
+    }
+
+    .contact-avatar {
+      width: 34px;
+      height: 34px;
+      border-radius: 50%;
+      background: linear-gradient(135deg, #1f293d, #111827);
+      border: 1px solid var(--border-subtle);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-weight: 700;
+      font-size: 12px;
+      color: #9CA3AF;
+      flex-shrink: 0;
+    }
+
+    .contact-info {
+      flex: 1;
+      min-width: 0;
+    }
+
+    .contact-name {
+      font-size: 13.5px;
+      font-weight: 600;
+      color: #fff;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .contact-sub {
+      font-size: 11.5px;
+      color: var(--text-muted);
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .badge-tipo {
+      font-size: 9.5px;
+      padding: 1px 6px;
+      border-radius: 6px;
+      text-transform: capitalize;
+      font-weight: 600;
+    }
+
+    .badge-paciente { background: rgba(59, 130, 246, 0.2); color: #93C5FD; }
+    .badge-doctor { background: rgba(139, 92, 246, 0.2); color: #C4B5FD; }
+    .badge-cliente { background: rgba(16, 185, 129, 0.2); color: #6EE7B7; }
+    .badge-otro { background: rgba(245, 158, 11, 0.2); color: #FCD34D; }
+
+    /* Columna 2: Redacción del Mensaje */
+    .form-group {
+      margin-bottom: 18px;
+    }
+
+    .form-group label {
+      display: block;
+      font-size: 13px;
+      font-weight: 600;
+      color: var(--text-secondary);
+      margin-bottom: 8px;
+    }
+
+    .form-row {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 14px;
+    }
+
+    .form-input {
+      width: 100%;
+      background: var(--bg-input);
+      border: 1px solid var(--border-subtle);
+      border-radius: var(--radius-sm);
+      padding: 10px 14px;
+      font-size: 13.5px;
+      color: var(--text-primary);
+      outline: none;
+      transition: border-color 0.2s;
+    }
+
+    .form-input:focus {
+      border-color: var(--wa-green);
+    }
+
+    /* Tags dinámicas */
+    .tags-container {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 7px;
+      margin-bottom: 10px;
+    }
+
+    .variable-tag {
+      background: rgba(37, 211, 102, 0.1);
+      border: 1px dashed rgba(37, 211, 102, 0.4);
+      color: #4ade80;
+      padding: 4px 10px;
+      border-radius: 6px;
+      font-size: 12px;
+      font-family: monospace;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.15s ease;
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+    }
+
+    .variable-tag:hover {
+      background: rgba(37, 211, 102, 0.25);
+      border-color: var(--wa-green);
+      transform: translateY(-1px);
+    }
+
+    .variable-tag span {
+      font-size: 10px;
+      opacity: 0.7;
+    }
+
+    .message-textarea-wrapper {
+      position: relative;
+    }
+
+    .message-textarea {
+      width: 100%;
+      height: 200px;
+      background: var(--bg-input);
+      border: 1px solid var(--border-subtle);
+      border-radius: var(--radius-md);
+      padding: 14px 16px;
+      font-size: 14px;
+      line-height: 1.5;
+      color: var(--text-primary);
+      outline: none;
+      resize: vertical;
+      transition: border-color 0.2s;
+    }
+
+    .message-textarea:focus {
+      border-color: var(--wa-green);
+      box-shadow: 0 0 0 2px rgba(37, 211, 102, 0.15);
+    }
+
+    .textarea-footer {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-top: 8px;
+      font-size: 12px;
+      color: var(--text-muted);
+    }
+
+    /* Botón Guardar / Encolar */
+    .btn-enqueue {
+      width: 100%;
+      background: linear-gradient(135deg, #25D366 0%, #128C7E 100%);
+      color: #FFFFFF;
+      border: none;
+      border-radius: var(--radius-md);
+      padding: 14px 20px;
+      font-size: 15px;
+      font-weight: 700;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 10px;
+      box-shadow: 0 4px 20px rgba(37, 211, 102, 0.3);
+      transition: all 0.2s ease;
+      margin-top: 14px;
+    }
+
+    .btn-enqueue:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 8px 25px rgba(37, 211, 102, 0.45);
+    }
+
+    .btn-enqueue:active {
+      transform: translateY(0);
+    }
+
+    .btn-enqueue:disabled {
+      opacity: 0.5;
+      cursor: not-allowed;
+      transform: none;
+      box-shadow: none;
+    }
+
+    /* Columna 3: Simulador WhatsApp Phone */
+    .whatsapp-simulator {
+      background: #111b21;
+      border: 1px solid rgba(255, 255, 255, 0.12);
+      border-radius: 28px;
+      overflow: hidden;
+      box-shadow: 0 20px 40px rgba(0,0,0,0.6);
+      display: flex;
+      flex-direction: column;
+      height: 520px;
+    }
+
+    .phone-notch {
+      background: #202c33;
+      padding: 8px 16px;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+    }
+
+    .phone-avatar {
+      width: 32px;
+      height: 32px;
+      border-radius: 50%;
+      background: #6b7280;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 12px;
+      font-weight: 700;
+      color: #fff;
+    }
+
+    .phone-contact-info h4 {
+      font-size: 13px;
+      font-weight: 600;
+      color: #e9edef;
+      line-height: 1.2;
+    }
+
+    .phone-contact-info span {
+      font-size: 10.5px;
+      color: #8696a0;
+    }
+
+    .chat-body {
+      flex: 1;
+      background-color: #0b141a;
+      background-image: radial-gradient(rgba(255, 255, 255, 0.04) 1px, transparent 0);
+      background-size: 16px 16px;
+      padding: 16px;
+      overflow-y: auto;
+      display: flex;
+      flex-direction: column;
+      justify-content: flex-end;
+    }
+
+    .chat-bubble {
+      align-self: flex-end;
+      background-color: #005c4b;
+      color: #e9edef;
+      padding: 8px 12px;
+      border-radius: 12px 12px 2px 12px;
+      max-width: 90%;
+      font-size: 13px;
+      line-height: 1.4;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.3);
+      position: relative;
+      word-break: break-word;
+      white-space: pre-wrap;
+    }
+
+    .bubble-meta {
+      display: flex;
+      align-items: center;
+      justify-content: flex-end;
+      gap: 4px;
+      font-size: 10px;
+      color: rgba(255, 255, 255, 0.6);
+      margin-top: 4px;
+    }
+
+    .bubble-meta svg {
+      width: 14px;
+      height: 14px;
+      fill: #53bdeb;
+    }
+
+    .preview-note {
+      text-align: center;
+      font-size: 11px;
+      color: var(--text-muted);
+      margin-top: 10px;
+    }
+
+    /* Sección de Cola / Historial */
+    .queue-section {
+      background: var(--bg-card);
+      border: 1px solid var(--border-subtle);
+      border-radius: var(--radius-lg);
+      padding: 24px;
+      backdrop-filter: blur(16px);
+      box-shadow: var(--shadow-card);
+    }
+
+    .queue-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 18px;
+      flex-wrap: wrap;
+      gap: 12px;
+    }
+
+    .queue-title h3 {
+      font-size: 18px;
+      font-weight: 700;
+    }
+
+    .queue-filters {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .filter-btn {
+      background: rgba(255, 255, 255, 0.04);
+      border: 1px solid var(--border-subtle);
+      color: var(--text-secondary);
+      padding: 6px 12px;
+      border-radius: 8px;
+      font-size: 12px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+
+    .filter-btn:hover {
+      background: rgba(255, 255, 255, 0.08);
+      color: #fff;
+    }
+
+    .filter-btn.active {
+      background: rgba(255, 255, 255, 0.15);
+      color: #fff;
+      border-color: rgba(255, 255, 255, 0.3);
+    }
+
+    /* Tabla de mensajes */
+    .table-responsive {
+      overflow-x: auto;
+    }
+
+    .queue-table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 13px;
+      text-align: left;
+    }
+
+    .queue-table th {
+      padding: 12px 14px;
+      background: rgba(255, 255, 255, 0.02);
+      color: var(--text-secondary);
+      font-weight: 600;
+      border-bottom: 1px solid var(--border-subtle);
+      white-space: nowrap;
+    }
+
+    .queue-table td {
+      padding: 12px 14px;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.04);
+      color: var(--text-primary);
+      vertical-align: middle;
+    }
+
+    .queue-table tr:hover td {
+      background: rgba(255, 255, 255, 0.02);
+    }
+
+    .badge-status {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      font-size: 11px;
+      font-weight: 700;
+      padding: 3px 10px;
+      border-radius: 12px;
+      text-transform: capitalize;
+    }
+
+    .badge-status.pendiente { background: rgba(245, 158, 11, 0.15); color: #FCD34D; border: 1px solid rgba(245, 158, 11, 0.3); }
+    .badge-status.procesando { background: rgba(59, 130, 246, 0.15); color: #93C5FD; border: 1px solid rgba(59, 130, 246, 0.3); }
+    .badge-status.enviado { background: rgba(37, 211, 102, 0.15); color: #86EFAC; border: 1px solid rgba(37, 211, 102, 0.3); }
+    .badge-status.error { background: rgba(239, 68, 68, 0.15); color: #FCA5A5; border: 1px solid rgba(239, 68, 68, 0.3); }
+
+    .msg-preview-cell {
+      max-width: 320px;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      font-family: monospace;
+      font-size: 12px;
+      color: #D1D5DB;
+    }
+
+    .action-btn {
+      background: none;
+      border: 1px solid var(--border-subtle);
+      color: var(--text-secondary);
+      padding: 4px 8px;
+      border-radius: 6px;
+      font-size: 11px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+
+    .action-btn:hover {
+      background: rgba(255, 255, 255, 0.1);
+      color: #fff;
+    }
+
+    .action-btn.cancel:hover {
+      background: rgba(239, 68, 68, 0.2);
+      border-color: var(--accent-red);
+      color: #FCA5A5;
+    }
+
+    .action-btn.retry:hover {
+      background: rgba(245, 158, 11, 0.2);
+      border-color: var(--accent-yellow);
+      color: #FCD34D;
+    }
+
+    /* Modal Nuevo Contacto */
+    .modal-overlay {
+      position: fixed;
+      inset: 0;
+      background: rgba(0, 0, 0, 0.75);
+      backdrop-filter: blur(8px);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      z-index: 1000;
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity 0.25s ease;
+    }
+
+    .modal-overlay.active {
+      opacity: 1;
+      pointer-events: auto;
+    }
+
+    .modal-card {
+      background: #111827;
+      border: 1px solid var(--border-subtle);
+      border-radius: var(--radius-lg);
+      width: 100%;
+      max-width: 480px;
+      padding: 26px;
+      box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.7);
+      transform: scale(0.95);
+      transition: transform 0.25s ease;
+    }
+
+    .modal-overlay.active .modal-card {
+      transform: scale(1);
+    }
+
+    .modal-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 20px;
+    }
+
+    .modal-header h3 {
+      font-size: 18px;
+      font-weight: 700;
+    }
+
+    .modal-close {
+      background: none;
+      border: none;
+      color: var(--text-muted);
+      font-size: 20px;
+      cursor: pointer;
+      line-height: 1;
+    }
+
+    .modal-close:hover {
+      color: #fff;
+    }
+
+    /* Toast emergente */
+    .toast-container {
+      position: fixed;
+      bottom: 24px;
+      right: 24px;
+      z-index: 9999;
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+
+    .toast {
+      background: #1F2937;
+      border: 1px solid var(--border-subtle);
+      border-left: 4px solid var(--wa-green);
+      color: #F3F4F6;
+      padding: 12px 18px;
+      border-radius: var(--radius-sm);
+      font-size: 13.5px;
+      box-shadow: 0 10px 25px rgba(0, 0, 0, 0.5);
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      animation: slide-in 0.3s ease;
+    }
+
+    .toast.error {
+      border-left-color: var(--accent-red);
+    }
+
+    @keyframes slide-in {
+      from { transform: translateX(100%); opacity: 0; }
+      to { transform: translateX(0); opacity: 1; }
+    }
+  </style>
+</head>
+<body>
+
+  <div class="app-container">
+    <!-- Header -->
+    <header>
+      <div class="top-bar">
+        <div class="brand">
+          <div class="brand-logo">
+            <svg viewBox="0 0 24 24"><path d="M12.04 2C6.58 2 2.13 6.45 2.13 11.91C2.13 13.66 2.59 15.36 3.45 16.86L2.05 22L7.3 20.62C8.75 21.41 10.38 21.83 12.04 21.83C17.5 21.83 21.95 17.38 21.95 11.92C21.95 9.27 20.92 6.78 19.05 4.91C17.18 3.04 14.69 2 12.04 2M12.05 3.67C14.25 3.67 16.31 4.53 17.87 6.09C19.42 7.65 20.28 9.72 20.28 11.92C20.28 16.46 16.58 20.15 12.04 20.15C10.56 20.15 9.11 19.76 7.85 19L7.55 18.83L4.43 19.65L5.26 16.61L5.06 16.29C4.24 14.99 3.8 13.47 3.8 11.91C3.81 7.37 7.5 3.67 12.05 3.67M9.53 7.33C9.31 7.33 8.95 7.41 8.65 7.74C8.36 8.06 7.53 8.84 7.53 10.42C7.53 12 8.68 13.53 8.84 13.74C9 13.96 11.1 17.2 14.31 18.58C16.97 19.73 17.52 19.5 18.11 19.44C18.7 19.39 20 18.68 20.27 17.93C20.53 17.18 20.53 16.53 20.45 16.4C20.37 16.27 20.17 16.19 19.86 16.04C19.56 15.89 18.08 15.16 17.8 15.06C17.53 14.96 17.33 14.91 17.13 15.21C16.93 15.51 16.36 16.19 16.18 16.39C16.01 16.59 15.83 16.61 15.53 16.46C15.23 16.31 14.26 16 13.12 14.98C12.23 14.19 11.63 13.21 11.45 12.91C11.28 12.61 11.43 12.45 11.58 12.3C11.72 12.16 11.89 11.94 12.04 11.76C12.19 11.59 12.24 11.46 12.34 11.26C12.44 11.06 12.39 10.89 12.31 10.74C12.24 10.59 11.64 9.11 11.39 8.51C11.15 7.93 10.9 8.01 10.72 8C10.55 8 10.35 8 10.15 8C9.95 8 9.63 8.07 9.53 7.33Z"/></svg>
+          </div>
+          <div class="brand-text">
+            <h1>CRM Envíos WhatsApp</h1>
+            <p>Conectado a la base de datos <strong>Servicios</strong> • Servidor MySQL</p>
+          </div>
+        </div>
+
+        <div class="header-actions">
+          <button class="btn-secondary" onclick="abrirModalContacto()">
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M12 5v14M5 12h14"/></svg>
+            Nuevo Contacto
+          </button>
+          <button class="btn-secondary" onclick="refrescarEstado(true)">
+            <svg id="refresh-icon" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M21.5 2v6h-6M21.34 15.57a10 10 0 1 1-.57-8.38l5.67-5.19"/></svg>
+            Actualizar
+          </button>
+        </div>
+      </div>
+
+      <!-- Banner Discreto / Inteligente de Estado -->
+      <div id="status-banner" class="status-banner banner-{{ stats.banner_tipo }}">
+        <div class="banner-content">
+          <span class="banner-dot"></span>
+          <span id="banner-text">{{ stats.banner_icono }} {{ stats.banner_mensaje }}</span>
+        </div>
+        <div class="banner-meta">
+          <span id="banner-timer">Sincronización activa</span>
+        </div>
+      </div>
+
+      <!-- Tarjetas KPIs -->
+      <div class="kpi-grid">
+        <div class="kpi-card pendientes">
+          <div class="kpi-title">
+            <span>En Cola (Pendientes)</span>
+            <span>🟡</span>
+          </div>
+          <div class="kpi-value" id="kpi-pendientes">{{ stats.total_pendientes }}</div>
+        </div>
+
+        <div class="kpi-card procesando">
+          <div class="kpi-title">
+            <span>En Proceso (Bot)</span>
+            <span>🔵</span>
+          </div>
+          <div class="kpi-value" id="kpi-procesando">{{ stats.total_procesando }}</div>
+        </div>
+
+        <div class="kpi-card enviados">
+          <div class="kpi-title">
+            <span>Enviados Exitosos</span>
+            <span>🟢</span>
+          </div>
+          <div class="kpi-value" id="kpi-enviados">{{ stats.total_enviados }}</div>
+        </div>
+
+        <div class="kpi-card errores">
+          <div class="kpi-title">
+            <span>Con Error / Fallos</span>
+            <span>🔴</span>
+          </div>
+          <div class="kpi-value" id="kpi-errores">{{ stats.total_errores }}</div>
+        </div>
+      </div>
+    </header>
+
+    <!-- Espacio Principal de Trabajo -->
+    <div class="main-workspace">
+      
+      <!-- Columna 1: Contactos y Segmentación -->
+      <section class="card-panel">
+        <div class="panel-header">
+          <h2>
+            <span>Destinatarios</span>
+            <span class="badge-counter" id="selected-counter">0 seleccionados</span>
+          </h2>
+        </div>
+
+        <!-- Filtros por Rubro -->
+        <div class="rubros-tabs">
+          <button class="rubro-chip active" data-rubro="todos" onclick="filtrarRubro('todos')">
+            Todos ({{ rubros_counts.todos }})
+          </button>
+          <button class="rubro-chip" data-rubro="paciente" onclick="filtrarRubro('paciente')">
+            Pacientes ({{ rubros_counts.paciente }})
+          </button>
+          <button class="rubro-chip" data-rubro="doctor" onclick="filtrarRubro('doctor')">
+            Doctores ({{ rubros_counts.doctor }})
+          </button>
+          <button class="rubro-chip" data-rubro="cliente" onclick="filtrarRubro('cliente')">
+            Clientes ({{ rubros_counts.cliente }})
+          </button>
+          <button class="rubro-chip" data-rubro="otro" onclick="filtrarRubro('otro')">
+            Otros / Colegas ({{ rubros_counts.otro }})
+          </button>
+        </div>
+
+        <!-- Buscador -->
+        <div class="search-box">
+          <svg viewBox="0 0 24 24"><path d="M10 2a8 8 0 105.293 14.707l4.387 4.387a1 1 0 001.414-1.414l-4.387-4.387A8 8 0 0010 2zm-6 8a6 6 0 1112 0 6 6 0 01-12 0z"/></svg>
+          <input type="text" id="contact-search" placeholder="Buscar contacto o teléfono..." oninput="filtrarContactos()">
+        </div>
+
+        <!-- Acciones rápidas -->
+        <div class="selection-controls">
+          <span id="visible-count">Mostrando {{ contactos|length }} contactos</span>
+          <div>
+            <button class="btn-link" onclick="seleccionarVisibles(true)">Seleccionar todos</button>
+            •
+            <button class="btn-link" onclick="seleccionarVisibles(false)">Deseleccionar</button>
+          </div>
+        </div>
+
+        <!-- Lista de contactos -->
+        <div class="contacts-list" id="contacts-container">
+          {% for c in contactos %}
+          <div class="contact-item" 
+               id="contact-row-{{ c.id }}"
+               data-id="{{ c.id }}" 
+               data-nombre="{{ c.nombre }}" 
+               data-apellidos="{{ c.apellidos|default:'' }}"
+               data-nombre-completo="{{ c.nombre_completo }}"
+               data-telefono="{{ c.telefono }}" 
+               data-tipo="{{ c.tipo }}"
+               onclick="toggleSelectContact('{{ c.id }}', event)">
+            <input type="checkbox" class="contact-checkbox" value="{{ c.id }}" onchange="handleCheckboxChange(this)">
+            <div class="contact-avatar">{{ c.nombre|slice:":1"|upper }}</div>
+            <div class="contact-info">
+              <div class="contact-name">{{ c.nombre_completo }}</div>
+              <div class="contact-sub">
+                <span>{{ c.telefono }}</span>
+                <span class="badge-tipo badge-{{ c.tipo }}">{{ c.tipo }}</span>
+              </div>
+            </div>
+          </div>
+          {% empty %}
+          <div style="text-align: center; color: var(--text-muted); padding: 30px 10px;">
+            No hay contactos registrados en la tabla <code>crm_contactos</code>.
+          </div>
+          {% endfor %}
+        </div>
+      </section>
+
+      <!-- Columna 2: Redactor de Mensajes -->
+      <section class="card-panel">
+        <div class="panel-header">
+          <h2>
+            <span>Redacción del Mensaje</span>
+          </h2>
+          <span style="font-size: 12px; color: var(--text-muted);">Envío nocturno automático</span>
+        </div>
+
+        <div class="form-row">
+          <div class="form-group">
+            <label for="fecha_programada">Fecha de Envío Nocturno:</label>
+            <input type="date" id="fecha_programada" class="form-input" value="{{ today_str }}" onchange="actualizarVistaPrevia()">
+          </div>
+
+          <div class="form-group">
+            <label for="hora_cita">Hora Cita (opcional variable {hora}):</label>
+            <input type="time" id="hora_cita" class="form-input" value="10:00" onchange="actualizarVistaPrevia()">
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label>Insertar Variables Dinámicas al Mensaje:</label>
+          <div class="tags-container">
+            <button type="button" class="variable-tag" onclick="insertVariable('{nombre}')">
+              {nombre} <span>nombre de pila</span>
+            </button>
+            <button type="button" class="variable-tag" onclick="insertVariable('{apellidos}')">
+              {apellidos} <span>apellidos</span>
+            </button>
+            <button type="button" class="variable-tag" onclick="insertVariable('{nombre_completo}')">
+              {nombre_completo} <span>completo</span>
+            </button>
+            <button type="button" class="variable-tag" onclick="insertVariable('{telefono}')">
+              {telefono} <span>teléfono</span>
+            </button>
+            <button type="button" class="variable-tag" onclick="insertVariable('{fecha}')">
+              {fecha} <span>fecha envío</span>
+            </button>
+            <button type="button" class="variable-tag" onclick="insertVariable('{hora}')">
+              {hora} <span>hora</span>
+            </button>
+          </div>
+        </div>
+
+        <div class="form-group message-textarea-wrapper">
+          <label for="mensaje_texto">Cuerpo del Mensaje de WhatsApp:</label>
+          <textarea id="mensaje_texto" class="message-textarea" 
+            placeholder="Hola {nombre}, le saludamos para recordarle..."
+            oninput="actualizarVistaPrevia()">Hola {nombre}, le saludamos cordialmente para recordarle su cita programada el día de mañana a las {hora}. Por favor confirme su asistencia respondiendo a este mensaje.</textarea>
+          
+          <div class="textarea-footer">
+            <span id="char-counter">0 caracteres</span>
+            <span>Variables se reemplazan automáticamente por cada contacto</span>
+          </div>
+        </div>
+
+        <!-- Botón Encolar -->
+        <button id="btn-submit" class="btn-enqueue" onclick="guardarParaEnvio()">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M22 2L11 13M22 2l-7 20-4-9-9-4 20-7z"/></svg>
+          <span id="btn-submit-text">Guardar para Envío (0 contactos)</span>
+        </button>
+      </section>
+
+      <!-- Columna 3: Simulador WhatsApp Preview -->
+      <section class="card-panel preview-col">
+        <div class="panel-header">
+          <h2>
+            <span>Vista Previa WhatsApp</span>
+          </h2>
+          <span style="font-size: 11px; color: var(--wa-green);">Simulación en vivo</span>
+        </div>
+
+        <div class="whatsapp-simulator">
+          <div class="phone-notch">
+            <div class="phone-avatar" id="sim-avatar">C</div>
+            <div class="phone-contact-info">
+              <h4 id="sim-nombre">Carlos Mendoza Rivera</h4>
+              <span id="sim-telefono">+52 55 1234 5678</span>
+            </div>
+          </div>
+
+          <div class="chat-body">
+            <div class="chat-bubble">
+              <div id="sim-bubble-text">Hola Carlos, le saludamos...</div>
+              <div class="bubble-meta">
+                <span id="sim-time">12:00</span>
+                <svg viewBox="0 0 16 11"><path d="M11.05 1.25L5.75 6.55L3.15 3.95L2 5.1L5.75 8.85L12.2 2.4L11.05 1.25ZM15.05 1.25L9.75 6.55L8.55 5.35L7.4 6.5L9.75 8.85L16.2 2.4L15.05 1.25Z"/></svg>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="preview-note">
+          Simulando datos con el primer contacto seleccionado.
+        </div>
+      </section>
+
+    </div>
+
+    <!-- Sección Inferior: Mensajes en Cola y Recientes -->
+    <section class="queue-section">
+      <div class="queue-header">
+        <div class="queue-title">
+          <h3>Cola de Mensajes Recientes (crm_cola_whatsapp)</h3>
+        </div>
+
+        <div class="queue-filters">
+          <button class="filter-btn active" onclick="filtrarTablaCola('')">Todos</button>
+          <button class="filter-btn" onclick="filtrarTablaCola('pendiente')">🟡 Pendientes</button>
+          <button class="filter-btn" onclick="filtrarTablaCola('procesando')">🔵 Procesando</button>
+          <button class="filter-btn" onclick="filtrarTablaCola('enviado')">🟢 Enviados</button>
+          <button class="filter-btn" onclick="filtrarTablaCola('error')">🔴 Errores</button>
+        </div>
+      </div>
+
+      <div class="table-responsive">
+        <table class="queue-table">
+          <thead>
+            <tr>
+              <th>ID</th>
+              <th>Estado</th>
+              <th>Destinatario</th>
+              <th>Teléfono</th>
+              <th>Mensaje Programado</th>
+              <th>Fecha Prog.</th>
+              <th>Intentos</th>
+              <th>Creado En</th>
+              <th>Acciones</th>
+            </tr>
+          </thead>
+          <tbody id="queue-table-body">
+            {% for m in cola_reciente %}
+            <tr id="queue-row-{{ m.id }}">
+              <td><strong>#{{ m.id }}</strong></td>
+              <td><span class="badge-status {{ m.estado }}">{{ m.estado }}</span></td>
+              <td>{{ m.nombre_contacto|default:"Sin nombre" }}</td>
+              <td><code>{{ m.telefono }}</code></td>
+              <td class="msg-preview-cell" title="{{ m.mensaje }}">{{ m.mensaje }}</td>
+              <td>{{ m.fecha_programada|date:"Y-m-d" }}</td>
+              <td>{{ m.intentos }}</td>
+              <td style="font-size: 11.5px; color: var(--text-muted);">{{ m.creado_en|date:"d/m/Y H:i" }}</td>
+              <td>
+                {% if m.estado == 'pendiente' %}
+                <button class="action-btn cancel" onclick="cancelarMensaje({{ m.id }})">Cancelar</button>
+                {% elif m.estado == 'error' %}
+                <button class="action-btn retry" onclick="reintentarMensaje({{ m.id }})">Reintentar</button>
+                {% else %}
+                <span style="color: var(--text-muted); font-size: 11px;">-</span>
+                {% endif %}
+              </td>
+            </tr>
+            {% empty %}
+            <tr id="empty-queue-row">
+              <td colspan="9" style="text-align: center; color: var(--text-muted); padding: 24px;">
+                No hay mensajes en cola actualmente.
+              </td>
+            </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+  </div>
+
+  <!-- Modal Registrar Nuevo Contacto -->
+  <div class="modal-overlay" id="modal-contacto">
+    <div class="modal-card">
+      <div class="modal-header">
+        <h3>Agregar Nuevo Contacto</h3>
+        <button class="modal-close" onclick="cerrarModalContacto()">&times;</button>
+      </div>
+
+      <form id="form-nuevo-contacto" onsubmit="guardarNuevoContacto(event)">
+        <div class="form-group">
+          <label>Nombre(s) *</label>
+          <input type="text" id="nc_nombre" class="form-input" required placeholder="Ej: Roberto">
+        </div>
+
+        <div class="form-group">
+          <label>Apellidos</label>
+          <input type="text" id="nc_apellidos" class="form-input" placeholder="Ej: García Morales">
+        </div>
+
+        <div class="form-group">
+          <label>Teléfono con Lada / Código de País *</label>
+          <input type="text" id="nc_telefono" class="form-input" required placeholder="Ej: 5215512345678">
+          <small style="color: var(--text-muted); font-size: 11px;">Incluye clave de país (ej. 52 para México + 10 dígitos).</small>
+        </div>
+
+        <div class="form-group">
+          <label>Rubro / Categoría *</label>
+          <select id="nc_tipo" class="form-input">
+            <option value="paciente">Paciente</option>
+            <option value="doctor">Doctor</option>
+            <option value="cliente">Cliente</option>
+            <option value="otro">Otro / Colega / Amigo</option>
+          </select>
+        </div>
+
+        <div class="form-group">
+          <label>Notas adicionales (opcional)</label>
+          <input type="text" id="nc_notas" class="form-input" placeholder="Ej: Paciente turno vespertino">
+        </div>
+
+        <div style="display: flex; justify-content: flex-end; gap: 10px; margin-top: 20px;">
+          <button type="button" class="btn-secondary" onclick="cerrarModalContacto()">Cancelar</button>
+          <button type="submit" class="btn-secondary" style="background: var(--wa-green); color: #000; font-weight: 700;">
+            Guardar Contacto
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- Contenedor Toast -->
+  <div class="toast-container" id="toast-container"></div>
+
+  <!-- Scripts JavaScript -->
+  <script>
+    // Estado global en cliente
+    let selectedContactIds = new Set();
+    let currentRubro = 'todos';
+    let currentFiltroCola = '';
+
+    // Inicializar
+    document.addEventListener('DOMContentLoaded', () => {
+      // Auto seleccionar el primer contacto para la vista previa
+      const firstContact = document.querySelector('.contact-item');
+      if (firstContact) {
+        const id = firstContact.dataset.id;
+        selectedContactIds.add(id);
+        const chk = firstContact.querySelector('.contact-checkbox');
+        if (chk) chk.checked = true;
+        firstContact.classList.add('selected');
+      }
+      actualizarSeleccion();
+      actualizarVistaPrevia();
+
+      // Polling discreto cada 15 segundos para auto-actualizar estadísticas y cola
+      setInterval(() => {
+        refrescarEstado(false);
+      }, 15000);
+    });
+
+    function showToast(message, isError = false) {
+      const container = document.getElementById('toast-container');
+      const toast = document.createElement('div');
+      toast.className = 'toast' + (isError ? ' error' : '');
+      toast.innerHTML = `
+        <span>${isError ? '⚠️' : '✅'}</span>
+        <div>${message}</div>
+      `;
+      container.appendChild(toast);
+      setTimeout(() => {
+        toast.style.opacity = '0';
+        toast.style.transform = 'translateY(10px)';
+        toast.style.transition = 'all 0.3s ease';
+        setTimeout(() => toast.remove(), 300);
+      }, 4000);
+    }
+
+    // Modal
+    function abrirModalContacto() {
+      document.getElementById('modal-contacto').classList.add('active');
+    }
+    function cerrarModalContacto() {
+      document.getElementById('modal-contacto').classList.remove('active');
+    }
+
+    // Filtrar por rubros
+    function filtrarRubro(rubro) {
+      currentRubro = rubro;
+      document.querySelectorAll('.rubro-chip').forEach(btn => {
+        btn.classList.toggle('active', btn.dataset.rubro === rubro);
+      });
+      filtrarContactos();
+    }
+
+    // Filtrar contactos (Búsqueda + Rubro)
+    function filtrarContactos() {
+      const query = document.getElementById('contact-search').value.toLowerCase().trim();
+      const items = document.querySelectorAll('.contact-item');
+      let visibleCount = 0;
+
+      items.forEach(item => {
+        const tipo = item.dataset.tipo;
+        const nombre = (item.dataset.nombreCompleto || '').toLowerCase();
+        const tel = (item.dataset.telefono || '').toLowerCase();
+
+        const matchRubro = (currentRubro === 'todos' || tipo === currentRubro);
+        const matchSearch = (!query || nombre.includes(query) || tel.includes(query));
+
+        if (matchRubro && matchSearch) {
+          item.style.display = 'flex';
+          visibleCount++;
+        } else {
+          item.style.display = 'none';
+        }
+      });
+
+      document.getElementById('visible-count').innerText = `Mostrando ${visibleCount} contactos`;
+    }
+
+    // Selección de contactos
+    function toggleSelectContact(id, event) {
+      if (event.target.tagName === 'INPUT') return;
+      const row = document.getElementById('contact-row-' + id);
+      const chk = row.querySelector('.contact-checkbox');
+      chk.checked = !chk.checked;
+      handleCheckboxChange(chk);
+    }
+
+    function handleCheckboxChange(checkbox) {
+      const id = checkbox.value;
+      const row = document.getElementById('contact-row-' + id);
+      if (checkbox.checked) {
+        selectedContactIds.add(id);
+        row.classList.add('selected');
+      } else {
+        selectedContactIds.delete(id);
+        row.classList.remove('selected');
+      }
+      actualizarSeleccion();
+      actualizarVistaPrevia();
+    }
+
+    function seleccionarVisibles(seleccionar) {
+      const items = document.querySelectorAll('.contact-item');
+      items.forEach(item => {
+        if (item.style.display !== 'none') {
+          const chk = item.querySelector('.contact-checkbox');
+          const id = item.dataset.id;
+          chk.checked = seleccionar;
+          if (seleccionar) {
+            selectedContactIds.add(id);
+            item.classList.add('selected');
+          } else {
+            selectedContactIds.delete(id);
+            item.classList.remove('selected');
+          }
+        }
+      });
+      actualizarSeleccion();
+      actualizarVistaPrevia();
+    }
+
+    function actualizarSeleccion() {
+      const count = selectedContactIds.size;
+      document.getElementById('selected-counter').innerText = `${count} seleccionados`;
+      document.getElementById('btn-submit-text').innerText = `Guardar para Envío (${count} contactos)`;
+      document.getElementById('btn-submit').disabled = count === 0;
+    }
+
+    // Insertar variables
+    function insertVariable(variable) {
+      const textarea = document.getElementById('mensaje_texto');
+      const start = textarea.selectionStart;
+      const end = textarea.selectionEnd;
+      const text = textarea.value;
+
+      textarea.value = text.substring(0, start) + variable + text.substring(end);
+      textarea.focus();
+      textarea.selectionStart = textarea.selectionEnd = start + variable.length;
+      actualizarVistaPrevia();
+    }
+
+    // Actualizar Vista Previa de WhatsApp
+    function actualizarVistaPrevia() {
+      const text = document.getElementById('mensaje_texto').value;
+      document.getElementById('char-counter').innerText = `${text.length} caracteres`;
+
+      const fechaInput = document.getElementById('fecha_programada').value;
+      const horaInput = document.getElementById('hora_cita').value;
+
+      // Obtener el primer contacto seleccionado o uno representativo
+      let contacto = null;
+      if (selectedContactIds.size > 0) {
+        const firstId = Array.from(selectedContactIds)[0];
+        const row = document.getElementById('contact-row-' + firstId);
+        if (row) {
+          contacto = {
+            nombre: row.dataset.nombre,
+            apellidos: row.dataset.apellidos,
+            nombreCompleto: row.dataset.nombreCompleto,
+            telefono: row.dataset.telefono,
+          };
+        }
+      }
+
+      if (!contacto) {
+        contacto = {
+          nombre: 'Carlos',
+          apellidos: 'Mendoza Rivera',
+          nombreCompleto: 'Carlos Mendoza Rivera',
+          telefono: '525512345678',
+        };
+      }
+
+      // Reemplazo de variables para la vista previa
+      let rendered = text
+        .replaceAll('{nombre}', contacto.nombre || '')
+        .replaceAll('{apellidos}', contacto.apellidos || '')
+        .replaceAll('{nombre_completo}', contacto.nombreCompleto || '')
+        .replaceAll('{telefono}', contacto.telefono || '')
+        .replaceAll('{fecha}', fechaInput ? formatearFecha(fechaInput) : '')
+        .replaceAll('{hora}', horaInput || '');
+
+      document.getElementById('sim-avatar').innerText = (contacto.nombre || 'U').charAt(0).toUpperCase();
+      document.getElementById('sim-nombre').innerText = contacto.nombreCompleto || contacto.nombre;
+      document.getElementById('sim-telefono').innerText = formatTelefono(contacto.telefono);
+      document.getElementById('sim-bubble-text').innerText = rendered || '(Mensaje vacío)';
+
+      const now = new Date();
+      document.getElementById('sim-time').innerText = now.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+    }
+
+    function formatearFecha(isoDate) {
+      if (!isoDate) return '';
+      const parts = isoDate.split('-');
+      if (parts.length === 3) return `${parts[2]}/${parts[1]}/${parts[0]}`;
+      return isoDate;
+    }
+
+    function formatTelefono(tel) {
+      if (!tel) return '';
+      if (tel.length === 12 && tel.startsWith('52')) {
+        return `+52 ${tel.slice(2, 4)} ${tel.slice(4, 8)} ${tel.slice(8)}`;
+      }
+      return tel;
+    }
+
+    // Encolar Mensajes
+    async function guardarParaEnvio() {
+      const contactosIds = Array.from(selectedContactIds);
+      if (contactosIds.length === 0) {
+        showToast('Selecciona al menos un destinatario.', true);
+        return;
+      }
+
+      const mensaje = document.getElementById('mensaje_texto').value.trim();
+      if (!mensaje) {
+        showToast('Escribe el cuerpo del mensaje.', true);
+        return;
+      }
+
+      const fechaProg = document.getElementById('fecha_programada').value;
+      const horaCita = document.getElementById('hora_cita').value;
+
+      const btn = document.getElementById('btn-submit');
+      btn.disabled = true;
+      btn.innerHTML = `
+        <svg class="animate-spin" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="12" cy="12" r="10" stroke-opacity="0.25"/><path d="M12 2a10 10 0 0 1 10 10"/></svg>
+        <span>Guardando en cola de Servicios...</span>
+      `;
+
+      try {
+        const resp = await fetch("{% url 'crm:api_encolar_mensajes' %}", {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'X-CSRFToken': getCsrfToken()
+          },
+          body: JSON.stringify({
+            contactos_ids: contactosIds,
+            mensaje: mensaje,
+            fecha_programada: fechaProg,
+            hora_cita: horaCita
+          })
+        });
+
+        const data = await resp.json();
+        if (data.ok) {
+          showToast(data.mensaje);
+          actualizarStatsUI(data.stats);
+          refrescarEstado(false);
+        } else {
+          showToast(data.error || 'Error al guardar.', true);
+        }
+      } catch (err) {
+        showToast('Error de conexión: ' + err.message, true);
+      } finally {
+        btn.disabled = false;
+        actualizarSeleccion();
+      }
+    }
+
+    // Refrescar Estado
+    async function refrescarEstado(animarIcono = false) {
+      const icon = document.getElementById('refresh-icon');
+      if (animarIcono && icon) {
+        icon.style.transition = 'transform 0.5s ease';
+        icon.style.transform = 'rotate(360deg)';
+        setTimeout(() => icon.style.transform = 'none', 500);
+      }
+
+      try {
+        const resp = await fetch(`{% url 'crm:api_estado_cola' %}?estado=${currentFiltroCola}`);
+        const data = await resp.json();
+        if (data.ok) {
+          actualizarStatsUI(data.stats);
+          renderTablaCola(data.items);
+        }
+      } catch (err) {
+        console.error('Error al actualizar estado:', err);
+      }
+    }
+
+    function actualizarStatsUI(stats) {
+      if (!stats) return;
+
+      document.getElementById('kpi-pendientes').innerText = stats.total_pendientes;
+      document.getElementById('kpi-procesando').innerText = stats.total_procesando;
+      document.getElementById('kpi-enviados').innerText = stats.total_enviados;
+      document.getElementById('kpi-errores').innerText = stats.total_errores;
+
+      const banner = document.getElementById('status-banner');
+      banner.className = `status-banner banner-${stats.banner_tipo}`;
+      document.getElementById('banner-text').innerText = `${stats.banner_icono} ${stats.banner_mensaje}`;
+    }
+
+    function renderTablaCola(items) {
+      const tbody = document.getElementById('queue-table-body');
+      if (!items || items.length === 0) {
+        tbody.innerHTML = `
+          <tr>
+            <td colspan="9" style="text-align: center; color: var(--text-muted); padding: 24px;">
+              No hay mensajes en cola ${currentFiltroCola ? `con estado "${currentFiltroCola}"` : ''}.
+            </td>
+          </tr>
+        `;
+        return;
+      }
+
+      tbody.innerHTML = items.map(m => `
+        <tr id="queue-row-${m.id}">
+          <td><strong>#${m.id}</strong></td>
+          <td><span class="badge-status ${m.estado}">${m.estado}</span></td>
+          <td>${m.nombre_contacto}</td>
+          <td><code>${m.telefono}</code></td>
+          <td class="msg-preview-cell" title="${escapeHtml(m.mensaje)}">${escapeHtml(m.mensaje)}</td>
+          <td>${m.fecha_programada}</td>
+          <td>${m.intentos}</td>
+          <td style="font-size: 11.5px; color: var(--text-muted);">${m.creado_en}</td>
+          <td>
+            ${m.estado === 'pendiente' ? `
+              <button class="action-btn cancel" onclick="cancelarMensaje(${m.id})">Cancelar</button>
+            ` : m.estado === 'error' ? `
+              <button class="action-btn retry" onclick="reintentarMensaje(${m.id})">Reintentar</button>
+            ` : `<span style="color: var(--text-muted); font-size: 11px;">-</span>`}
+          </td>
+        </tr>
+      `).join('');
+    }
+
+    function filtrarTablaCola(estado) {
+      currentFiltroCola = estado;
+      document.querySelectorAll('.filter-btn').forEach(btn => {
+        btn.classList.toggle('active', btn.getAttribute('onclick').includes(`'${estado}'`));
+      });
+      refrescarEstado(false);
+    }
+
+    async function cancelarMensaje(id) {
+      if (!confirm(`¿Deseas cancelar y eliminar el mensaje #${id} de la cola?`)) return;
+      try {
+        const resp = await fetch(`/crm/api/mensaje/${id}/cancelar/`, {
+          method: 'POST',
+          headers: { 'X-CSRFToken': getCsrfToken() }
+        });
+        const data = await resp.json();
+        if (data.ok) {
+          showToast(data.mensaje);
+          actualizarStatsUI(data.stats);
+          refrescarEstado(false);
+        } else {
+          showToast(data.error || 'Error al cancelar', true);
+        }
+      } catch (e) {
+        showToast('Error de red: ' + e.message, true);
+      }
+    }
+
+    async function reintentarMensaje(id) {
+      try {
+        const resp = await fetch(`/crm/api/mensaje/${id}/reintentar/`, {
+          method: 'POST',
+          headers: { 'X-CSRFToken': getCsrfToken() }
+        });
+        const data = await resp.json();
+        if (data.ok) {
+          showToast(data.mensaje);
+          actualizarStatsUI(data.stats);
+          refrescarEstado(false);
+        } else {
+          showToast(data.error || 'Error al reintentar', true);
+        }
+      } catch (e) {
+        showToast('Error de red: ' + e.message, true);
+      }
+    }
+
+    // Agregar nuevo contacto
+    async function guardarNuevoContacto(e) {
+      e.preventDefault();
+      const nombre = document.getElementById('nc_nombre').value.trim();
+      const apellidos = document.getElementById('nc_apellidos').value.trim();
+      const telefono = document.getElementById('nc_telefono').value.trim();
+      const tipo = document.getElementById('nc_tipo').value;
+      const notas = document.getElementById('nc_notas').value.trim();
+
+      try {
+        const resp = await fetch("{% url 'crm:api_agregar_contacto' %}", {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'X-CSRFToken': getCsrfToken()
+          },
+          body: JSON.stringify({ nombre, apellidos, telefono, tipo, notas })
+        });
+        const data = await resp.json();
+        if (data.ok) {
+          showToast(data.mensaje);
+          cerrarModalContacto();
+          document.getElementById('form-nuevo-contacto').reset();
+          // Recargar página para actualizar conteos de rubros y lista de contactos
+          setTimeout(() => window.location.reload(), 800);
+        } else {
+          showToast(data.error || 'Error al guardar contacto', true);
+        }
+      } catch (err) {
+        showToast('Error de red: ' + err.message, true);
+      }
+    }
+
+    function getCsrfToken() {
+      const match = document.cookie.match(/csrftoken=([^;]+)/);
+      return match ? match[1] : '';
+    }
+
+    function escapeHtml(text) {
+      const div = document.createElement('div');
+      div.innerText = text || '';
+      return div.innerHTML;
+    }
+  </script>
+</body>
+</html>

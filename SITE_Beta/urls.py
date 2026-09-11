@@ -22,5 +22,6 @@ from django.conf import settings
 
 urlpatterns = [
     path('secure-admin/', admin.site.urls),
+    path('crm/', include('crm.urls')),
     path('', include('Siteone.urls')),
-]+ static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
+] + static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
