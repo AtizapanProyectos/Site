@@ -8,18 +8,12 @@ class ServiciosManager(models.Manager):
 
 
 class CrmContacto(models.Model):
-    TIPO_CHOICES = [
-        ('paciente', 'Paciente'),
-        ('doctor', 'Doctor'),
-        ('cliente', 'Cliente'),
-        ('otro', 'Otro / Colega / Amigo'),
-    ]
-
     id = models.AutoField(primary_key=True)
     nombre = models.CharField(max_length=100)
     apellidos = models.CharField(max_length=100, blank=True, null=True)
+    organizacion = models.CharField(max_length=150, blank=True, null=True)
     telefono = models.CharField(max_length=20)
-    tipo = models.CharField(max_length=20, choices=TIPO_CHOICES, default='paciente')
+    tipo = models.CharField(max_length=20, default='cliente', blank=True, null=True)
     activo = models.BooleanField(default=True)
     notas = models.TextField(blank=True, null=True)
     creado_en = models.DateTimeField(auto_now_add=True)
@@ -39,7 +33,8 @@ class CrmContacto(models.Model):
         return self.nombre.strip()
 
     def __str__(self):
-        return f"{self.nombre_completo} ({self.telefono}) - {self.tipo}"
+        org = f" [{self.organizacion}]" if self.organizacion else ""
+        return f"{self.nombre_completo}{org} ({self.telefono})"
 
 
 class CrmColaWhatsapp(models.Model):

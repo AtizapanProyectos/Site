@@ -58,20 +58,24 @@ def dashboard(request):
     """Vista principal del CRM de WhatsApp."""
     stats = get_cola_stats()
     
-    # Obtener contactos activos
+    # Obtener contactos activos ordenados por organización y nombre
     try:
-        contactos = list(CrmContacto.objects.filter(activo=True).order_by('tipo', 'nombre'))
+        contactos = list(CrmContacto.objects.filter(activo=True).order_by('organizacion', 'nombre'))
     except Exception:
         contactos = []
 
-    # Conteo por rubros
-    rubros_counts = {
-        'todos': len(contactos),
-        'paciente': sum(1 for c in contactos if c.tipo == 'paciente'),
-        'doctor': sum(1 for c in contactos if c.tipo == 'doctor'),
-        'cliente': sum(1 for c in contactos if c.tipo == 'cliente'),
-        'otro': sum(1 for c in contactos if c.tipo == 'otro'),
-    }
+    # Extraer organizaciones únicas y conteo por organización
+    organizaciones_map = {}
+    sin_org_count = 0
+    for c in contactos:
+        org = (c.organizacion or '').strip()
+        if org:
+            organizaciones_map[org] = organizaciones_map.get(org, 0) + 1
+        else:
+            sin_org_count += 1
+
+    # Lista ordenada de organizaciones
+    organizaciones_list = sorted(organizaciones_map.keys())
 
     # Cola reciente (últimos 50 mensajes)
     try:
@@ -84,7 +88,10 @@ def dashboard(request):
     context = {
         'stats': stats,
         'contactos': contactos,
-        'rubros_counts': rubros_counts,
+        'organizaciones': organizaciones_list,
+        'organizaciones_map': organizaciones_map,
+        'sin_org_count': sin_org_count,
+        'total_contactos': len(contactos),
         'cola_reciente': cola_reciente,
         'today_str': today_str,
     }
@@ -105,6 +112,7 @@ def api_encolar_mensajes(request):
         mensaje_template = data.get('mensaje', '').strip()
         fecha_programada_str = data.get('fecha_programada', '').strip()
         hora_cita = data.get('hora_cita', '').strip()
+        poliza = data.get('poliza', '').strip()
 
         if not mensaje_template:
             return JsonResponse({'ok': False, 'error': 'El mensaje no puede estar vacío.'}, status=400)
@@ -131,6 +139,7 @@ def api_encolar_mensajes(request):
             nombre_val = c.nombre.strip() if c.nombre else ''
             apellidos_val = c.apellidos.strip() if c.apellidos else ''
             nombre_completo_val = f"{nombre_val} {apellidos_val}".strip()
+            org_val = (c.organizacion or '').strip()
             telefono_val = c.telefono.strip() if c.telefono else ''
             fecha_val = fecha_programada.strftime('%d/%m/%Y')
             hora_val = hora_cita if hora_cita else ''
@@ -139,6 +148,9 @@ def api_encolar_mensajes(request):
             msg = msg.replace('{nombre}', nombre_val)
             msg = msg.replace('{apellidos}', apellidos_val)
             msg = msg.replace('{nombre_completo}', nombre_completo_val)
+            msg = msg.replace('{organizacion}', org_val or 'su organización')
+            msg = msg.replace('{empresa}', org_val or 'su empresa')
+            msg = msg.replace('{poliza}', poliza or 'su póliza')
             msg = msg.replace('{telefono}', telefono_val)
             msg = msg.replace('{fecha}', fecha_val)
             msg = msg.replace('{hora}', hora_val)
@@ -214,8 +226,9 @@ def api_agregar_contacto(request):
 
         nombre = data.get('nombre', '').strip()
         apellidos = data.get('apellidos', '').strip()
+        organizacion = data.get('organizacion', '').strip()
         telefono = data.get('telefono', '').strip()
-        tipo = data.get('tipo', 'paciente').strip().lower()
+        tipo = data.get('tipo', 'cliente').strip().lower()
         notas = data.get('notas', '').strip()
 
         if not nombre or not telefono:
@@ -229,8 +242,9 @@ def api_agregar_contacto(request):
         contacto = CrmContacto.objects.create(
             nombre=nombre,
             apellidos=apellidos or None,
+            organizacion=organizacion or None,
             telefono=telefono,
-            tipo=tipo if tipo in ['paciente', 'doctor', 'cliente', 'otro'] else 'paciente',
+            tipo=tipo or 'cliente',
             activo=True,
             notas=notas or None
         )
@@ -242,6 +256,7 @@ def api_agregar_contacto(request):
                 'nombre': contacto.nombre,
                 'apellidos': contacto.apellidos or '',
                 'nombre_completo': contacto.nombre_completo,
+                'organizacion': contacto.organizacion or '',
                 'telefono': contacto.telefono,
                 'tipo': contacto.tipo,
                 'notas': contacto.notas or '',
