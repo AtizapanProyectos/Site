@@ -14,6 +14,7 @@ class CrmContacto(models.Model):
     organizacion = models.CharField(max_length=150, blank=True, null=True)
     telefono = models.CharField(max_length=20)
     tipo = models.CharField(max_length=20, default='cliente', blank=True, null=True)
+    usuario = models.CharField(max_length=100, default='lidia')
     activo = models.BooleanField(default=True)
     notas = models.TextField(blank=True, null=True)
     creado_en = models.DateTimeField(auto_now_add=True)
@@ -34,7 +35,7 @@ class CrmContacto(models.Model):
 
     def __str__(self):
         org = f" [{self.organizacion}]" if self.organizacion else ""
-        return f"{self.nombre_completo}{org} ({self.telefono})"
+        return f"{self.nombre_completo}{org} ({self.telefono}) [{self.usuario}]"
 
 
 class CrmColaWhatsapp(models.Model):
@@ -49,6 +50,7 @@ class CrmColaWhatsapp(models.Model):
     telefono = models.CharField(max_length=20)
     nombre_contacto = models.CharField(max_length=120, blank=True, null=True)
     mensaje = models.TextField()
+    usuario = models.CharField(max_length=100, default='lidia')
     estado = models.CharField(max_length=20, choices=ESTADO_CHOICES, default='pendiente')
     fecha_programada = models.DateField()
     intentos = models.IntegerField(default=0)
@@ -65,4 +67,4 @@ class CrmColaWhatsapp(models.Model):
         verbose_name_plural = 'Cola de Mensajes WhatsApp'
 
     def __str__(self):
-        return f"[{self.estado}] {self.nombre_contacto or self.telefono} - {self.fecha_programada}"
+        return f"[{self.estado}] {self.nombre_contacto or self.telefono} - {self.fecha_programada} ({self.usuario})"

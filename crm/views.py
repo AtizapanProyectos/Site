@@ -1,22 +1,29 @@
 import json
 from datetime import date, datetime
-from django.shortcuts import render, get_object_or_404
+from django.shortcuts import render, redirect, get_object_or_404
 from django.http import JsonResponse
 from django.views.decorators.csrf import csrf_exempt
 from django.views.decorators.http import require_POST, require_GET
+from django.contrib.auth import authenticate, login, logout
+from django.contrib.auth.decorators import login_required
+from django.contrib.auth.models import User
 from django.utils import timezone
 from .models import CrmContacto, CrmColaWhatsapp
 
 
-def get_cola_stats():
-    """Calcula las métricas y el estado actual del banner para WhatsApp."""
+def get_cola_stats(usuario=None):
+    """Calcula las métricas y el estado actual del banner para WhatsApp, filtrando por usuario si aplica."""
     today = date.today()
     try:
-        total_pendientes = CrmColaWhatsapp.objects.filter(estado='pendiente').count()
-        total_procesando = CrmColaWhatsapp.objects.filter(estado='procesando').count()
-        total_enviados = CrmColaWhatsapp.objects.filter(estado='enviado').count()
-        total_enviados_hoy = CrmColaWhatsapp.objects.filter(estado='enviado', fecha_programada=today).count()
-        total_errores = CrmColaWhatsapp.objects.filter(estado='error').count()
+        qs = CrmColaWhatsapp.objects.all()
+        if usuario:
+            qs = qs.filter(usuario=usuario)
+
+        total_pendientes = qs.filter(estado='pendiente').count()
+        total_procesando = qs.filter(estado='procesando').count()
+        total_enviados = qs.filter(estado='enviado').count()
+        total_enviados_hoy = qs.filter(estado='enviado', fecha_programada=today).count()
+        total_errores = qs.filter(estado='error').count()
 
         if total_procesando > 0:
             banner_tipo = 'procesando'
@@ -29,7 +36,7 @@ def get_cola_stats():
         else:
             banner_tipo = 'exito'
             banner_icono = '🟢'
-            banner_mensaje = "Todos los mensajes del día han sido enviados con éxito."
+            banner_mensaje = "Todos los mensajes programados están al día."
 
         return {
             'total_pendientes': total_pendientes,
@@ -54,13 +61,78 @@ def get_cola_stats():
         }
 
 
+# =====================================================================
+# Vistas de Autenticación
+# =====================================================================
+
+def login_view(request):
+    """Pantalla de login minimalista para el CRM."""
+    if request.user.is_authenticated:
+        return redirect('/crm/')
+
+    error_msg = None
+    next_url = request.POST.get('next') or request.GET.get('next') or '/crm/'
+
+    if request.method == 'POST':
+        username = request.POST.get('username', '').strip()
+        password = request.POST.get('password', '').strip()
+
+        if not username or not password:
+            error_msg = 'Por favor ingresa usuario y contraseña.'
+        else:
+            user = authenticate(request, username=username, password=password)
+            if user is not None:
+                login(request, user)
+                return redirect(next_url)
+            else:
+                error_msg = 'Usuario o contraseña incorrectos.'
+
+    return render(request, 'crm/login.html', {
+        'error_msg': error_msg,
+        'next': next_url
+    })
+
+
+def logout_view(request):
+    """Cierra la sesión y redirige a la pantalla de login."""
+    logout(request)
+    return redirect('/crm/login/')
+
+
+# =====================================================================
+# Dashboard Principal
+# =====================================================================
+
+@login_required
 def dashboard(request):
-    """Vista principal del CRM de WhatsApp."""
-    stats = get_cola_stats()
+    """Vista principal del CRM con aislamiento por usuario / asesor."""
+    current_user = request.user
+    is_admin = current_user.is_superuser or current_user.username == 'admin'
+
+    # Lista de usuarios disponibles para el selector de admin
+    usuarios_list = []
+    if is_admin:
+        try:
+            usuarios_list = list(User.objects.all().values_list('username', flat=True).order_by('username'))
+        except Exception:
+            usuarios_list = ['admin', 'lidia']
+
+    # Filtro opcional de usuario si es admin
+    usuario_param = request.GET.get('usuario', '')
+    if is_admin:
+        usuario_activo = usuario_param if usuario_param and usuario_param != 'todos' else None
+    else:
+        usuario_activo = current_user.username
+
+    # Métricas de la cola
+    stats = get_cola_stats(usuario=usuario_activo)
     
-    # Obtener contactos activos ordenados por organización y nombre
+    # Obtener contactos según permisos
     try:
-        contactos = list(CrmContacto.objects.filter(activo=True).order_by('organizacion', 'nombre'))
+        if usuario_activo:
+            contactos = list(CrmContacto.objects.filter(activo=True, usuario=usuario_activo).order_by('organizacion', 'nombre'))
+        else:
+            contactos = list(CrmContacto.objects.filter(activo=True).order_by('organizacion', 'nombre'))
     except Exception:
         contactos = []
 
@@ -74,12 +146,14 @@ def dashboard(request):
         else:
             sin_org_count += 1
 
-    # Lista ordenada de organizaciones
     organizaciones_list = sorted(organizaciones_map.keys())
 
-    # Cola reciente (últimos 50 mensajes)
+    # Cola reciente
     try:
-        cola_reciente = list(CrmColaWhatsapp.objects.all().order_by('-id')[:50])
+        if usuario_activo:
+            cola_reciente = list(CrmColaWhatsapp.objects.filter(usuario=usuario_activo).order_by('-id')[:50])
+        else:
+            cola_reciente = list(CrmColaWhatsapp.objects.all().order_by('-id')[:50])
     except Exception:
         cola_reciente = []
 
@@ -94,14 +168,25 @@ def dashboard(request):
         'total_contactos': len(contactos),
         'cola_reciente': cola_reciente,
         'today_str': today_str,
+        'current_user': current_user,
+        'is_admin': is_admin,
+        'usuarios_list': usuarios_list,
+        'usuario_activo': usuario_activo or 'todos',
     }
     return render(request, 'crm/dashboard.html', context)
 
 
+# =====================================================================
+# APIs de Dashboard
+# =====================================================================
+
 @csrf_exempt
 @require_POST
 def api_encolar_mensajes(request):
-    """Encola mensajes en crm_cola_whatsapp reemplazando variables dinámicas."""
+    """Encola mensajes en crm_cola_whatsapp asociándolos al usuario correspondiente."""
+    if not request.user.is_authenticated:
+        return JsonResponse({'ok': False, 'error': 'No has iniciado sesión.'}, status=401)
+
     try:
         try:
             data = json.loads(request.body.decode('utf-8'))
@@ -128,10 +213,17 @@ def api_encolar_mensajes(request):
         else:
             fecha_programada = date.today()
 
-        # Buscar contactos seleccionados
-        contactos = CrmContacto.objects.filter(id__in=contactos_ids, activo=True)
+        current_username = request.user.username
+        is_admin = request.user.is_superuser or current_username == 'admin'
+
+        # Buscar contactos seleccionados respetando el aislamiento de usuario
+        if is_admin:
+            contactos = CrmContacto.objects.filter(id__in=contactos_ids, activo=True)
+        else:
+            contactos = CrmContacto.objects.filter(id__in=contactos_ids, activo=True, usuario=current_username)
+
         if not contactos.exists():
-            return JsonResponse({'ok': False, 'error': 'No se encontraron contactos activos válidos seleccionados.'}, status=400)
+            return JsonResponse({'ok': False, 'error': 'No se encontraron contactos activos disponibles.'}, status=400)
 
         nuevos_mensajes = []
         for c in contactos:
@@ -159,6 +251,7 @@ def api_encolar_mensajes(request):
                 telefono=telefono_val,
                 nombre_contacto=nombre_completo_val or nombre_val,
                 mensaje=msg,
+                usuario=c.usuario or current_username,
                 estado='pendiente',
                 fecha_programada=fecha_programada,
                 intentos=0,
@@ -169,12 +262,12 @@ def api_encolar_mensajes(request):
         # Inserción masiva en base de datos 'servicios'
         CrmColaWhatsapp.objects.bulk_create(nuevos_mensajes)
 
-        stats = get_cola_stats()
+        stats = get_cola_stats(usuario=None if is_admin else current_username)
         return JsonResponse({
             'ok': True,
             'creados': len(nuevos_mensajes),
             'stats': stats,
-            'mensaje': f'Se encolaron {len(nuevos_mensajes)} mensaje(s) exitosamente para el {fecha_programada.strftime("%d/%m/%Y")}.'
+            'mensaje': f'Se guardaron {len(nuevos_mensajes)} mensaje(s) en cola exitosamente para el {fecha_programada.strftime("%d/%m/%Y")}.'
         })
 
     except Exception as e:
@@ -183,11 +276,26 @@ def api_encolar_mensajes(request):
 
 @require_GET
 def api_estado_cola(request):
-    """Retorna el estado en tiempo real de la cola y estadísticas."""
-    stats = get_cola_stats()
+    """Retorna el estado en tiempo real de la cola y estadísticas respetando el usuario."""
+    if not request.user.is_authenticated:
+        return JsonResponse({'ok': False, 'error': 'No has iniciado sesión.'}, status=401)
+
+    current_username = request.user.username
+    is_admin = request.user.is_superuser or current_username == 'admin'
+
+    usuario_param = request.GET.get('usuario', '')
+    if is_admin:
+        usuario_filtro = usuario_param if usuario_param and usuario_param != 'todos' else None
+    else:
+        usuario_filtro = current_username
+
+    stats = get_cola_stats(usuario=usuario_filtro)
     
     estado_filtro = request.GET.get('estado', '')
     query = CrmColaWhatsapp.objects.all()
+    if usuario_filtro:
+        query = query.filter(usuario=usuario_filtro)
+
     if estado_filtro and estado_filtro in ['pendiente', 'procesando', 'enviado', 'error']:
         query = query.filter(estado=estado_filtro)
 
@@ -199,6 +307,7 @@ def api_estado_cola(request):
             'telefono': r.telefono,
             'nombre_contacto': r.nombre_contacto or 'Sin nombre',
             'mensaje': r.mensaje,
+            'usuario': r.usuario,
             'estado': r.estado,
             'fecha_programada': r.fecha_programada.strftime('%Y-%m-%d') if r.fecha_programada else '',
             'intentos': r.intentos,
@@ -217,7 +326,10 @@ def api_estado_cola(request):
 @csrf_exempt
 @require_POST
 def api_agregar_contacto(request):
-    """Agrega un nuevo contacto a crm_contactos en 'servicios'."""
+    """Agrega un nuevo contacto a crm_contactos asignado al usuario activo."""
+    if not request.user.is_authenticated:
+        return JsonResponse({'ok': False, 'error': 'No has iniciado sesión.'}, status=401)
+
     try:
         try:
             data = json.loads(request.body.decode('utf-8'))
@@ -234,10 +346,18 @@ def api_agregar_contacto(request):
         if not nombre or not telefono:
             return JsonResponse({'ok': False, 'error': 'Nombre y teléfono son obligatorios.'}, status=400)
 
-        # Sanitizar teléfono (remover espacios, guiones)
+        # Sanitizar teléfono
         telefono = ''.join(c for c in telefono if c.isdigit())
         if len(telefono) < 10:
             return JsonResponse({'ok': False, 'error': 'El teléfono debe contener al menos 10 dígitos.'}, status=400)
+
+        current_username = request.user.username
+        is_admin = request.user.is_superuser or current_username == 'admin'
+
+        # Asignar usuario: si es admin y viene en data, usarlo; de lo contrario el usuario autenticado
+        usuario_asignado = (data.get('usuario') or '').strip().lower() if is_admin else current_username
+        if not usuario_asignado:
+            usuario_asignado = current_username
 
         contacto = CrmContacto.objects.create(
             nombre=nombre,
@@ -245,6 +365,7 @@ def api_agregar_contacto(request):
             organizacion=organizacion or None,
             telefono=telefono,
             tipo=tipo or 'cliente',
+            usuario=usuario_asignado,
             activo=True,
             notas=notas or None
         )
@@ -258,10 +379,11 @@ def api_agregar_contacto(request):
                 'nombre_completo': contacto.nombre_completo,
                 'organizacion': contacto.organizacion or '',
                 'telefono': contacto.telefono,
+                'usuario': contacto.usuario,
                 'tipo': contacto.tipo,
                 'notas': contacto.notas or '',
             },
-            'mensaje': 'Contacto registrado correctamente.'
+            'mensaje': f'Contacto registrado correctamente para "{contacto.usuario}".'
         })
     except Exception as e:
         return JsonResponse({'ok': False, 'error': f'Error al guardar contacto: {str(e)}'}, status=500)
@@ -270,14 +392,23 @@ def api_agregar_contacto(request):
 @csrf_exempt
 @require_POST
 def api_cancelar_mensaje(request, mensaje_id):
-    """Cancela/elimina un mensaje en cola si está pendiente."""
+    """Cancela/elimina un mensaje en cola si está pendiente y pertenece al usuario."""
+    if not request.user.is_authenticated:
+        return JsonResponse({'ok': False, 'error': 'No autenticado.'}, status=401)
+
     try:
+        current_username = request.user.username
+        is_admin = request.user.is_superuser or current_username == 'admin'
+
         mensaje = get_object_or_404(CrmColaWhatsapp, id=mensaje_id)
+        if not is_admin and mensaje.usuario != current_username:
+            return JsonResponse({'ok': False, 'error': 'No tienes permiso para cancelar este mensaje.'}, status=403)
+
         if mensaje.estado != 'pendiente':
             return JsonResponse({'ok': False, 'error': f'No se puede cancelar un mensaje con estado "{mensaje.estado}".'}, status=400)
         
         mensaje.delete()
-        stats = get_cola_stats()
+        stats = get_cola_stats(usuario=None if is_admin else current_username)
         return JsonResponse({'ok': True, 'stats': stats, 'mensaje': 'Mensaje eliminado de la cola.'})
     except Exception as e:
         return JsonResponse({'ok': False, 'error': str(e)}, status=500)
@@ -286,17 +417,63 @@ def api_cancelar_mensaje(request, mensaje_id):
 @csrf_exempt
 @require_POST
 def api_reintentar_mensaje(request, mensaje_id):
-    """Reintenta un mensaje que falló poniéndolo en pendiente e intentos=0."""
+    """Reintenta un mensaje fallido."""
+    if not request.user.is_authenticated:
+        return JsonResponse({'ok': False, 'error': 'No autenticado.'}, status=401)
+
     try:
+        current_username = request.user.username
+        is_admin = request.user.is_superuser or current_username == 'admin'
+
         mensaje = get_object_or_404(CrmColaWhatsapp, id=mensaje_id)
+        if not is_admin and mensaje.usuario != current_username:
+            return JsonResponse({'ok': False, 'error': 'No tienes permiso para reintentar este mensaje.'}, status=403)
+
         mensaje.estado = 'pendiente'
         mensaje.intentos = 0
         mensaje.error_detalle = None
         mensaje.save()
-        stats = get_cola_stats()
+        stats = get_cola_stats(usuario=None if is_admin else current_username)
         return JsonResponse({'ok': True, 'stats': stats, 'mensaje': 'Mensaje restablecido a pendiente para reintento.'})
     except Exception as e:
         return JsonResponse({'ok': False, 'error': str(e)}, status=500)
+
+
+@csrf_exempt
+@require_POST
+def api_crear_usuario(request):
+    """Permite al admin registrar nuevos usuarios/asesores directamente."""
+    if not request.user.is_authenticated:
+        return JsonResponse({'ok': False, 'error': 'No autenticado.'}, status=401)
+
+    is_admin = request.user.is_superuser or request.user.username == 'admin'
+    if not is_admin:
+        return JsonResponse({'ok': False, 'error': 'Solo administradores pueden crear nuevos usuarios.'}, status=403)
+
+    try:
+        try:
+            data = json.loads(request.body.decode('utf-8'))
+        except Exception:
+            data = request.POST
+
+        username = data.get('username', '').strip().lower()
+        password = data.get('password', '').strip()
+        nombre = data.get('nombre', '').strip()
+
+        if not username or not password:
+            return JsonResponse({'ok': False, 'error': 'Usuario y contraseña son requeridos.'}, status=400)
+
+        if User.objects.filter(username=username).exists():
+            return JsonResponse({'ok': False, 'error': f'El usuario "{username}" ya existe.'}, status=400)
+
+        user = User.objects.create_user(username=username, password=password, first_name=nombre)
+        return JsonResponse({
+            'ok': True,
+            'mensaje': f'Usuario "{username}" creado exitosamente.',
+            'usuario': {'id': user.id, 'username': user.username, 'nombre': user.first_name}
+        })
+    except Exception as e:
+        return JsonResponse({'ok': False, 'error': f'Error al crear usuario: {str(e)}'}, status=500)
 
 
 # =====================================================================
@@ -316,6 +493,7 @@ def bot_pendientes(request):
                 'telefono': m.telefono,
                 'nombre_contacto': m.nombre_contacto or 'Contacto',
                 'mensaje': m.mensaje,
+                'usuario': m.usuario,
                 'fecha_programada': m.fecha_programada.strftime('%Y-%m-%d') if m.fecha_programada else '',
             })
         return JsonResponse({'ok': True, 'mensajes': lista, 'total': len(lista)})

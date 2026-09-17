@@ -1,0 +1,221 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Iniciar Sesión | CRM WhatsApp</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+
+  <style>
+    :root {
+      --bg-main: #070B14;
+      --bg-card: rgba(15, 23, 42, 0.85);
+      --bg-input: #0B1120;
+      --border-subtle: rgba(255, 255, 255, 0.08);
+      --wa-green: #25D366;
+      --wa-green-hover: #20bd5a;
+      --wa-teal: #128C7E;
+      --accent-red: #EF4444;
+      --text-primary: #F9FAFB;
+      --text-secondary: #94A3B8;
+      --radius-sm: 8px;
+      --radius-md: 14px;
+      --radius-lg: 20px;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      font-family: 'Plus Jakarta Sans', sans-serif;
+    }
+
+    body {
+      background-color: var(--bg-main);
+      color: var(--text-primary);
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 24px;
+      background-image: 
+        radial-gradient(at 10% 20%, rgba(37, 211, 102, 0.1) 0px, transparent 40%),
+        radial-gradient(at 90% 80%, rgba(59, 130, 246, 0.08) 0px, transparent 40%);
+      background-attachment: fixed;
+    }
+
+    .login-container {
+      width: 100%;
+      max-width: 420px;
+    }
+
+    .login-card {
+      background: var(--bg-card);
+      border: 1px solid var(--border-subtle);
+      border-radius: var(--radius-lg);
+      padding: 34px 30px;
+      backdrop-filter: blur(20px);
+      box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.6);
+    }
+
+    .login-header {
+      text-align: center;
+      margin-bottom: 28px;
+    }
+
+    .brand-icon-lg {
+      width: 52px;
+      height: 52px;
+      background: linear-gradient(135deg, #25D366 0%, #128C7E 100%);
+      border-radius: 14px;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      box-shadow: 0 6px 25px rgba(37, 211, 102, 0.35);
+      margin-bottom: 14px;
+    }
+
+    .brand-icon-lg svg {
+      width: 28px;
+      height: 28px;
+      fill: #fff;
+    }
+
+    .login-header h1 {
+      font-size: 22px;
+      font-weight: 800;
+      letter-spacing: -0.5px;
+      color: #fff;
+      margin-bottom: 4px;
+    }
+
+    .login-header p {
+      font-size: 13px;
+      color: var(--text-secondary);
+    }
+
+    .error-alert {
+      background: rgba(239, 68, 68, 0.12);
+      border: 1px solid rgba(239, 68, 68, 0.35);
+      color: #FCA5A5;
+      padding: 11px 14px;
+      border-radius: var(--radius-sm);
+      font-size: 13px;
+      font-weight: 600;
+      margin-bottom: 20px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .form-group {
+      margin-bottom: 18px;
+    }
+
+    .form-label {
+      display: block;
+      font-size: 12px;
+      font-weight: 700;
+      color: var(--text-secondary);
+      margin-bottom: 7px;
+      letter-spacing: 0.3px;
+    }
+
+    .form-input {
+      width: 100%;
+      background: var(--bg-input);
+      border: 1px solid var(--border-subtle);
+      border-radius: var(--radius-sm);
+      padding: 12px 14px;
+      font-size: 14px;
+      color: #fff;
+      outline: none;
+      transition: all 0.2s;
+    }
+
+    .form-input:focus {
+      border-color: var(--wa-green);
+      box-shadow: 0 0 0 2px rgba(37, 211, 102, 0.15);
+      background: #0d1527;
+    }
+
+    .btn-login {
+      width: 100%;
+      background: linear-gradient(135deg, #25D366 0%, #128C7E 100%);
+      color: #052e16;
+      border: none;
+      border-radius: var(--radius-sm);
+      padding: 13px 20px;
+      font-size: 15px;
+      font-weight: 800;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      margin-top: 10px;
+      box-shadow: 0 4px 20px rgba(37, 211, 102, 0.35);
+      transition: all 0.2s;
+    }
+
+    .btn-login:hover {
+      transform: translateY(-1px);
+      box-shadow: 0 6px 25px rgba(37, 211, 102, 0.45);
+    }
+
+    .login-footer {
+      text-align: center;
+      margin-top: 22px;
+      font-size: 12px;
+      color: var(--text-secondary);
+    }
+  </style>
+</head>
+<body>
+
+  <div class="login-container">
+    <div class="login-card">
+      <div class="login-header">
+        <div class="brand-icon-lg">
+          <svg viewBox="0 0 24 24"><path d="M12.04 2C6.58 2 2.13 6.45 2.13 11.91C2.13 13.66 2.59 15.36 3.45 16.86L2.05 22L7.3 20.62C8.75 21.41 10.38 21.83 12.04 21.83C17.5 21.83 21.95 17.38 21.95 11.92C21.95 9.27 20.92 6.78 19.05 4.91C17.18 3.04 14.69 2 12.04 2M12.05 3.67C14.25 3.67 16.31 4.53 17.87 6.09C19.42 7.65 20.28 9.72 20.28 11.92C20.28 16.46 16.58 20.15 12.04 20.15C10.56 20.15 9.11 19.76 7.85 19L7.55 18.83L4.43 19.65L5.26 16.61L5.06 16.29C4.24 14.99 3.8 13.47 3.8 11.91C3.81 7.37 7.5 3.67 12.05 3.67M9.53 7.33C9.31 7.33 8.95 7.41 8.65 7.74C8.36 8.06 7.53 8.84 7.53 10.42C7.53 12 8.68 13.53 8.84 13.74C9 13.96 11.1 17.2 14.31 18.58C16.97 19.73 17.52 19.5 18.11 19.44C18.7 19.39 20 18.68 20.27 17.93C20.53 17.18 20.53 16.53 20.45 16.4C20.37 16.27 20.17 16.19 19.86 16.04C19.56 15.89 18.08 15.16 17.8 15.06C17.53 14.96 17.33 14.91 17.13 15.21C16.93 15.51 16.36 16.19 16.18 16.39C16.01 16.59 15.83 16.61 15.53 16.46C15.23 16.31 14.26 16 13.12 14.98C12.23 14.19 11.63 13.21 11.45 12.91C11.28 12.61 11.43 12.45 11.58 12.3C11.72 12.16 11.89 11.94 12.04 11.76C12.19 11.59 12.24 11.46 12.34 11.26C12.44 11.06 12.39 10.89 12.31 10.74C12.24 10.59 11.64 9.11 11.39 8.51C11.15 7.93 10.9 8.01 10.72 8C10.55 8 10.35 8 10.15 8C9.95 8 9.63 8.07 9.53 7.33Z"/></svg>
+        </div>
+        <h1>CRM WhatsApp</h1>
+        <p>Inicia sesión para gestionar tus contactos y envíos</p>
+      </div>
+
+      {% if error_msg %}
+      <div class="error-alert">
+        <span>⚠️</span>
+        <span>{{ error_msg }}</span>
+      </div>
+      {% endif %}
+
+      <form method="POST" action="{% url 'crm:login' %}">
+        {% csrf_token %}
+        <input type="hidden" name="next" value="{{ next }}">
+
+        <div class="form-group">
+          <label class="form-label" for="username">USUARIO</label>
+          <input type="text" id="username" name="username" class="form-input" required autofocus placeholder="Ingresa tu usuario (ej: admin o lidia)">
+        </div>
+
+        <div class="form-group">
+          <label class="form-label" for="password">CONTRASEÑA</label>
+          <input type="password" id="password" name="password" class="form-input" required placeholder="Ingresa tu contraseña">
+        </div>
+
+        <button type="submit" class="btn-login">
+          Entrar al CRM 🚀
+        </button>
+      </form>
+
+      <div class="login-footer">
+        <span>Acceso restringido • Sistema de Gestión de Pólizas y Envíos</span>
+      </div>
+    </div>
+  </div>
+
+</body>
+</html>

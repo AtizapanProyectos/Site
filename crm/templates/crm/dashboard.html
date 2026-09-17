@@ -111,14 +111,39 @@
 
     .top-actions {
       display: flex;
+      align-items: center;
       gap: 10px;
+      flex-wrap: wrap;
+    }
+
+    .user-pill {
+      background: rgba(255, 255, 255, 0.06);
+      border: 1px solid var(--border-subtle);
+      color: #fff;
+      padding: 8px 14px;
+      border-radius: var(--radius-sm);
+      font-size: 13px;
+      font-weight: 600;
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .user-pill-badge {
+      background: rgba(37, 211, 102, 0.2);
+      color: #86EFAC;
+      font-size: 10.5px;
+      padding: 2px 6px;
+      border-radius: 4px;
+      font-weight: 700;
+      text-transform: uppercase;
     }
 
     .btn-action {
       background: rgba(255, 255, 255, 0.05);
       border: 1px solid var(--border-subtle);
       color: #fff;
-      padding: 9px 16px;
+      padding: 9px 15px;
       border-radius: var(--radius-sm);
       font-size: 13px;
       font-weight: 600;
@@ -126,12 +151,14 @@
       display: inline-flex;
       align-items: center;
       gap: 8px;
+      text-decoration: none;
       transition: all 0.2s;
     }
 
     .btn-action:hover {
       background: rgba(255, 255, 255, 0.12);
       border-color: rgba(255, 255, 255, 0.2);
+      color: #fff;
     }
 
     .btn-action.btn-primary {
@@ -142,6 +169,16 @@
 
     .btn-action.btn-primary:hover {
       background: rgba(37, 211, 102, 0.25);
+    }
+
+    .btn-action.btn-logout {
+      background: rgba(239, 68, 68, 0.1);
+      border-color: rgba(239, 68, 68, 0.3);
+      color: #FCA5A5;
+    }
+
+    .btn-action.btn-logout:hover {
+      background: rgba(239, 68, 68, 0.22);
     }
 
     /* Status Banner */
@@ -296,7 +333,7 @@
 
     /* Columna 1: Organizaciones & Contactos */
     .filter-section-org {
-      margin-bottom: 14px;
+      margin-bottom: 12px;
     }
 
     .org-select-label {
@@ -371,7 +408,7 @@
     }
 
     .contacts-scroll {
-      max-height: 530px;
+      max-height: 520px;
       overflow-y: auto;
       display: flex;
       flex-direction: column;
@@ -436,8 +473,9 @@
       color: var(--text-secondary);
       display: flex;
       align-items: center;
-      gap: 8px;
-      margin-top: 2px;
+      gap: 6px;
+      margin-top: 3px;
+      flex-wrap: wrap;
     }
 
     /* Etiqueta por Organización / Empresa */
@@ -455,13 +493,23 @@
       white-space: nowrap;
       overflow: hidden;
       text-overflow: ellipsis;
-      max-width: 170px;
+      max-width: 160px;
     }
 
     .tag-org.tag-empty {
       background: rgba(148, 163, 184, 0.1);
       color: #94A3B8;
       border-color: rgba(148, 163, 184, 0.2);
+    }
+
+    .tag-user {
+      font-size: 10px;
+      font-weight: 700;
+      padding: 2px 6px;
+      border-radius: 4px;
+      background: rgba(139, 92, 246, 0.15);
+      color: #C4B5FD;
+      border: 1px solid rgba(139, 92, 246, 0.3);
     }
 
     /* Columna 2: Redacción Minimalista & Pantalla de Póliza */
@@ -504,7 +552,7 @@
       color: #FDE047;
     }
 
-    /* Pantalla / Caja Especial de Vencimiento de Póliza */
+    /* Pantalla Especial de Vencimiento de Póliza */
     .poliza-screen-box {
       background: rgba(245, 158, 11, 0.06);
       border: 1px solid rgba(245, 158, 11, 0.25);
@@ -778,7 +826,7 @@
       background: rgba(239, 68, 68, 0.2);
     }
 
-    /* Modal Nuevo Contacto */
+    /* Modals */
     .modal-backdrop {
       position: fixed;
       inset: 0;
@@ -803,8 +851,8 @@
       border: 1px solid rgba(255, 255, 255, 0.12);
       border-radius: var(--radius-lg);
       width: 100%;
-      max-width: 460px;
-      padding: 24px;
+      max-width: 480px;
+      padding: 26px;
       box-shadow: 0 20px 40px rgba(0, 0, 0, 0.7);
     }
 
@@ -841,7 +889,7 @@
   {% csrf_token %}
 
   <div class="app-container">
-    <!-- Header Minimalista -->
+    <!-- Header Minimalista con Sesión de Usuario -->
     <header class="top-header">
       <div class="brand-title">
         <div class="brand-icon">
@@ -854,12 +902,36 @@
       </div>
 
       <div class="top-actions">
+        <!-- Indicador de Usuario Actual -->
+        <div class="user-pill">
+          <span>👤 {{ current_user.username|title }}</span>
+          {% if is_admin %}
+          <span class="user-pill-badge">Admin</span>
+          {% else %}
+          <span class="user-pill-badge" style="background: rgba(59, 130, 246, 0.2); color: #93C5FD;">Asesor</span>
+          {% endif %}
+        </div>
+
+        {% if is_admin %}
+        <button class="btn-action" onclick="abrirModalUsuario()" title="Crear un nuevo usuario asesor">
+          👥 + Nuevo Usuario
+        </button>
+        <a href="/secure-admin/auth/user/" target="_blank" class="btn-action" title="Abrir panel administrativo de Django">
+          ⚙️ Panel Admin
+        </a>
+        {% endif %}
+
         <button class="btn-action btn-primary" onclick="abrirModal()">
           + Nuevo Contacto
         </button>
+
         <button class="btn-action" onclick="cargarEstado(true)">
           🔄 Refrescar
         </button>
+
+        <a href="{% url 'crm:logout' %}" class="btn-action btn-logout" title="Cerrar sesión">
+          🚪 Salir
+        </a>
       </div>
     </header>
 
@@ -894,7 +966,7 @@
     <!-- Panel de Trabajo Minimalista: 2 Columnas -->
     <div class="main-grid-minimal">
       
-      <!-- Columna 1: Contactos con Etiquetas por Organización -->
+      <!-- Columna 1: Contactos con Etiquetas por Organización y Asignación -->
       <div class="panel">
         <div class="panel-head">
           <h2>
@@ -902,6 +974,23 @@
           </h2>
           <span class="badge-count" id="badge-seleccionados">0 seleccionados</span>
         </div>
+
+        {% if is_admin %}
+        <!-- Filtro por Asesor / Propietario (Exclusivo Admin) -->
+        <div class="filter-section-org">
+          <label class="org-select-label">👤 Ver contactos del Asesor / Usuario:</label>
+          <select id="filtro-usuario" class="org-select" onchange="cambiarFiltroUsuario(this.value)">
+            <option value="todos" {% if usuario_activo == 'todos' %}selected{% endif %}>Todos los Asesores (General)</option>
+            {% for u in usuarios_list %}
+            <option value="{{ u }}" {% if usuario_activo == u %}selected{% endif %}>👤 {{ u|title }}</option>
+            {% endfor %}
+          </select>
+        </div>
+        {% else %}
+        <div style="margin-bottom: 12px; font-size: 12px; color: var(--wa-green); font-weight: 600; display: flex; align-items: center; gap: 6px;">
+          <span>🔒 Mostrando únicamente tus contactos asignados ({{ current_user.username|title }})</span>
+        </div>
+        {% endif %}
 
         <!-- Filtro por Organización / Empresa -->
         <div class="filter-section-org">
@@ -940,6 +1029,7 @@
                data-apellidos="{{ c.apellidos|default:'' }}"
                data-nombre-completo="{{ c.nombre_completo }}"
                data-organizacion="{{ c.organizacion|default:'' }}"
+               data-usuario="{{ c.usuario }}"
                data-telefono="{{ c.telefono }}"
                onclick="toggleCard('{{ c.id }}', event)">
             <input type="checkbox" class="contact-check" value="{{ c.id }}" onchange="handleCheck(this)">
@@ -952,12 +1042,16 @@
                 {% else %}
                 <span class="tag-org tag-empty">Particular</span>
                 {% endif %}
+
+                {% if is_admin %}
+                <span class="tag-user" title="Asesor: {{ c.usuario }}">👤 {{ c.usuario|title }}</span>
+                {% endif %}
               </div>
             </div>
           </div>
           {% empty %}
           <div style="text-align: center; color: var(--text-muted); padding: 40px 10px; font-size: 13px;">
-            No hay contactos registrados aún. Haz clic en <strong>+ Nuevo Contacto</strong> arriba.
+            No hay contactos registrados para este usuario. Haz clic en <strong>+ Nuevo Contacto</strong> arriba.
           </div>
           {% endfor %}
         </div>
@@ -1075,6 +1169,7 @@
               <th>Estado</th>
               <th>Destinatario</th>
               <th>Teléfono</th>
+              {% if is_admin %}<th>Asesor</th>{% endif %}
               <th>Mensaje</th>
               <th>Fecha Prog.</th>
               <th>Creado</th>
@@ -1088,6 +1183,9 @@
               <td><span class="badge-st {{ m.estado }}">{{ m.estado }}</span></td>
               <td><strong>{{ m.nombre_contacto|default:"Sin nombre" }}</strong></td>
               <td><code>{{ m.telefono }}</code></td>
+              {% if is_admin %}
+              <td><span class="tag-user">👤 {{ m.usuario|title }}</span></td>
+              {% endif %}
               <td style="max-width: 380px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;" title="{{ m.mensaje }}">{{ m.mensaje }}</td>
               <td>{{ m.fecha_programada|date:"Y-m-d" }}</td>
               <td style="color: var(--text-muted); font-size: 11px;">{{ m.creado_en|date:"d/m/Y H:i" }}</td>
@@ -1101,7 +1199,7 @@
             </tr>
             {% empty %}
             <tr>
-              <td colspan="8" style="text-align: center; color: var(--text-muted); padding: 24px;">
+              <td colspan="{% if is_admin %}9{% else %}8{% endif %}" style="text-align: center; color: var(--text-muted); padding: 24px;">
                 No hay mensajes en cola actualmente.
               </td>
             </tr>
@@ -1113,7 +1211,7 @@
 
   </div>
 
-  <!-- Modal Nuevo Contacto (Con Organización / Empresa) -->
+  <!-- Modal Nuevo Contacto (Con Organización y Asignación de Asesor) -->
   <div class="modal-backdrop" id="modal-nuevo">
     <div class="modal-box">
       <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 18px;">
@@ -1134,10 +1232,21 @@
           <label class="field-label">Organización / Empresa *</label>
           <input type="text" id="m_organizacion" class="input-field" placeholder="Ej: Seguros Monterrey, GNP, AXA, etc.">
         </div>
-        <div style="margin-bottom: 16px;">
+        <div style="margin-bottom: 12px;">
           <label class="field-label">Teléfono con Lada (ej: 5215512345678) *</label>
           <input type="text" id="m_telefono" class="input-field" required placeholder="5215512345678">
         </div>
+
+        {% if is_admin %}
+        <div style="margin-bottom: 16px;">
+          <label class="field-label">Asignar a Asesor / Usuario *</label>
+          <select id="m_usuario" class="input-field">
+            {% for u in usuarios_list %}
+            <option value="{{ u }}" {% if u == current_user.username %}selected{% endif %}>👤 {{ u|title }}</option>
+            {% endfor %}
+          </select>
+        </div>
+        {% endif %}
 
         <div style="display: flex; justify-content: flex-end; gap: 10px; margin-top: 18px;">
           <button type="button" class="btn-action" onclick="cerrarModal()">Cancelar</button>
@@ -1147,6 +1256,39 @@
     </div>
   </div>
 
+  {% if is_admin %}
+  <!-- Modal Nuevo Usuario (Exclusivo Admin) -->
+  <div class="modal-backdrop" id="modal-nuevo-usuario">
+    <div class="modal-box">
+      <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 18px;">
+        <h3 style="font-size: 17px; font-weight: 700; color: #fff;">👥 Crear Nuevo Asesor / Usuario</h3>
+        <button onclick="cerrarModalUsuario()" style="background: none; border: none; color: var(--text-muted); font-size: 24px; cursor: pointer; line-height: 1;">&times;</button>
+      </div>
+
+      <form onsubmit="guardarUsuarioModal(event)">
+        <div style="margin-bottom: 12px;">
+          <label class="field-label">Nombre de Usuario (Username) *</label>
+          <input type="text" id="u_username" class="input-field" required placeholder="Ej: lidia, pedro, asesor2">
+          <span style="font-size: 11px; color: var(--text-muted);">Usa letras minúsculas sin espacios</span>
+        </div>
+        <div style="margin-bottom: 12px;">
+          <label class="field-label">Nombre Completo (Opcional)</label>
+          <input type="text" id="u_nombre" class="input-field" placeholder="Ej: Lidia González">
+        </div>
+        <div style="margin-bottom: 16px;">
+          <label class="field-label">Contraseña Inicial *</label>
+          <input type="password" id="u_password" class="input-field" required placeholder="Ej: 123">
+        </div>
+
+        <div style="display: flex; justify-content: flex-end; gap: 10px; margin-top: 18px;">
+          <button type="button" class="btn-action" onclick="cerrarModalUsuario()">Cancelar</button>
+          <button type="submit" class="btn-send" style="padding: 9px 20px; font-size: 13.5px;">Crear Usuario</button>
+        </div>
+      </form>
+    </div>
+  </div>
+  {% endif %}
+
   <!-- Toast Notificaciones -->
   <div class="toast-box" id="toast-box"></div>
 
@@ -1154,6 +1296,7 @@
   <script>
     const seleccionados = new Set();
     let filtroColaActual = '';
+    const isAdmin = {{ is_admin|yesno:"true,false" }};
 
     const TEXTOS_POLIZA = {
       preventivo: "Estimado/a {nombre}, le saludamos cordialmente de {organizacion}. Le recordamos con anticipación que su póliza {poliza} tiene fecha de vencimiento programada para el {fecha}. Le invitamos a gestionar oportunamente su renovación para mantener vigente su cobertura. Quedamos a sus apreciables órdenes para cualquier consulta.",
@@ -1200,6 +1343,26 @@
     function abrirModal() { document.getElementById('modal-nuevo').classList.add('active'); }
     function cerrarModal() { document.getElementById('modal-nuevo').classList.remove('active'); }
 
+    function abrirModalUsuario() {
+      const m = document.getElementById('modal-nuevo-usuario');
+      if (m) m.classList.add('active');
+    }
+    function cerrarModalUsuario() {
+      const m = document.getElementById('modal-nuevo-usuario');
+      if (m) m.classList.remove('active');
+    }
+
+    // Cambiar Filtro de Asesor (solo Admin)
+    function cambiarFiltroUsuario(val) {
+      const url = new URL(window.location.href);
+      if (val === 'todos') {
+        url.searchParams.delete('usuario');
+      } else {
+        url.searchParams.set('usuario', val);
+      }
+      window.location.href = url.toString();
+    }
+
     // Cambiar Modo / Pantalla
     function activarModo(modo) {
       document.querySelectorAll('.mode-tab').forEach(t => t.classList.remove('active'));
@@ -1238,6 +1401,7 @@
         const org = (card.dataset.organizacion || '').trim();
         const nombre = (card.dataset.nombreCompleto || '').toLowerCase();
         const tel = (card.dataset.telefono || '').toLowerCase();
+        const usuario = (card.dataset.usuario || '').toLowerCase();
 
         let coincideOrg = false;
         if (orgSeleccionada === 'todas') {
@@ -1248,7 +1412,7 @@
           coincideOrg = (org.toLowerCase() === orgSeleccionada.toLowerCase());
         }
 
-        const coincideBusqueda = (!q || nombre.includes(q) || tel.includes(q) || org.toLowerCase().includes(q));
+        const coincideBusqueda = (!q || nombre.includes(q) || tel.includes(q) || org.toLowerCase().includes(q) || usuario.includes(q));
 
         if (coincideOrg && coincideBusqueda) {
           card.style.display = 'flex';
@@ -1264,7 +1428,7 @@
 
     // Selección de contactos
     function toggleCard(id, ev) {
-      if (ev.target.tagName === 'INPUT') return;
+      if (ev.target.tagName === 'INPUT' || ev.target.tagName === 'SELECT') return;
       const card = document.getElementById('card-' + id);
       if (!card) return;
       const chk = card.querySelector('.contact-check');
@@ -1386,7 +1550,10 @@
     // Cargar Estadísticas y Cola
     async function cargarEstado(animar = false) {
       try {
-        const resp = await fetch(`/crm/api/estado/?estado=${filtroColaActual}`);
+        const urlParams = new URLSearchParams(window.location.search);
+        const usuarioParam = urlParams.get('usuario') || '';
+
+        const resp = await fetch(`/crm/api/estado/?estado=${filtroColaActual}&usuario=${usuarioParam}`);
         const data = await resp.json();
         if (data.ok) {
           actualizarStatsUI(data.stats);
@@ -1420,8 +1587,9 @@
       const tbody = document.getElementById('tabla-cola-body');
       if (!tbody) return;
 
+      const colspan = isAdmin ? 9 : 8;
       if (!items || items.length === 0) {
-        tbody.innerHTML = `<tr><td colspan="8" style="text-align: center; color: var(--text-muted); padding: 22px;">No hay mensajes en cola actualmente.</td></tr>`;
+        tbody.innerHTML = `<tr><td colspan="${colspan}" style="text-align: center; color: var(--text-muted); padding: 22px;">No hay mensajes en cola actualmente.</td></tr>`;
         return;
       }
 
@@ -1431,6 +1599,7 @@
           <td><span class="badge-st ${m.estado}">${m.estado}</span></td>
           <td><strong>${m.nombre_contacto}</strong></td>
           <td><code>${m.telefono}</code></td>
+          ${isAdmin ? `<td><span class="tag-user">👤 ${m.usuario || 'lidia'}</span></td>` : ''}
           <td style="max-width: 380px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;" title="${m.mensaje}">${m.mensaje}</td>
           <td>${m.fecha_programada}</td>
           <td style="color: var(--text-muted); font-size: 11px;">${m.creado_en}</td>
@@ -1478,6 +1647,8 @@
       const apellidos = document.getElementById('m_apellidos').value.trim();
       const organizacion = document.getElementById('m_organizacion').value.trim();
       const telefono = document.getElementById('m_telefono').value.trim();
+      const usuarioEl = document.getElementById('m_usuario');
+      const usuario = usuarioEl ? usuarioEl.value.trim() : '';
 
       try {
         const csrfEl = document.querySelector('[name=csrfmiddlewaretoken]');
@@ -1489,7 +1660,7 @@
             'Content-Type': 'application/json',
             'X-CSRFToken': csrfToken
           },
-          body: JSON.stringify({ nombre, apellidos, organizacion, telefono })
+          body: JSON.stringify({ nombre, apellidos, organizacion, telefono, usuario })
         });
         const data = await resp.json();
         if (data.ok) {
@@ -1498,6 +1669,37 @@
           setTimeout(() => window.location.reload(), 600);
         } else {
           showToast(data.error || 'Error al guardar contacto.', true);
+        }
+      } catch (e) {
+        showToast('Error: ' + e.message, true);
+      }
+    }
+
+    async function guardarUsuarioModal(ev) {
+      ev.preventDefault();
+      const username = document.getElementById('u_username').value.trim();
+      const nombre = document.getElementById('u_nombre').value.trim();
+      const password = document.getElementById('u_password').value.trim();
+
+      try {
+        const csrfEl = document.querySelector('[name=csrfmiddlewaretoken]');
+        const csrfToken = csrfEl ? csrfEl.value : '';
+
+        const resp = await fetch('/crm/api/usuarios/nuevo/', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'X-CSRFToken': csrfToken
+          },
+          body: JSON.stringify({ username, nombre, password })
+        });
+        const data = await resp.json();
+        if (data.ok) {
+          showToast(data.mensaje || '¡Usuario creado exitosamente!');
+          cerrarModalUsuario();
+          setTimeout(() => window.location.reload(), 700);
+        } else {
+          showToast(data.error || 'Error al crear usuario.', true);
         }
       } catch (e) {
         showToast('Error: ' + e.message, true);
