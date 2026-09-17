@@ -15,13 +15,20 @@ Including another URLconf
     2. Add a URL to urlpatterns:  path('blog/', include('blog.urls'))
 """
 from django.contrib import admin
-from django.urls import path
-from django.urls import include
+from django.urls import path, include
 from django.contrib.staticfiles.urls import static
 from django.conf import settings
+from crm import views as crm_views
 
 urlpatterns = [
     path('secure-admin/', admin.site.urls),
     path('crm/', include('crm.urls')),
+
+    # Endpoints globales para el Bot Nocturno (bot_nocturno.py)
+    path('api/whatsapp/pendientes/', crm_views.bot_pendientes, name='global_bot_pendientes'),
+    path('api/whatsapp/actualizar/', crm_views.bot_actualizar, name='global_bot_actualizar'),
+    path('api/whatsapp/estado/', crm_views.bot_reporte_estado, name='global_bot_estado'),
+    path('api/whatsapp/', crm_views.bot_reporte_estado, name='global_bot_index'),
+
     path('', include('Siteone.urls')),
 ] + static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)

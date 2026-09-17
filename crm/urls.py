@@ -22,6 +22,8 @@ urlpatterns = [
     # Endpoints para el Bot Nocturno (bot_nocturno.py)
     path('api/whatsapp/pendientes/', views.bot_pendientes, name='bot_pendientes'),
     path('api/whatsapp/actualizar/', views.bot_actualizar, name='bot_actualizar'),
+    path('api/whatsapp/estado/', views.bot_reporte_estado, name='bot_estado'),
     path('api/pendientes/', views.bot_pendientes, name='bot_pendientes_alt'),
     path('api/actualizar/', views.bot_actualizar, name='bot_actualizar_alt'),
+    path('api/estado-bot/', views.bot_reporte_estado, name='bot_estado_alt'),
 ]

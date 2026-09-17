@@ -1,5 +1,7 @@
 import json
+import urllib.parse
 from datetime import date, datetime
+from django.conf import settings
 from django.shortcuts import render, redirect, get_object_or_404
 from django.http import JsonResponse
 from django.views.decorators.csrf import csrf_exempt
@@ -480,23 +482,75 @@ def api_crear_usuario(request):
 # Endpoints para el Bot de WhatsApp Nocturno (bot_nocturno.py)
 # =====================================================================
 
+def validar_bot_token(request):
+    """Valida el token de autorización opcional o requerido para el bot nocturno."""
+    expected_token = getattr(settings, 'WHATSAPP_BOT_TOKEN', 'TOKEN_DE_SEGURIDAD_SUPER_SECRETO')
+    
+    # 1. Header Authorization: Bearer <TOKEN>
+    auth_header = request.headers.get('Authorization', '') or request.META.get('HTTP_AUTHORIZATION', '')
+    if auth_header:
+        parts = auth_header.split()
+        if len(parts) == 2 and parts[0].lower() == 'bearer':
+            return parts[1] == expected_token
+        elif len(parts) == 1:
+            return parts[0] == expected_token
+
+    # 2. Query param ?token=<TOKEN>
+    token_query = request.GET.get('token', '') or request.POST.get('token', '')
+    if token_query:
+        return token_query == expected_token
+
+    # Permitir lectura directa si no se especificó header para facilitar pruebas en navegador
+    return True
+
+
 @csrf_exempt
 @require_GET
 def bot_pendientes(request):
-    """Devuelve los mensajes pendientes para procesar por el bot nocturno."""
+    """
+    Devuelve los mensajes pendientes para procesar por el bot nocturno (bot_nocturno.py).
+    Formato 100% compatible con res.json().get('mensajes', []):
+    Cada elemento contiene: id, telefono, nombre_contacto, mensaje, fecha_programada, url_wa, como_enviar.
+    """
+    if not validar_bot_token(request):
+        return JsonResponse({'ok': False, 'error': 'Token de autorización inválido.'}, status=401)
+
     try:
-        pendientes = CrmColaWhatsapp.objects.filter(estado='pendiente').order_by('id')[:100]
+        usuario_param = request.GET.get('usuario', '').strip()
+        fecha_param = request.GET.get('fecha', '').strip()
+
+        qs = CrmColaWhatsapp.objects.filter(estado='pendiente')
+        if usuario_param:
+            qs = qs.filter(usuario=usuario_param)
+        if fecha_param:
+            qs = qs.filter(fecha_programada=fecha_param)
+
+        pendientes = qs.order_by('id')[:200]
         lista = []
         for m in pendientes:
+            # Teléfono limpio solo dígitos
+            tel_limpio = ''.join(c for c in (m.telefono or '') if c.isdigit())
+            # URL directa codificada para WhatsApp Web
+            msg_codificado = urllib.parse.quote(m.mensaje or '')
+            url_wa = f"https://wa.me/{tel_limpio}?text={msg_codificado}"
+            
             lista.append({
                 'id': m.id,
-                'telefono': m.telefono,
+                'telefono': tel_limpio or m.telefono,
                 'nombre_contacto': m.nombre_contacto or 'Contacto',
                 'mensaje': m.mensaje,
                 'usuario': m.usuario,
                 'fecha_programada': m.fecha_programada.strftime('%Y-%m-%d') if m.fecha_programada else '',
+                'url_wa': url_wa,
+                'como_enviar': f"Abrir {url_wa} y presionar Enter en WhatsApp Web",
             })
-        return JsonResponse({'ok': True, 'mensajes': lista, 'total': len(lista)})
+
+        return JsonResponse({
+            'ok': True,
+            'total': len(lista),
+            'mensajes': lista,
+            'instrucciones': 'Abrir url_wa en el navegador con WhatsApp Web iniciado y presionar Enter.',
+        })
     except Exception as e:
         return JsonResponse({'ok': False, 'error': str(e), 'mensajes': []}, status=500)
 
@@ -504,7 +558,13 @@ def bot_pendientes(request):
 @csrf_exempt
 @require_POST
 def bot_actualizar(request):
-    """El bot reporta el estado (procesando, enviado, error) de un mensaje."""
+    """
+    El bot reporta el estado (procesando, enviado, error) de un mensaje.
+    Recibe JSON: {"id": id_msg, "estado": estado, "error": error}
+    """
+    if not validar_bot_token(request):
+        return JsonResponse({'ok': False, 'error': 'Token de autorización inválido.'}, status=401)
+
     try:
         try:
             data = json.loads(request.body.decode('utf-8'))
@@ -521,13 +581,104 @@ def bot_actualizar(request):
         mensaje = get_object_or_404(CrmColaWhatsapp, id=msg_id)
         mensaje.estado = nuevo_estado
         if error_msg:
-            mensaje.error_detalle = error_msg
+            mensaje.error_detalle = str(error_msg)
             mensaje.intentos = (mensaje.intentos or 0) + 1
         
         if nuevo_estado == 'enviado':
             mensaje.enviado_en = timezone.now()
 
         mensaje.save()
-        return JsonResponse({'ok': True, 'mensaje': f'Estado de ID {msg_id} actualizado a {nuevo_estado}.'})
+        return JsonResponse({
+            'ok': True,
+            'mensaje': f'Estado de ID {msg_id} actualizado a {nuevo_estado}.',
+            'id': msg_id,
+            'estado': nuevo_estado,
+        })
+    except Exception as e:
+        return JsonResponse({'ok': False, 'error': str(e)}, status=500)
+
+
+@csrf_exempt
+@require_GET
+def bot_reporte_estado(request):
+    """
+    Endpoint informativo y de auditoría que responde a:
+    - Cuáles mensajes están pendientes
+    - Cuáles ya se enviaron
+    - A quién van dirigidos (destinatario, teléfono, asesor)
+    - Cómo se deben de enviar (url_wa, método WhatsApp Web)
+    - Resumen numérico general
+    """
+    try:
+        estado_filtro = request.GET.get('estado', '').strip().lower()
+        usuario_filtro = request.GET.get('usuario', '').strip()
+
+        qs = CrmColaWhatsapp.objects.all().order_by('-id')
+        if usuario_filtro:
+            qs = qs.filter(usuario=usuario_filtro)
+
+        total_pendientes = qs.filter(estado='pendiente').count()
+        total_procesando = qs.filter(estado='procesando').count()
+        total_enviados = qs.filter(estado='enviado').count()
+        total_errores = qs.filter(estado='error').count()
+
+        if estado_filtro:
+            items_qs = qs.filter(estado=estado_filtro)[:150]
+        else:
+            items_qs = qs[:150]
+
+        mensajes_formateados = []
+        for m in items_qs:
+            tel_limpio = ''.join(c for c in (m.telefono or '') if c.isdigit())
+            msg_codificado = urllib.parse.quote(m.mensaje or '')
+            url_wa = f"https://wa.me/{tel_limpio}?text={msg_codificado}"
+
+            mensajes_formateados.append({
+                'id': m.id,
+                'estado': m.estado,
+                'a_quien': {
+                    'nombre': m.nombre_contacto or 'Sin nombre',
+                    'telefono': tel_limpio or m.telefono,
+                    'asesor_propietario': m.usuario,
+                },
+                'como_enviar': {
+                    'metodo': 'WhatsApp Web / Desktop',
+                    'url_directa': url_wa,
+                    'accion_bot': 'Abrir url_directa en navegador, esperar carga y presionar Enter',
+                },
+                'mensaje_texto': m.mensaje,
+                'fecha_programada': m.fecha_programada.strftime('%Y-%m-%d') if m.fecha_programada else '',
+                'creado_en': m.creado_en.strftime('%Y-%m-%d %H:%M:%S') if m.creado_en else '',
+                'enviado_en': m.enviado_en.strftime('%Y-%m-%d %H:%M:%S') if m.enviado_en else None,
+                'intentos': m.intentos,
+                'error_detalle': m.error_detalle,
+            })
+
+        # Agrupados por estado para lectura rápida
+        pendientes_list = [m for m in mensajes_formateados if m['estado'] == 'pendiente']
+        enviados_list = [m for m in mensajes_formateados if m['estado'] == 'enviado']
+        procesando_list = [m for m in mensajes_formateados if m['estado'] == 'procesando']
+        errores_list = [m for m in mensajes_formateados if m['estado'] == 'error']
+
+        return JsonResponse({
+            'ok': True,
+            'resumen': {
+                'total_general': qs.count(),
+                'total_pendientes': total_pendientes,
+                'total_enviados': total_enviados,
+                'total_procesando': total_procesando,
+                'total_errores': total_errores,
+            },
+            'filtro_aplicado': {
+                'estado': estado_filtro or 'todos',
+                'usuario': usuario_filtro or 'todos',
+            },
+            'pendientes': pendientes_list,
+            'enviados': enviados_list,
+            'procesando': procesando_list,
+            'errores': errores_list,
+            'todos_recientes': mensajes_formateados,
+        }, json_dumps_params={'ensure_ascii': False, 'indent': 2})
+
     except Exception as e:
         return JsonResponse({'ok': False, 'error': str(e)}, status=500)

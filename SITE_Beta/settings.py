@@ -133,3 +133,6 @@ CSRF_TRUSTED_ORIGINS = [
 LOGIN_URL = '/crm/login/'
 LOGIN_REDIRECT_URL = '/crm/'
 LOGOUT_REDIRECT_URL = '/crm/login/'
+
+# Token de seguridad para el bot nocturno de WhatsApp (bot_nocturno.py)
+WHATSAPP_BOT_TOKEN = 'TOKEN_DE_SEGURIDAD_SUPER_SECRETO'
